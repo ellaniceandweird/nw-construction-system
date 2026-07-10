@@ -89,6 +89,8 @@ export interface Project extends BaseEntity {
   actualCompletionDate?: string;
   estimatedContractValue: number;
   approvedBudget: number;
+  /** Real "Cost to Date" figure from the source workbook, where available. */
+  actualCostToDate?: number;
 
   // Project team (key roles; full assignment list lives in TeamAssignment[])
   team: {

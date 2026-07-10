@@ -12,3 +12,4 @@ export * from "@/types/procurement";
 export * from "@/types/estimating";
 export * from "@/types/financial";
 export * from "@/types/documents";
+export * from "@/types/maintenance";

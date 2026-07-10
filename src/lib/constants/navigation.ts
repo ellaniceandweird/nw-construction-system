@@ -3,17 +3,24 @@ import {
   LayoutDashboard,
   FolderKanban,
   CalendarRange,
-  HardHat,
+  ClipboardList,
+  Wrench,
   ShoppingCart,
   Calculator,
   Wallet,
   FileText,
+  Building2,
+  Users,
   BarChart3,
   Sparkles,
-  Workflow,
-  ShieldCheck,
+  Settings,
 } from "lucide-react";
 import type { Role } from "@/types/roles";
+
+export interface NavChild {
+  label: string;
+  href: string;
+}
 
 export interface NavItem {
   label: string;
@@ -21,40 +28,78 @@ export interface NavItem {
   icon: LucideIcon;
   /** Roles allowed to see this item. Omit = visible to everyone. */
   roles?: Role[];
+  /** Expandable sub-items shown when the parent is active or toggled open. */
+  children?: NavChild[];
 }
 
 /**
  * Primary sidebar navigation.
- * Source: SDS Volume 7 §5.2 (Sidebar) — Dashboard, Projects, Scheduling,
- * Field Operations, Procurement, Estimating, Financial, Documents, Reports,
- * Administration — extended with AI and Automation per the module list
- * in the project brief.
+ *
+ * Restructured to match the approved reference design (dark sidebar with
+ * grouped sub-navigation). Every module from the original brief is still
+ * present:
+ *  - "Planning" = the Scheduling module (SDS §6), renamed to match the
+ *    reference's own label for the Master Schedule + lookahead hierarchy.
+ *  - "Daily Logs" = the primary day-to-day entry point into Field
+ *    Operations (SDS §7); the full module (crew, equipment, safety,
+ *    quality) still lives at this route.
+ *  - Estimating and Documents keep their own top-level entries — the
+ *    reference image doesn't show them, but both are substantial SDS
+ *    modules (§9, §11) that don't fit naturally inside another item.
+ *  - Automation and Admin/Security are folded into Settings, matching how
+ *    the reference's own Settings panel lists "Automation Rules" and
+ *    "Users & Permissions" as configuration sections rather than separate
+ *    top-level modules.
+ *  - Property Mgmt and Contacts are new items from the reference design,
+ *    not in the original SDS module list.
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Projects", href: "/projects", icon: FolderKanban },
-  { label: "Scheduling", href: "/scheduling/master", icon: CalendarRange },
-  { label: "Field Operations", href: "/field-operations", icon: HardHat },
-  { label: "Procurement", href: "/procurement", icon: ShoppingCart },
+  {
+    label: "Planning",
+    href: "/scheduling/master",
+    icon: CalendarRange,
+    children: [
+      { label: "Master Schedule", href: "/scheduling/master" },
+      { label: "16-Week Lookahead", href: "/scheduling/lookahead-16" },
+      { label: "4-Week Lookahead", href: "/scheduling/lookahead-4" },
+      { label: "Weekly Schedule", href: "/scheduling/weekly" },
+      { label: "Daily Work Plan", href: "/scheduling/daily" },
+    ],
+  },
+  { label: "Daily Logs", href: "/field-operations", icon: ClipboardList },
+  {
+    label: "Maintenance",
+    href: "/maintenance",
+    icon: Wrench,
+    children: [
+      { label: "General Maintenance", href: "/maintenance?tab=general" },
+      { label: "Recurring Maintenance", href: "/maintenance?tab=recurring" },
+    ],
+  },
+  {
+    label: "Procurement",
+    href: "/procurement",
+    icon: ShoppingCart,
+    children: [
+      { label: "Forecast", href: "/procurement?tab=forecast" },
+      { label: "RFQs", href: "/procurement?tab=rfqs" },
+      { label: "Quotes", href: "/procurement?tab=quotes" },
+      { label: "Purchase Orders", href: "/procurement?tab=pos" },
+    ],
+  },
   { label: "Estimating", href: "/estimating", icon: Calculator },
   { label: "Financial", href: "/financial", icon: Wallet },
   { label: "Documents", href: "/documents", icon: FileText },
-  { label: "Reporting", href: "/reporting", icon: BarChart3 },
+  { label: "Property Mgmt", href: "/properties", icon: Building2 },
+  { label: "Contacts", href: "/contacts", icon: Users },
+  { label: "Reports", href: "/reporting", icon: BarChart3 },
   { label: "AI Assistant", href: "/ai", icon: Sparkles },
-  { label: "Automation", href: "/automation", icon: Workflow },
   {
-    label: "Administration",
+    label: "Settings",
     href: "/admin",
-    icon: ShieldCheck,
+    icon: Settings,
     roles: ["system_administrator"],
   },
-];
-
-/** Sub-navigation for the Scheduling module (SDS §6.3 Scheduling Hierarchy). */
-export const SCHEDULING_SUBNAV = [
-  { label: "Master Schedule", href: "/scheduling/master" },
-  { label: "16-Week Lookahead", href: "/scheduling/lookahead-16" },
-  { label: "4-Week Lookahead", href: "/scheduling/lookahead-4" },
-  { label: "Weekly Schedule", href: "/scheduling/weekly" },
-  { label: "Daily Work Plan", href: "/scheduling/daily" },
 ];

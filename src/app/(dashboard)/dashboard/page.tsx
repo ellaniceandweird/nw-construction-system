@@ -1,44 +1,103 @@
-import { PageHeader } from "@/components/layout/page-header";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+  CalendarClock,
+  Wallet,
+  ClipboardCheck,
+  Wrench,
+  CalendarCheck2,
+  ShoppingCart,
+} from "lucide-react";
 
-const PLACEHOLDER_WIDGETS = [
-  { title: "Active Projects", hint: "Executive Summary" },
-  { title: "Delayed Projects", hint: "Executive Summary" },
-  { title: "Project Health", hint: "Portfolio Health" },
-  { title: "Schedule Summary", hint: "This Week" },
-  { title: "Procurement Summary", hint: "RFQs & POs" },
-  { title: "Financial Summary", hint: "Budget vs Actual" },
-  { title: "Field Operations", hint: "Crews & Daily Logs" },
-  { title: "AI Risk Alerts", hint: "Predictive Risk" },
-];
+import { PageHeader } from "@/components/layout/page-header";
+import { KpiCard } from "@/components/dashboard/widgets/kpi-card";
+import { ProjectsOverviewWidget } from "@/components/dashboard/widgets/projects-overview-widget";
+import { BudgetOverviewWidget } from "@/components/dashboard/widgets/budget-overview-widget";
+import { ScheduleOverviewWidget } from "@/components/dashboard/widgets/schedule-overview-widget";
+import { RecentActivityWidget } from "@/components/dashboard/widgets/recent-activity-widget";
+import { UpcomingDeadlinesWidget } from "@/components/dashboard/widgets/upcoming-deadlines-widget";
+import { NotesFromManagementWidget } from "@/components/dashboard/widgets/notes-from-management-widget";
+import { StatusLegend } from "@/components/dashboard/widgets/status-legend";
+import {
+  getProjectsBehindSchedule,
+  getProjectsOverBudget,
+  getPendingApprovals,
+  getOverdueMaintenance,
+  getMaintenanceDueThisWeek,
+  getProcurementRequiringAttention,
+} from "@/lib/dashboard/metrics";
 
 export default function DashboardPage() {
+  const behindSchedule = getProjectsBehindSchedule();
+  const overBudget = getProjectsOverBudget();
+  const pendingApprovals = getPendingApprovals();
+  const overdueMaintenance = getOverdueMaintenance();
+  const dueThisWeek = getMaintenanceDueThisWeek();
+  const procurementAttention = getProcurementRequiringAttention();
+
   return (
     <>
       <PageHeader
-        title="Dashboard"
+        title="Dashboard (Executive Overview)"
         description="Role-aware operational overview — updates automatically as project data changes."
       />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {PLACEHOLDER_WIDGETS.map((w) => (
-          <Card key={w.title}>
-            <CardHeader>
-              <CardTitle>{w.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-foreground">—</div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {w.hint} · widget built in Phase 5
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        <KpiCard
+          label="Projects Behind Schedule"
+          value={behindSchedule.length}
+          icon={CalendarClock}
+          tone="destructive"
+          href="/projects"
+        />
+        <KpiCard
+          label="Projects Over Budget"
+          value={overBudget.length}
+          icon={Wallet}
+          tone="destructive"
+          href="/projects"
+        />
+        <KpiCard
+          label="Pending Approvals"
+          value={pendingApprovals.length}
+          icon={ClipboardCheck}
+          tone="warning"
+          href="/maintenance"
+        />
+        <KpiCard
+          label="Overdue Maintenance"
+          value={overdueMaintenance.length}
+          icon={Wrench}
+          tone="destructive"
+          href="/maintenance"
+        />
+        <KpiCard
+          label="Maintenance Due This Week"
+          value={dueThisWeek.length}
+          icon={CalendarCheck2}
+          tone="success"
+          href="/maintenance"
+        />
+        <KpiCard
+          label="Procurement Requiring Attention"
+          value={procurementAttention.length}
+          icon={ShoppingCart}
+          tone="info"
+          href="/procurement"
+        />
       </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-4">
+        <ProjectsOverviewWidget />
+        <BudgetOverviewWidget />
+        <ScheduleOverviewWidget />
+        <RecentActivityWidget />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <UpcomingDeadlinesWidget />
+        <NotesFromManagementWidget />
+      </div>
+
+      <StatusLegend />
     </>
   );
 }

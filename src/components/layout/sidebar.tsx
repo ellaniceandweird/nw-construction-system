@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronsLeft, ChevronsRight, Building2 } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, ChevronDown, HardHat } from "lucide-react";
 
 import { NAV_ITEMS } from "@/lib/constants/navigation";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -24,73 +24,122 @@ export function Sidebar() {
     (item) => !item.roles || item.roles.includes(user.role)
   );
 
+  const activeParentHref = visibleItems.find(
+    (item) => pathname === item.href || pathname.startsWith(item.href + "/")
+  )?.href;
+
+  const [openGroup, setOpenGroup] = React.useState<string | null>(
+    activeParentHref ?? null
+  );
+
   return (
     <aside
       className={cn(
-        "hidden md:flex h-svh shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200",
-        collapsed ? "w-[68px]" : "w-64"
+        "hidden md:flex h-svh shrink-0 flex-col bg-sidebar transition-[width] duration-200",
+        collapsed ? "w-[68px]" : "w-72"
       )}
     >
       <div
         className={cn(
-          "flex h-14 items-center gap-2 px-4",
+          "flex h-16 items-center gap-2.5 px-5",
           collapsed && "justify-center px-0"
         )}
       >
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Building2 className="size-4" />
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <HardHat className="size-5" />
         </div>
         {!collapsed && (
           <div className="flex flex-col leading-none">
-            <span className="text-sm font-semibold text-sidebar-foreground">
-              Project NW
+            <span className="text-sm font-semibold tracking-wide text-sidebar-foreground">
+              NICE &amp; WEIRD
             </span>
-            <span className="text-[11px] text-muted-foreground">
-              Nice &amp; Weird Group
+            <span className="text-[11px] text-sidebar-muted">
+              Construction Operations
             </span>
           </div>
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-2 scrollbar-thin">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-3 scrollbar-thin">
         {visibleItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
+          const hasChildren = !!item.children?.length;
+          const isOpen = openGroup === item.href;
 
-          const link = (
-            <Link
+          const row = (
+            <div
               key={item.href}
-              href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                collapsed && "justify-center px-0",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+                "flex items-center rounded-lg text-sm font-medium transition-colors",
+                collapsed && "justify-center"
               )}
             >
-              <Icon className="size-4 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+              <Link
+                href={item.href}
+                onClick={() => hasChildren && setOpenGroup(isOpen ? null : item.href)}
+                className={cn(
+                  "flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
+                  collapsed && "justify-center px-0",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <Icon className="size-[18px] shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+              {!collapsed && hasChildren && (
+                <button
+                  aria-label={isOpen ? "Collapse section" : "Expand section"}
+                  onClick={() => setOpenGroup(isOpen ? null : item.href)}
+                  className="px-2 py-2.5 text-sidebar-muted hover:text-sidebar-accent-foreground"
+                >
+                  <ChevronDown
+                    className={cn(
+                      "size-3.5 transition-transform",
+                      isOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+              )}
+            </div>
           );
 
-          if (!collapsed) return link;
-
           return (
-            <Tooltip key={item.href}>
-              <TooltipTrigger asChild>{link}</TooltipTrigger>
-              <TooltipContent side="right">{item.label}</TooltipContent>
-            </Tooltip>
+            <div key={item.href}>
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>{row}</TooltipTrigger>
+                  <TooltipContent side="right">{item.label}</TooltipContent>
+                </Tooltip>
+              ) : (
+                row
+              )}
+              {!collapsed && hasChildren && isOpen && (
+                <div className="ml-4 mt-0.5 space-y-0.5 border-l border-sidebar-border pl-4">
+                  {item.children!.map((child) => (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className="block rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-muted hover:bg-sidebar-accent/40 hover:text-sidebar-accent-foreground"
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-2">
+      <div className="border-t border-sidebar-border p-3">
         <Button
           variant="ghost"
           size="icon"
-          className="w-full justify-center text-sidebar-foreground/70"
+          className="w-full justify-center text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
           onClick={() => setCollapsed((v) => !v)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
