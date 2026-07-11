@@ -7,4 +7,3 @@ export * from "@/lib/data/mock/daily-logs";
 export * from "@/lib/data/mock/properties";
 export * from "@/lib/data/mock/maintenance-tasks";
 export * from "@/lib/data/mock/maintenance-equipment";
-export * from "@/lib/data/mock/milestones";
