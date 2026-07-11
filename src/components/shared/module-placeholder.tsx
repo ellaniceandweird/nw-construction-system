@@ -15,10 +15,10 @@ export function ModulePlaceholder({
       <PageHeader title={title} description={description} />
       <Card>
         <CardContent className="flex flex-col items-center justify-center gap-1 py-16 text-center">
-          <p className="text-sm font-medium text-foreground">
+          <p className="w-full text-sm font-medium text-foreground">
             {title} module scaffold
           </p>
-          <p className="max-w-md text-sm text-muted-foreground">
+          <p className="mx-auto w-full max-w-md text-sm text-muted-foreground">
             This screen is wired into navigation and routing now. Full
             functionality is built in <span className="font-medium">{phase}</span>.
           </p>

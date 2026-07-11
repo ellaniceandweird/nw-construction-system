@@ -23,7 +23,9 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className={cn("flex flex-col gap-3 pb-5", className)}>
-      <Breadcrumbs />
+      <div className="print:hidden">
+        <Breadcrumbs />
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -35,7 +37,7 @@ export function PageHeader({
             </p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex items-center gap-2 print:hidden">{actions}</div>}
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ export function Topbar({ notificationCount = 0 }: { notificationCount?: number }
   const user = useCurrentUser();
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card px-5">
+    <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card px-5 print:hidden">
       <MobileNav />
 
       <div className="relative ml-1 flex-1 max-w-sm">

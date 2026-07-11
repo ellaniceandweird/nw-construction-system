@@ -1,11 +1,18 @@
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { PageHeader } from "@/components/layout/page-header";
+import { SchedulingTabs } from "@/components/scheduling/scheduling-tabs";
+import { DailyWorkPlanView } from "@/components/scheduling/daily-work-plan-view";
+import { PrintButton } from "@/components/shared/print-button";
 
-export default function Page() {
+export default function DailyWorkPlanPage() {
   return (
-    <ModulePlaceholder
-      title="Daily Work Plan"
-      description="Exact daily work packages assigned to field crews."
-      phase="Phase 7"
-    />
+    <>
+      <PageHeader
+        title="Daily Work Plan"
+        description="The exact work package assigned to each crew today — auto-generated from the Weekly Schedule."
+        actions={<PrintButton />}
+      />
+      <SchedulingTabs />
+      <DailyWorkPlanView />
+    </>
   );
 }

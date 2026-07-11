@@ -211,12 +211,13 @@
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-  --spacing-xs: 0.25rem;  /* 4px */
-  --spacing-sm: 0.5rem;   /* 8px */
-  --spacing-md: 1rem;     /* 16px */
-  --spacing-lg: 1.5rem;   /* 24px */
-  --spacing-xl: 2rem;     /* 32px */
-  --spacing-2xl: 3rem;    /* 48px */
+  /* NOTE: Removed a custom named spacing scale (xs/sm/md/lg/xl/2xl) that
+     used to live here — it silently collided with Tailwind's own built-in
+     named scale used by w-*, max-w-*, h-*, etc. (e.g. it made max-w-md
+     resolve to 16px instead of Tailwind's real 28rem default). Standard
+     numeric Tailwind spacing utilities (p-4, gap-2, px-5, etc.) already
+     cover the 4/8/16/24/32/48px scale from the SDS without needing a
+     custom named scale that risks this exact collision again. */
 }
 
 @layer base {

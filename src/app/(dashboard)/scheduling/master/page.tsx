@@ -1,11 +1,18 @@
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { PageHeader } from "@/components/layout/page-header";
+import { SchedulingTabs } from "@/components/scheduling/scheduling-tabs";
+import { MasterScheduleTable } from "@/components/scheduling/master-schedule-table";
+import { PrintButton } from "@/components/shared/print-button";
 
-export default function Page() {
+export default function MasterSchedulePage() {
   return (
-    <ModulePlaceholder
-      title="Master Schedule"
-      description="The single source of truth for project planning — all lookahead, weekly, and daily schedules are generated from here."
-      phase="Phase 7"
-    />
+    <>
+      <PageHeader
+        title="Master Schedule"
+        description="The single source of truth for project planning. Every other schedule view is generated automatically from this data."
+        actions={<PrintButton />}
+      />
+      <SchedulingTabs />
+      <MasterScheduleTable />
+    </>
   );
 }
