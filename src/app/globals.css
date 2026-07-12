@@ -234,3 +234,15 @@
     scrollbar-width: thin;
   }
 }
+
+/* Force background colors to print even when the browser's own
+   "Background graphics" print option is left unchecked (most people
+   never check it). Without this, every status badge and color-coded
+   block in printed schedules would show up blank/white. */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}

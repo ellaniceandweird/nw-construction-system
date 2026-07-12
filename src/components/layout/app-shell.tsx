@@ -9,11 +9,11 @@ import { Topbar } from "@/components/layout/topbar";
  */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-svh w-full overflow-hidden bg-background">
+    <div className="flex h-svh w-full overflow-hidden bg-background print:h-auto print:overflow-visible">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col print:block">
         <Topbar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto print:overflow-visible print:h-auto">
           <div className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8">
             {children}
           </div>

@@ -34,15 +34,6 @@ const COLOR_CLASS: Record<WeeklyScheduleColor, string> = {
   blocked: "bg-destructive text-destructive-foreground",
 };
 
-const PRINT_DAY_CODE: Record<WeeklyScheduleColor, string> = {
-  complete: "C",
-  in_progress: "P",
-  upcoming: "U",
-  delayed: "D",
-  blocked: "B",
-  not_started: "—",
-};
-
 function startOfWeek(date: Date) {
   const d = new Date(date);
   const day = d.getDay();
@@ -175,18 +166,37 @@ export function WeeklyScheduleGrid() {
                   <td className="py-1.5 pr-3 font-medium">{project?.projectName ?? "—"}</td>
                   <td className="py-1.5 pr-3">{entry.taskDescription}</td>
                   <td className="py-1.5 pr-3">{entry.crew ?? "—"}</td>
-                  {DAY_KEYS.map((key) => (
-                    <td key={key} className="py-1.5 pr-2 text-center">
-                      {PRINT_DAY_CODE[entry.dailyAllocation[key] as WeeklyScheduleColor] ?? "—"}
-                    </td>
-                  ))}
+                  {DAY_KEYS.map((key) => {
+                    const color = entry.dailyAllocation[key];
+                    return (
+                      <td key={key} className="py-1.5 pr-2 text-center">
+                        {color ? (
+                          <span
+                            className={cn(
+                              "mx-auto inline-block h-4 w-8 rounded",
+                              COLOR_CLASS[color]
+                            )}
+                          />
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               );
             })}
           </tbody>
         </table>
-        <p className="mt-2 text-[10px] text-black/60">
-          C = Complete · P = In Progress · U = Upcoming · D = Delayed · B = Blocked
+        <p className="mt-2 flex flex-wrap gap-3 text-[10px] text-black/70">
+          {(Object.keys(COLOR_CLASS) as WeeklyScheduleColor[])
+            .filter((c) => c !== "not_started")
+            .map((c) => (
+              <span key={c} className="flex items-center gap-1">
+                <span className={cn("inline-block h-3 w-3 rounded", COLOR_CLASS[c])} />
+                {c.replace("_", " ")}
+              </span>
+            ))}
         </p>
       </div>
     </div>

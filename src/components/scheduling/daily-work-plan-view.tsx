@@ -196,9 +196,21 @@ export function DailyWorkPlanView() {
                   <td className="py-1.5 pr-3">{s.activity.name}</td>
                   <td className="py-1.5 pr-3">{s.assignedCrew}</td>
                   <td className="py-1.5 pr-3">
-                    {getWorkType(s.activity) === "internal" ? "Our Crew" : "Subcontractor"}
+                    <span
+                      className={
+                        getWorkType(s.activity) === "internal"
+                          ? "inline-block rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-800"
+                          : "inline-block rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-medium text-sky-800"
+                      }
+                    >
+                      {getWorkType(s.activity) === "internal" ? "Our Crew" : "Subcontractor"}
+                    </span>
                   </td>
-                  <td className="py-1.5">Scheduled</td>
+                  <td className="py-1.5">
+                    <span className="inline-block rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-800">
+                      Scheduled
+                    </span>
+                  </td>
                 </tr>
               );
             })}
@@ -210,9 +222,21 @@ export function DailyWorkPlanView() {
                   <td className="py-1.5 pr-3">{d.activity.name}</td>
                   <td className="py-1.5 pr-3">{d.neededCrew}</td>
                   <td className="py-1.5 pr-3">
-                    {getWorkType(d.activity) === "internal" ? "Our Crew" : "Subcontractor"}
+                    <span
+                      className={
+                        getWorkType(d.activity) === "internal"
+                          ? "inline-block rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-800"
+                          : "inline-block rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-medium text-sky-800"
+                      }
+                    >
+                      {getWorkType(d.activity) === "internal" ? "Our Crew" : "Subcontractor"}
+                    </span>
                   </td>
-                  <td className="py-1.5">Needs more crew</td>
+                  <td className="py-1.5">
+                    <span className="inline-block rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800">
+                      Needs more crew
+                    </span>
+                  </td>
                 </tr>
               );
             })}
