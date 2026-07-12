@@ -8,6 +8,3 @@ export * from "@/lib/data/mock/properties";
 export * from "@/lib/data/mock/maintenance-tasks";
 export * from "@/lib/data/mock/maintenance-equipment";
 export * from "@/lib/data/mock/milestones";
-export * from "@/lib/data/mock/vendors";
-export * from "@/lib/data/mock/purchase-orders";
-export * from "@/lib/data/mock/material-requests";
