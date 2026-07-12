@@ -86,13 +86,14 @@ export function DailyLogsList() {
               <th className="px-4 py-3 font-medium">Weather</th>
               <th className="px-4 py-3 font-medium">Crew</th>
               <th className="px-4 py-3 font-medium">Total Hours</th>
+              <th className="px-4 py-3 font-medium">Prepared By</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((log) => {
               const project = MOCK_PROJECTS.find((p) => p.id === log.projectId);
               const totalHours = log.crewAttendance.reduce((s, c) => s + c.hoursWorked, 0);
-              const crewCount = new Set(log.crewAttendance.map((c) => c.crewName)).size;
+              const crewCount = log.crewAttendance.length;
               const WeatherIcon = WEATHER_ICON[log.weatherCondition] ?? Sun;
 
               return (
@@ -120,12 +121,13 @@ export function DailyLogsList() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{crewCount}</td>
                   <td className="px-4 py-3 text-muted-foreground">{totalHours}h</td>
+                  <td className="px-4 py-3 text-muted-foreground">{log.preparedBy}</td>
                 </tr>
               );
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
                   No daily logs match your search.
                 </td>
               </tr>

@@ -23,10 +23,7 @@ export default function DailyRollupPage() {
   const logs = useDailyLogs();
 
   const logsForDay = logs.filter((l) => l.date === params.date);
-  const uniqueCrewNames = new Set(
-    logsForDay.flatMap((l) => l.crewAttendance.map((c) => c.crewName))
-  );
-  const totalCrew = uniqueCrewNames.size;
+  const totalCrew = logsForDay.reduce((s, l) => s + l.crewAttendance.length, 0);
   const totalHours = logsForDay.reduce(
     (s, l) => s + l.crewAttendance.reduce((s2, c) => s2 + c.hoursWorked, 0),
     0

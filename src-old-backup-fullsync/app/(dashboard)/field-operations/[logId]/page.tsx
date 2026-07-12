@@ -79,7 +79,7 @@ export default function DailyLogDetailPage() {
             <span className="text-xs text-muted-foreground">Crew Present</span>
             <span className="flex items-center gap-1.5 font-medium text-foreground">
               <Users className="size-4" />
-              {new Set(log.crewAttendance.map((c) => c.crewName)).size}
+              {log.crewAttendance.length}
             </span>
           </CardContent>
         </Card>
