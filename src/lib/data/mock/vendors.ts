@@ -3,10 +3,11 @@ import type { Vendor } from "@/types";
 /**
  * ILLUSTRATIVE vendor data. The source workbook (NW_Construction_Schedule)
  * has no real vendor/supplier records — this list uses realistic company
- * names and categories for the Hudson Valley, NY area (matching your real
- * project locations) so the Procurement UI has something meaningful to
- * show, but these are NOT real vendors from your business. Replace with
- * real vendor records once Excel/Procurement data exists (Phase 8).
+ * names, categories, and contact details for the Hudson Valley, NY area
+ * (matching your real project locations) so the Procurement UI has
+ * something meaningful to show, but these are NOT real vendors from your
+ * business. Replace with real vendor records once Excel/Procurement data
+ * exists (Phase 8).
  */
 export const MOCK_VENDORS: Vendor[] = [
   {
@@ -21,6 +22,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Hudson",
     state: "NY",
     leadTimeDays: 5,
+    primaryContact: "Mike Delaney",
+    phone: "(518) 555-0142",
+    email: "mdelaney@hvlumberco.com",
+    website: "www.hvlumberco.com",
+    notes: "Reliable on framing lumber; call ahead for cedar siding, often backordered.",
     isPreferredVendor: true,
     isApprovedVendor: true,
     performance: {
@@ -45,6 +51,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Catskill",
     state: "NY",
     leadTimeDays: 7,
+    primaryContact: "Dana Whitfield",
+    phone: "(518) 555-0198",
+    email: "dwhitfield@catskillroofing.com",
+    website: "www.catskillroofingsupply.com",
+    notes: "Good pricing on asphalt shingles in bulk orders.",
     isPreferredVendor: true,
     isApprovedVendor: true,
     performance: {
@@ -69,6 +80,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Hudson",
     state: "NY",
     leadTimeDays: 21,
+    primaryContact: "Sam Okafor",
+    phone: "(518) 555-0177",
+    email: "sokafor@hrwindows.com",
+    website: "www.hudsonriverwindows.com",
+    notes: "Long lead time on custom sizes \u2014 order 3+ weeks ahead.",
     isPreferredVendor: true,
     isApprovedVendor: true,
     performance: {
@@ -93,6 +109,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Catskill",
     state: "NY",
     leadTimeDays: 3,
+    primaryContact: "Priya Nair",
+    phone: "(518) 555-0163",
+    email: "pnair@greenecountyelectrical.com",
+    website: "www.greenecountyelectrical.com",
+    notes: "Fast turnaround, good for last-minute fixture orders.",
     isPreferredVendor: true,
     isApprovedVendor: true,
     performance: {
@@ -117,6 +138,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Hudson",
     state: "NY",
     leadTimeDays: 4,
+    primaryContact: "Tom Reyes",
+    phone: "(518) 555-0134",
+    email: "treyes@columbiaphvac.com",
+    website: "www.columbiaplumbinghvac.com",
+    notes: "Preferred vendor for HVAC parts across Kitty's/Mr. Cat properties.",
     isPreferredVendor: true,
     isApprovedVendor: true,
     performance: {
@@ -141,6 +167,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Hudson",
     state: "NY",
     leadTimeDays: 1,
+    primaryContact: "Jenn Castillo",
+    phone: "(518) 555-0119",
+    email: "jcastillo@nfshardware.com",
+    website: "www.northfrontstreethardware.com",
+    notes: "Walk-in pickup same day, good for small hardware runs.",
     isPreferredVendor: false,
     isApprovedVendor: true,
     performance: {
@@ -165,6 +196,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Kingston",
     state: "NY",
     leadTimeDays: 10,
+    primaryContact: "Ray Petrocelli",
+    phone: "(845) 555-0155",
+    email: "rpetrocelli@midhudsonconcrete.com",
+    website: "www.midhudsonconcrete.com",
+    notes: "Needs 10 days notice for pours \u2014 schedule early.",
     isPreferredVendor: false,
     isApprovedVendor: true,
     performance: {
@@ -189,6 +225,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Hudson",
     state: "NY",
     leadTimeDays: 2,
+    primaryContact: "Alicia Munroe",
+    phone: "(413) 555-0188",
+    email: "amunroe@berkshirepaint.com",
+    website: "www.berkshirepaintcoatings.com",
+    notes: "Color-matching service available, ask for Alicia directly.",
     isPreferredVendor: false,
     isApprovedVendor: true,
     performance: {
@@ -213,6 +254,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Catskill",
     state: "NY",
     leadTimeDays: 1,
+    primaryContact: "Gus Feldman",
+    phone: "(518) 555-0171",
+    email: "gfeldman@ripvanwinklerental.com",
+    website: "www.ripvanwinkleequipment.com",
+    notes: "Book scaffolding early during peak summer season.",
     isPreferredVendor: false,
     isApprovedVendor: true,
     performance: {
@@ -237,6 +283,11 @@ export const MOCK_VENDORS: Vendor[] = [
     city: "Hudson",
     state: "NY",
     leadTimeDays: 14,
+    primaryContact: "Renee Vasquez",
+    phone: "(518) 555-0146",
+    email: "rvasquez@southbaysubs.com",
+    website: "www.southbaysubcontracting.com",
+    notes: "Used for overflow labor on larger renovation jobs.",
     isPreferredVendor: false,
     isApprovedVendor: true,
     performance: {

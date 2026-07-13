@@ -46,6 +46,7 @@ export interface Vendor extends BaseEntity {
   isPreferredVendor: boolean;
   isApprovedVendor: boolean;
   minorityOwnedStatus?: string;
+  notes?: string;
 
   performance: VendorPerformance;
 }
@@ -106,6 +107,8 @@ export interface MaterialRequest extends BaseEntity {
   approvalStatus: "pending" | "approved" | "rejected";
   estimatedCost?: number;
   notes?: string;
+  /** Link to an attached file, Google Doc, or PDF supporting this request. */
+  referenceUrl?: string;
   requestStatus: MaterialRequestStatus;
   lineItems: MaterialRequestLineItem[];
 }
@@ -176,6 +179,7 @@ export interface PurchaseOrder extends BaseEntity {
   tax?: number;
   freight?: number;
   total: number;
+  notes?: string;
   lineItems: PurchaseOrderLineItem[];
 }
 
