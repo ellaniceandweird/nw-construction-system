@@ -122,9 +122,13 @@ export interface VendorQuoteResponse {
   warranty?: string;
   notes?: string;
   validityPeriodDays?: number;
+  /** ISO date the vendor's quote was received. */
+  submittedDate?: string;
   /** Computed overall score for Quote Comparison (SDS §8.10). */
   overallScore?: number;
 }
+
+export type RFQStatus = "open" | "partial" | "quoted" | "awarded";
 
 /** SDS §8.9 — Request for Quotation (RFQ). */
 export interface RequestForQuotation extends BaseEntity {
@@ -138,6 +142,8 @@ export interface RequestForQuotation extends BaseEntity {
   materialList: string;
   notes?: string;
   responses: VendorQuoteResponse[];
+  /** Set once a vendor is selected via Quote Comparison (SDS §8.10). */
+  awardedVendorId?: string;
 }
 
 export type PurchaseOrderStatus =

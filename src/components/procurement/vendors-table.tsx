@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { VendorEditDialog } from "@/components/procurement/vendor-edit-dialog";
 import type { Vendor } from "@/types/procurement";
 
+/** Vendors tab: suppliers only — subcontractors live on their own tab. */
 export function VendorsTable() {
   const vendors = useVendors();
   const [editingVendor, setEditingVendor] = React.useState<Vendor | null>(null);
 
-  const sorted = [...vendors].sort((a, b) => a.vendorName.localeCompare(b.vendorName));
+  const suppliers = vendors.filter((v) => v.supplierType !== "subcontractor");
+  const sorted = [...suppliers].sort((a, b) => a.vendorName.localeCompare(b.vendorName));
 
   return (
     <>

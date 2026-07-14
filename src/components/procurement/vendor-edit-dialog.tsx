@@ -13,6 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateVendor } from "@/lib/procurement/vendor-store";
 import type { Vendor } from "@/types/procurement";
 
@@ -22,9 +29,18 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
+const SUPPLIER_TYPE_OPTIONS: { value: NonNullable<Vendor["supplierType"]>; label: string }[] = [
+  { value: "material", label: "Material Supplier" },
+  { value: "equipment_rental", label: "Equipment Rental" },
+  { value: "service", label: "Service Provider" },
+  { value: "subcontractor", label: "Subcontractor" },
+];
+
 export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
   const [vendorName, setVendorName] = React.useState("");
   const [vendorCategory, setVendorCategory] = React.useState("");
+  const [trade, setTrade] = React.useState("");
+  const [supplierType, setSupplierType] = React.useState<NonNullable<Vendor["supplierType"]>>("material");
   const [primaryContact, setPrimaryContact] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -35,6 +51,8 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
     if (vendor) {
       setVendorName(vendor.vendorName);
       setVendorCategory(vendor.vendorCategory);
+      setTrade(vendor.trade ?? "");
+      setSupplierType(vendor.supplierType ?? "material");
       setPrimaryContact(vendor.primaryContact ?? "");
       setPhone(vendor.phone ?? "");
       setEmail(vendor.email ?? "");
@@ -45,7 +63,17 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
 
   function handleSave() {
     if (!vendor) return;
-    updateVendor(vendor.id, { vendorName, vendorCategory, primaryContact, phone, email, website, notes });
+    updateVendor(vendor.id, {
+      vendorName,
+      vendorCategory,
+      trade: trade || undefined,
+      supplierType,
+      primaryContact,
+      phone,
+      email,
+      website,
+      notes,
+    });
     onOpenChange(false);
   }
 
@@ -65,6 +93,34 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
             <div>
               <Label htmlFor="vendorCategory">Category</Label>
               <Input id="vendorCategory" className="mt-1.5" value={vendorCategory} onChange={(e) => setVendorCategory(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="trade">Trade</Label>
+              <Input id="trade" className="mt-1.5" value={trade} onChange={(e) => setTrade(e.target.value)} />
+            </div>
+            <div>
+              <Label>Type</Label>
+              <Select
+                value={supplierType}
+                onValueChange={(v) => setSupplierType(v as NonNullable<Vendor["supplierType"]>)}
+              >
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPLIER_TYPE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Setting this to Subcontractor moves the record to the Subcontractor tab.
+              </p>
             </div>
           </div>
 

@@ -42,6 +42,8 @@ export function getVendorsSnapshot(): Vendor[] {
 export interface VendorEditInput {
   vendorName: string;
   vendorCategory: string;
+  trade?: string;
+  supplierType?: Vendor["supplierType"];
   primaryContact?: string;
   phone?: string;
   email?: string;
