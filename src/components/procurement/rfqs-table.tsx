@@ -21,6 +21,8 @@ const STATUS_CLASS: Record<string, string> = {
   partial: "bg-warning-soft text-warning-foreground",
   quoted: "bg-info-soft text-info-foreground",
   awarded: "bg-success-soft text-success",
+  closed: "bg-muted text-muted-foreground",
+  cancelled: "bg-destructive-soft text-destructive",
 };
 
 function formatDate(d: string) {
@@ -79,7 +81,9 @@ export function RfqsTable() {
                     <Badge className={`${STATUS_CLASS[rfqStatus]} border-transparent`}>
                       {rfqStatus === "awarded"
                         ? `Awarded — ${vendorName(r.awardedVendorId!)}`
-                        : `${r.responses.length}/${r.vendorIds.length} ${rfqStatus}`}
+                        : rfqStatus === "cancelled" || rfqStatus === "closed"
+                          ? rfqStatus.charAt(0).toUpperCase() + rfqStatus.slice(1)
+                          : `${r.responses.length}/${r.vendorIds.length} ${rfqStatus}`}
                     </Badge>
                   </td>
                   <td className="px-4 py-3">

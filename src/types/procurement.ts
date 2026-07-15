@@ -144,6 +144,13 @@ export interface RequestForQuotation extends BaseEntity {
   responses: VendorQuoteResponse[];
   /** Set once a vendor is selected via Quote Comparison (SDS §8.10). */
   awardedVendorId?: string;
+  /**
+   * Manual override for cases the automatic open/partial/quoted/awarded
+   * pipeline status can't express — e.g. the RFQ was scrapped or closed
+   * without awarding anyone. Takes precedence over the derived status
+   * when set. Editable from the RFQ edit dialog.
+   */
+  manualStatus?: "cancelled" | "closed";
 }
 
 export type PurchaseOrderStatus =

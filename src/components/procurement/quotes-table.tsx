@@ -26,13 +26,6 @@ function vendorName(id: string) {
   return MOCK_VENDORS.find((v) => v.id === id)?.vendorName ?? id;
 }
 
-function scoreBadgeClass(score?: number) {
-  if (score == null) return "bg-muted text-muted-foreground";
-  if (score >= 80) return "bg-success-soft text-success";
-  if (score >= 50) return "bg-warning-soft text-warning-foreground";
-  return "bg-destructive-soft text-destructive";
-}
-
 export function QuotesTable() {
   const rfqs = useRFQs();
   const [editing, setEditing] = React.useState<{ rfqId: string; vendorId: string } | null>(null);
@@ -40,7 +33,7 @@ export function QuotesTable() {
 
   const rows = rfqs
     .flatMap((rfq) => rfq.responses.map((resp) => ({ rfq, resp })))
-    .sort((a, b) => (b.resp.overallScore ?? 0) - (a.resp.overallScore ?? 0));
+    .sort((a, b) => (b.resp.submittedDate ?? "").localeCompare(a.resp.submittedDate ?? ""));
 
   return (
     <>
@@ -68,7 +61,6 @@ export function QuotesTable() {
               <th className="px-4 py-3 font-medium">Lead Time</th>
               <th className="px-4 py-3 font-medium">Warranty</th>
               <th className="px-4 py-3 font-medium">Received</th>
-              <th className="px-4 py-3 font-medium">Score</th>
               <th className="px-4 py-3 font-medium">Edit</th>
             </tr>
           </thead>
@@ -96,11 +88,6 @@ export function QuotesTable() {
                   <td className="px-4 py-3 text-muted-foreground max-w-[10rem]">{resp.warranty ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(resp.submittedDate)}</td>
                   <td className="px-4 py-3">
-                    <Badge className={`${scoreBadgeClass(resp.overallScore)} border-transparent`}>
-                      {resp.overallScore ?? "—"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -114,7 +101,7 @@ export function QuotesTable() {
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-4 py-6 text-center text-muted-foreground">
+                <td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">
                   No quotes logged yet — add one from the RFQs tab, or use &quot;Add Quote&quot; above.
                 </td>
               </tr>

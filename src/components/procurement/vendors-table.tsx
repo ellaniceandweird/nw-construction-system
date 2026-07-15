@@ -4,8 +4,10 @@ import * as React from "react";
 import { Pencil } from "lucide-react";
 
 import { useVendors } from "@/hooks/use-vendors";
+import { toggleVendorRecommended } from "@/lib/procurement/vendor-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { VendorEditDialog } from "@/components/procurement/vendor-edit-dialog";
 import type { Vendor } from "@/types/procurement";
 
@@ -30,6 +32,7 @@ export function VendorsTable() {
               <th className="px-4 py-3 font-medium">Email Address</th>
               <th className="px-4 py-3 font-medium">Website</th>
               <th className="px-4 py-3 font-medium">Notes</th>
+              <th className="px-4 py-3 font-medium text-center">Recommended</th>
               <th className="px-4 py-3 font-medium">Edit</th>
             </tr>
           </thead>
@@ -56,6 +59,12 @@ export function VendorsTable() {
                   )}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground max-w-xs">{v.notes ?? "—"}</td>
+                <td className="px-4 py-3 text-center">
+                  <Checkbox
+                    checked={!!v.isPreferredVendor}
+                    onCheckedChange={(checked) => toggleVendorRecommended(v.id, checked === true)}
+                  />
+                </td>
                 <td className="px-4 py-3">
                   <Button variant="ghost" size="icon" onClick={() => setEditingVendor(v)}>
                     <Pencil className="size-3.5" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { MOCK_PURCHASE_ORDERS } from "@/lib/data/mock/purchase-orders";
-import type { PurchaseOrder, PurchaseOrderStatus } from "@/types/procurement";
+import type { PurchaseOrder, PurchaseOrderLineItem, PurchaseOrderStatus } from "@/types/procurement";
 
 const STORAGE_KEY = "project-nw:purchase-orders";
 
@@ -40,17 +40,32 @@ export function getPurchaseOrdersSnapshot(): PurchaseOrder[] {
 }
 
 export interface PurchaseOrderEditInput {
-  poStatus: PurchaseOrderStatus;
+  projectId: string;
+  vendorId: string;
+  orderDate: string;
   expectedDelivery?: string;
+  buyer?: string;
+  terms?: string;
+  poStatus: PurchaseOrderStatus;
+  tax?: number;
+  freight?: number;
   notes?: string;
+  lineItems: PurchaseOrderLineItem[];
+}
+
+export function computeTotal(input: Pick<PurchaseOrderEditInput, "lineItems" | "tax" | "freight">): number {
+  const lineTotal = input.lineItems.reduce((sum, li) => sum + li.extendedPrice, 0);
+  return lineTotal + (input.tax ?? 0) + (input.freight ?? 0);
 }
 
 export function updatePurchaseOrder(id: string, input: PurchaseOrderEditInput) {
+  const total = computeTotal(input);
   orders = orders.map((o) =>
     o.id === id
       ? {
           ...o,
           ...input,
+          total,
           lastModifiedDate: new Date().toISOString(),
         }
       : o

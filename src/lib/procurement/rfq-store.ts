@@ -87,15 +87,32 @@ export function createRFQ(input: CreateRFQInput) {
 }
 
 export interface RFQEditInput {
-  scope?: string;
+  projectId?: string;
+  materialRequestId?: string;
+  vendorIds?: string[];
+  issueDate?: string;
   dueDate?: string;
+  scope?: string;
+  materialList?: string;
   notes?: string;
+  manualStatus?: "cancelled" | "closed";
 }
 
 export function updateRFQ(id: string, input: RFQEditInput) {
-  rfqs = rfqs.map((r) =>
-    r.id === id ? { ...r, ...input, lastModifiedDate: new Date().toISOString() } : r
-  );
+  rfqs = rfqs.map((r) => {
+    if (r.id !== id) return r;
+    const next = { ...r, ...input, lastModifiedDate: new Date().toISOString() };
+    // If the invited-vendor list shrank, drop responses/award for vendors no longer invited.
+    if (input.vendorIds) {
+      next.responses = scoreResponses(
+        next.responses.filter((resp) => input.vendorIds!.includes(resp.vendorId))
+      );
+      if (next.awardedVendorId && !input.vendorIds.includes(next.awardedVendorId)) {
+        next.awardedVendorId = undefined;
+      }
+    }
+    return next;
+  });
   persist();
   emit();
 }
@@ -136,8 +153,11 @@ export function awardRFQ(rfqId: string, vendorId: string | undefined) {
   emit();
 }
 
-/** Derived status — RFQs don't store status directly; it's computed from responses. */
-export function getRFQStatus(r: RequestForQuotation): "open" | "partial" | "quoted" | "awarded" {
+/** Derived status — RFQs don't store status directly; it's computed from responses, unless manually overridden. */
+export function getRFQStatus(
+  r: RequestForQuotation
+): "open" | "partial" | "quoted" | "awarded" | "cancelled" | "closed" {
+  if (r.manualStatus) return r.manualStatus;
   if (r.awardedVendorId) return "awarded";
   if (r.responses.length === 0) return "open";
   if (r.responses.length < r.vendorIds.length) return "partial";

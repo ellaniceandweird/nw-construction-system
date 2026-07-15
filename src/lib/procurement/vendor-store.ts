@@ -64,3 +64,14 @@ export function updateVendor(id: string, input: VendorEditInput) {
   persist();
   emit();
 }
+
+/** Toggles the "Recommended" checkbox column on the Vendors / Subcontractor tabs. */
+export function toggleVendorRecommended(id: string, recommended: boolean) {
+  vendors = vendors.map((v) =>
+    v.id === id
+      ? { ...v, isPreferredVendor: recommended, lastModifiedDate: new Date().toISOString() }
+      : v
+  );
+  persist();
+  emit();
+}
