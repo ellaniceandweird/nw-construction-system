@@ -1,0 +1,37 @@
+import type { Submittal } from "@/types/documents";
+
+export const MOCK_SUBMITTALS: Submittal[] = [
+  {
+    id: "SUB-000001",
+    createdBy: "system", createdDate: "2026-06-24T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-06-27T00:00:00.000Z",
+    revisionNumber: 1, module: "Documents", status: "active",
+    projectId: "PRJ-000006",
+    submittalNumber: "SUB-2026-0001",
+    specificationSection: "07040",
+    material: "Board & batten cedar siding sample",
+    manufacturer: "Hudson Valley Lumber Co.",
+    vendorId: "VEN-000001",
+    submittedBy: "Ella Esquivel",
+    submissionDate: "2026-06-24",
+    requiredDate: "2026-06-28",
+    returnedDate: "2026-06-27",
+    submittalStatus: "approved",
+  },
+  {
+    id: "SUB-000002",
+    createdBy: "system", createdDate: "2026-07-13T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-13T00:00:00.000Z",
+    revisionNumber: 1, module: "Documents", status: "active",
+    projectId: "PRJ-000002",
+    submittalNumber: "SUB-2026-0002",
+    specificationSection: "075400",
+    material: "Standing seam metal roof panel & color sample",
+    manufacturer: "Ridgeline Roofing Crew",
+    vendorId: "VEN-000011",
+    submittedBy: "Ella Esquivel",
+    submissionDate: "2026-07-13",
+    requiredDate: "2026-07-20",
+    submittalStatus: "submitted",
+  },
+];
