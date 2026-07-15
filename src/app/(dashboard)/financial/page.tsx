@@ -1,11 +1,10 @@
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { Suspense } from "react";
+import { FinancialPageClient } from "@/components/financial/financial-page-client";
 
-export default function Page() {
+export default function FinancialPage() {
   return (
-    <ModulePlaceholder
-      title="Financial Tracking"
-      description="Budgets, cost tracking, change orders, and invoicing."
-      phase="a later phase"
-    />
+    <Suspense fallback={null}>
+      <FinancialPageClient />
+    </Suspense>
   );
 }
