@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus, Upload } from "lucide-react";
+import { Pencil, Plus, Upload, Printer } from "lucide-react";
 import { useTakeoffItems } from "@/hooks/use-takeoff-items";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { MATERIAL_RULES } from "@/lib/forecast/material-detector";
@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TakeoffEditDialog } from "@/components/estimating/takeoff-edit-dialog";
 import { ImportTakeoffDialog } from "@/components/estimating/import-takeoff-dialog";
+import { openPrintWindow } from "@/lib/estimating/print-window";
+import { buildTakeoffListHtml } from "@/lib/estimating/print-content";
 import type { TakeoffItem } from "@/types/estimating";
 
 function projectName(id: string) {
@@ -38,6 +40,10 @@ export function TakeoffTable() {
   }
   const projectIds = [...byProject.keys()].sort((a, b) => projectName(a).localeCompare(projectName(b)));
 
+  function handlePrint() {
+    openPrintWindow("Takeoff", buildTakeoffListHtml(items, projectName));
+  }
+
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -46,6 +52,9 @@ export function TakeoffTable() {
           Procurement&apos;s Forecast tab automatically.
         </p>
         <div className="flex shrink-0 gap-2">
+          <Button size="sm" variant="outline" onClick={handlePrint}>
+            <Printer className="size-3.5" /> Print
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setImporting(true)}>
             <Upload className="size-3.5" /> Import
           </Button>

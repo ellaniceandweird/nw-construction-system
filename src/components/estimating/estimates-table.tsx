@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Plus, ChevronRight, Upload, Sparkles } from "lucide-react";
+import { Pencil, Plus, ChevronRight, Upload, Sparkles, Printer } from "lucide-react";
 
 import { useEstimates } from "@/hooks/use-estimates";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
@@ -12,8 +12,8 @@ import { EstimateEditDialog } from "@/components/estimating/estimate-edit-dialog
 import { EstimateBudgetSheet } from "@/components/estimating/estimate-budget-sheet";
 import { ImportEstimateDialog } from "@/components/estimating/import-estimate-dialog";
 import { DrawingEstimateDialog } from "@/components/estimating/drawing-estimate-dialog";
-import { ProposalPrintSheet } from "@/components/estimating/proposal-print-sheet";
-import { PrintButton } from "@/components/shared/print-button";
+import { openPrintWindow } from "@/lib/estimating/print-window";
+import { buildEstimatesListHtml, buildEstimateDetailHtml } from "@/lib/estimating/print-content";
 import type { Estimate } from "@/types/estimating";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -46,9 +46,19 @@ export function EstimatesTable() {
 
   const sorted = [...estimates].sort((a, b) => new Date(b.estimateDate).getTime() - new Date(a.estimateDate).getTime());
 
+  function handlePrintList() {
+    openPrintWindow("Estimates", buildEstimatesListHtml(sorted, projectName));
+  }
+  function handlePrintEstimate(e: Estimate) {
+    openPrintWindow(`Estimate ${e.estimateNumber}`, buildEstimateDetailHtml(e, projectName(e.projectId)));
+  }
+
   return (
     <>
-      <div className="mb-3 flex flex-wrap justify-end gap-2 print:hidden">
+      <div className="mb-3 flex flex-wrap justify-end gap-2">
+        <Button size="sm" variant="outline" onClick={handlePrintList}>
+          <Printer className="size-3.5" /> Print
+        </Button>
         <Button size="sm" variant="outline" onClick={() => setGeneratingFromDrawing(true)}>
           <Sparkles className="size-3.5" /> Generate from Drawing
         </Button>
@@ -60,7 +70,7 @@ export function EstimatesTable() {
         </Button>
       </div>
 
-      <Card className="overflow-x-auto py-0 print:hidden">
+      <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
@@ -106,13 +116,12 @@ export function EstimatesTable() {
                   {isExpanded && (
                     <tr>
                       <td colSpan={7} className="bg-muted/20 px-4 pb-4 pt-1">
-                        <div className="mb-2 flex justify-end print:hidden">
-                          <PrintButton label="Print Proposal" />
+                        <div className="mb-2 flex justify-end">
+                          <Button size="sm" variant="outline" onClick={() => handlePrintEstimate(e)}>
+                            <Printer className="size-3.5" /> Print Estimate
+                          </Button>
                         </div>
-                        <div className="print:hidden">
-                          <EstimateBudgetSheet estimate={e} projectName={projectName(e.projectId)} />
-                        </div>
-                        <ProposalPrintSheet estimate={e} projectName={projectName(e.projectId)} />
+                        <EstimateBudgetSheet estimate={e} projectName={projectName(e.projectId)} />
                       </td>
                     </tr>
                   )}

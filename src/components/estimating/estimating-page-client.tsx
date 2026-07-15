@@ -27,12 +27,12 @@ export function EstimatingPageClient() {
   return (
     <>
       <PageHeader
-        title="Estimating"
+        title="Estimating & Budgeting"
         description="Cost breakdown structure, quantity takeoffs, and estimate builder across every project."
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList>
+        <TabsList className="print:hidden">
           <TabsTrigger value="estimates">Estimates</TabsTrigger>
           <TabsTrigger value="takeoff">Takeoff</TabsTrigger>
           <TabsTrigger value="costcodes">Cost Codes</TabsTrigger>
@@ -56,7 +56,7 @@ export function EstimatingPageClient() {
         </TabsContent>
       </Tabs>
 
-      <p className="mt-4 text-xs text-muted-foreground">
+      <p className="mt-4 text-xs text-muted-foreground print:hidden">
         The 25 Cross Street estimate is transcribed from your uploaded budget workbook;
         the other two are illustrative. Takeoff quantities tagged with a Forecast Material
         Match automatically feed Procurement&apos;s Forecast tab. Check Cost Tracking for
