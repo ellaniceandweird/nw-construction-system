@@ -1,0 +1,92 @@
+import type { MaterialRequest } from "@/types";
+
+/**
+ * ILLUSTRATIVE material requests — tied to REAL projects, but this
+ * specific request data doesn't exist in your source workbook.
+ */
+export const MOCK_MATERIAL_REQUESTS: MaterialRequest[] = [
+  {
+    id: "MR-000001",
+    createdBy: "system", createdDate: "2026-07-08T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-08T00:00:00.000Z",
+    revisionNumber: 1, module: "Procurement", status: "active",
+    projectId: "PRJ-000006",
+    mrNumber: "MR-2026-0001",
+    requestedBy: "Pedro (Lead)",
+    priority: "high",
+    requestDate: "2026-07-08",
+    requiredOnSiteDate: "2026-07-18",
+    approvalStatus: "approved",
+    notes: "Confirmed measurements with Pedro on site.",
+    referenceUrl: "https://drive.google.com/file/d/example-siding-measurements",
+    requestStatus: "approved",
+    lineItems: [{
+      description: "Additional cedar siding for north side",
+      quantity: 300,
+      unit: "sf",
+    }],
+  },
+  {
+    id: "MR-000002",
+    createdBy: "system", createdDate: "2026-07-10T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
+    revisionNumber: 1, module: "Procurement", status: "active",
+    projectId: "PRJ-000004",
+    mrNumber: "MR-2026-0002",
+    requestedBy: "Pedro (Lead)",
+    priority: "medium",
+    requestDate: "2026-07-10",
+    requiredOnSiteDate: "2026-07-20",
+    approvalStatus: "pending",
+    notes: undefined,
+    referenceUrl: undefined,
+    requestStatus: "pending_approval",
+    lineItems: [{
+      description: "HVAC filter replacements",
+      quantity: 6,
+      unit: "each",
+    }],
+  },
+  {
+    id: "MR-000003",
+    createdBy: "system", createdDate: "2026-07-11T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-11T00:00:00.000Z",
+    revisionNumber: 1, module: "Procurement", status: "active",
+    projectId: "PRJ-000010",
+    mrNumber: "MR-2026-0003",
+    requestedBy: "Pedro (Lead)",
+    priority: "high",
+    requestDate: "2026-07-11",
+    requiredOnSiteDate: "2026-08-05",
+    approvalStatus: "pending",
+    notes: "Engineer spec attached.",
+    referenceUrl: "https://drive.google.com/file/d/example-rebar-spec.pdf",
+    requestStatus: "pending_approval",
+    lineItems: [{
+      description: "Rebar for bulkhead reinforcement",
+      quantity: 40,
+      unit: "pieces",
+    }],
+  },
+  {
+    id: "MR-000004",
+    createdBy: "system", createdDate: "2026-07-11T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-11T00:00:00.000Z",
+    revisionNumber: 1, module: "Procurement", status: "active",
+    projectId: "PRJ-000002",
+    mrNumber: "MR-2026-0004",
+    requestedBy: "Pedro (Lead)",
+    priority: "medium",
+    requestDate: "2026-07-11",
+    requiredOnSiteDate: "2026-09-15",
+    approvalStatus: "pending",
+    notes: undefined,
+    referenceUrl: undefined,
+    requestStatus: "draft",
+    lineItems: [{
+      description: "Roof underlayment",
+      quantity: 15,
+      unit: "rolls",
+    }],
+  }
+];
