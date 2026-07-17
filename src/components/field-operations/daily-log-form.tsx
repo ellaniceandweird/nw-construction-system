@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { addDailyLog } from "@/lib/field-operations/daily-log-store";
+import { useActivities } from "@/hooks/use-activities";
+import { addDailyLog, GENERAL_WORK_ACTIVITY_ID } from "@/lib/field-operations/daily-log-store";
 import {
   dailyLogFormSchema,
   type DailyLogFormValues,
@@ -47,6 +48,7 @@ const WEATHER_OPTIONS: { value: DailyLogFormValues["weatherCondition"]; label: s
 export function DailyLogForm() {
   const router = useRouter();
   const [submitted, setSubmitted] = React.useState(false);
+  const allActivities = useActivities();
 
   const {
     register,
@@ -60,12 +62,15 @@ export function DailyLogForm() {
     defaultValues: {
       weatherCondition: "clear",
       crewAttendance: [{ crewName: "", trade: "", hoursWorked: 8 }],
-      activitiesPerformed: [{ description: "", hoursWorked: 8 }],
+      activitiesPerformed: [{ activityId: "", description: "", hoursWorked: 8, notes: "" }],
     },
   });
 
   const crewFields = useFieldArray({ control, name: "crewAttendance" });
   const activityFields = useFieldArray({ control, name: "activitiesPerformed" });
+
+  const selectedProjectId = watch("projectId");
+  const projectActivities = allActivities.filter((a) => a.projectId === selectedProjectId);
 
   function onSubmit(values: DailyLogFormValues) {
     const id = addDailyLog(values);
@@ -185,19 +190,46 @@ export function DailyLogForm() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => activityFields.append({ description: "", hoursWorked: 8 })}
+            onClick={() => activityFields.append({ activityId: "", description: "", hoursWorked: 8, notes: "" })}
           >
             <Plus /> Add Activity
           </Button>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {activityFields.fields.map((field, index) => (
-            <div key={field.id} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_100px_auto] sm:items-end">
+            <div key={field.id} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_100px_auto] sm:items-end">
               <div>
-                <Label className="text-xs">Description</Label>
+                <Label className="text-xs">Activity</Label>
+                <Select
+                  value={watch(`activitiesPerformed.${index}.activityId`)}
+                  onValueChange={(v) => {
+                    setValue(`activitiesPerformed.${index}.activityId`, v, { shouldValidate: true });
+                    if (v === GENERAL_WORK_ACTIVITY_ID) {
+                      setValue(`activitiesPerformed.${index}.description`, "General Work");
+                    } else {
+                      const activity = projectActivities.find((a) => a.id === v);
+                      setValue(`activitiesPerformed.${index}.description`, activity?.name ?? "");
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder={selectedProjectId ? "Select an activity" : "Select a project first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={GENERAL_WORK_ACTIVITY_ID}>General Work</SelectItem>
+                    {projectActivities.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldError(errors.activitiesPerformed?.[index]?.activityId?.message)}
+              </div>
+              <div>
+                <Label className="text-xs">Notes (optional)</Label>
                 <Input
                   className="mt-1"
-                  {...register(`activitiesPerformed.${index}.description`)}
+                  placeholder="Anything worth noting manually"
+                  {...register(`activitiesPerformed.${index}.notes`)}
                 />
               </div>
               <div>

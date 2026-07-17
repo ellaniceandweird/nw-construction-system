@@ -54,3 +54,7 @@ export function deleteContact(id: string) {
   contacts = contacts.filter((c) => c.id !== id);
   persist(); emit();
 }
+export function restoreContact(contact: Contact) {
+  contacts = [...contacts, contact];
+  persist(); emit();
+}

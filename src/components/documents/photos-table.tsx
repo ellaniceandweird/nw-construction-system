@@ -2,7 +2,8 @@
 import * as React from "react";
 import { Plus, Trash2, ImageOff } from "lucide-react";
 import { useFieldPhotos } from "@/hooks/use-field-photos";
-import { deletePhoto } from "@/lib/documents/photo-store";
+import { deletePhoto, restorePhoto } from "@/lib/documents/photo-store";
+import { showUndoToast } from "@/lib/toast/toast-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +73,15 @@ export function PhotosTable() {
                       <p className="truncate text-xs text-foreground" title={photo.caption}>{photo.caption ?? "Untitled"}</p>
                       <p className="text-[10px] text-muted-foreground">{formatDate(photo.dateTaken)}</p>
                     </div>
-                    <Button variant="ghost" size="icon" className="size-6 shrink-0" onClick={() => deletePhoto(photo.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-6 shrink-0"
+                      onClick={() => {
+                        deletePhoto(photo.id);
+                        showUndoToast("Photo deleted", () => restorePhoto(photo));
+                      }}
+                    >
                       <Trash2 className="size-3 text-destructive" />
                     </Button>
                   </div>

@@ -71,6 +71,8 @@ export interface ActivityInput {
   name: string;
   plannedStart: string;
   plannedFinish: string;
+  actualStart?: string;
+  actualFinish?: string;
   requiredManpower?: number;
   status: ActivityStatus;
   isCritical: boolean;
@@ -99,6 +101,8 @@ export function addActivity(input: ActivityInput, projectName: string) {
     name: input.name,
     plannedStart: input.plannedStart,
     plannedFinish: input.plannedFinish,
+    actualStart: input.actualStart,
+    actualFinish: input.actualFinish,
     originalDurationDays: duration,
     remainingDurationDays: input.status === "completed" ? 0 : duration,
     calendarId: "CAL-COMPANY",
@@ -122,6 +126,8 @@ export function updateActivity(id: string, input: ActivityInput) {
           name: input.name,
           plannedStart: input.plannedStart,
           plannedFinish: input.plannedFinish,
+          actualStart: input.actualStart,
+          actualFinish: input.actualFinish,
           originalDurationDays: duration,
           requiredManpower: input.requiredManpower,
           status: input.status,

@@ -72,6 +72,8 @@ export function ActivityFormDialog({
           name: existingActivity.name,
           plannedStart: existingActivity.plannedStart,
           plannedFinish: existingActivity.plannedFinish,
+          actualStart: existingActivity.actualStart,
+          actualFinish: existingActivity.actualFinish,
           requiredManpower: existingActivity.requiredManpower,
           status: existingActivity.status,
           isCritical: existingActivity.isCritical,
@@ -92,6 +94,8 @@ export function ActivityFormDialog({
               name: existingActivity.name,
               plannedStart: existingActivity.plannedStart,
               plannedFinish: existingActivity.plannedFinish,
+              actualStart: existingActivity.actualStart,
+              actualFinish: existingActivity.actualFinish,
               requiredManpower: existingActivity.requiredManpower,
               status: existingActivity.status,
               isCritical: existingActivity.isCritical,
@@ -169,6 +173,27 @@ export function ActivityFormDialog({
                 {...register("plannedFinish")}
               />
               {fieldError(errors.plannedFinish?.message)}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="actualStart">Actual Start (optional)</Label>
+              <Input
+                id="actualStart"
+                type="date"
+                className="mt-1.5"
+                {...register("actualStart")}
+              />
+            </div>
+            <div>
+              <Label htmlFor="actualFinish">Actual Finish (optional)</Label>
+              <Input
+                id="actualFinish"
+                type="date"
+                className="mt-1.5"
+                {...register("actualFinish")}
+              />
             </div>
           </div>
 

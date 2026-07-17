@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createContact, updateContact, deleteContact } from "@/lib/contacts/contact-store";
+import { createContact, updateContact, deleteContact, restoreContact } from "@/lib/contacts/contact-store";
+import { showSuccessToast, showUndoToast } from "@/lib/toast/toast-store";
 import { useProperties } from "@/hooks/use-properties";
 import type { Contact, ContactCategory } from "@/types/contacts";
 
@@ -58,9 +59,16 @@ export function ContactEditDialog({ contact, open, onOpenChange }: Props) {
       notes: notes || undefined,
     };
     if (contact) { updateContact(contact.id, input); } else { createContact(input); }
+    showSuccessToast(contact ? "Contact updated" : "Contact added");
     onOpenChange(false);
   }
-  function handleDelete() { if (!contact) return; deleteContact(contact.id); onOpenChange(false); }
+  function handleDelete() {
+    if (!contact) return;
+    const removed = contact;
+    deleteContact(contact.id);
+    showUndoToast("Contact deleted", () => restoreContact(removed));
+    onOpenChange(false);
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

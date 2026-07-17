@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { SchedulingTabs } from "@/components/scheduling/scheduling-tabs";
 import { MasterScheduleTable } from "@/components/scheduling/master-schedule-table";
@@ -12,7 +13,9 @@ export default function MasterSchedulePage() {
         actions={<PrintButton />}
       />
       <SchedulingTabs />
-      <MasterScheduleTable />
+      <Suspense fallback={null}>
+        <MasterScheduleTable />
+      </Suspense>
     </>
   );
 }

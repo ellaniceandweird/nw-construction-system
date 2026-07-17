@@ -63,9 +63,11 @@ export interface DailyLogInput {
   weatherCondition: WeatherCondition;
   preparedBy: string;
   crewAttendance: Array<{ crewName: string; trade: string; hoursWorked: number }>;
-  activitiesPerformed: Array<{ description: string; hoursWorked: number }>;
+  activitiesPerformed: Array<{ activityId: string; description: string; hoursWorked: number; notes?: string }>;
   generalNotes?: string;
 }
+
+export const GENERAL_WORK_ACTIVITY_ID = "GENERAL_WORK";
 
 export function addDailyLog(input: DailyLogInput) {
   const now = new Date().toISOString();
@@ -105,9 +107,10 @@ export function addDailyLog(input: DailyLogInput) {
       ],
     })),
     activitiesPerformed: input.activitiesPerformed.map((a) => ({
-      activityId: "MANUAL-ENTRY",
+      activityId: a.activityId,
       description: a.description,
       hoursWorked: a.hoursWorked,
+      notes: a.notes,
       actualProgress: 0,
       percentComplete: 0,
       status: "in_progress",

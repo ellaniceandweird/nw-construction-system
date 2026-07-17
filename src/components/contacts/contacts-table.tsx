@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContactEditDialog } from "@/components/contacts/contact-edit-dialog";
-import { deleteContact } from "@/lib/contacts/contact-store";
+import { deleteContact, restoreContact } from "@/lib/contacts/contact-store";
+import { showUndoToast } from "@/lib/toast/toast-store";
 import type { Contact, ContactCategory } from "@/types/contacts";
 
 const ALL = "all";
@@ -58,7 +59,12 @@ export function ContactsTable() {
   const [confirmingBulkDelete, setConfirmingBulkDelete] = React.useState(false);
 
   function handleBulkDelete() {
+    const removed = sorted.filter((c) => selected.has(c.id));
     for (const id of selected) deleteContact(id);
+    const count = removed.length;
+    showUndoToast(`${count} contact${count === 1 ? "" : "s"} deleted`, () => {
+      for (const contact of removed) restoreContact(contact);
+    });
     clear();
     setConfirmingBulkDelete(false);
   }

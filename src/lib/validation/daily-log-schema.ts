@@ -29,8 +29,10 @@ export const dailyLogFormSchema = z.object({
   activitiesPerformed: z
     .array(
       z.object({
+        activityId: z.string().min(1, "Select an activity"),
         description: z.string().min(1, "Description required"),
         hoursWorked: z.coerce.number().min(0).max(24),
+        notes: z.string().optional(),
       })
     )
     .min(1, "Add at least one activity"),

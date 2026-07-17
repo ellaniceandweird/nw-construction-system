@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, Plus, Pencil, Trash2, Upload, Table2 } from "lucide-react";
 
 import { useActivities } from "@/hooks/use-activities";
@@ -21,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { ActivityFormDialog } from "@/components/scheduling/activity-form-dialog";
 import { ImportScheduleDialog } from "@/components/scheduling/import-schedule-dialog";
 import { BulkAddActivitiesDialog } from "@/components/scheduling/bulk-add-activities-dialog";
+import { computePlanVsActual } from "@/lib/scheduling/plan-vs-actual";
 import { SchedulePrintTable } from "@/components/scheduling/print/schedule-print-table";
 import type { Activity } from "@/types/scheduling";
 
@@ -40,12 +42,21 @@ function formatDate(d: string) {
 
 export function MasterScheduleTable() {
   const activities = useActivities();
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("highlight");
+  const highlightRef = React.useRef<HTMLTableRowElement>(null);
   const [search, setSearch] = React.useState("");
   const [projectFilter, setProjectFilter] = React.useState("all");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [importDialogOpen, setImportDialogOpen] = React.useState(false);
   const [bulkAddOpen, setBulkAddOpen] = React.useState(false);
   const [editingActivity, setEditingActivity] = React.useState<Activity | undefined>();
+
+  React.useEffect(() => {
+    if (highlightId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightId]);
 
   const projectsWithActivities = MOCK_PROJECTS.filter((p) =>
     activities.some((a) => a.projectId === p.id)
@@ -126,6 +137,7 @@ export function MasterScheduleTable() {
               <th className="px-4 py-3 font-medium">Manpower</th>
               <th className="px-4 py-3 font-medium">Progress</th>
               <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Plan vs Actual</th>
               <th className="px-4 py-3 font-medium print:hidden">Actions</th>
             </tr>
           </thead>
@@ -133,7 +145,11 @@ export function MasterScheduleTable() {
             {filtered.map((a) => {
               const project = MOCK_PROJECTS.find((p) => p.id === a.projectId);
               return (
-                <tr key={a.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
+                <tr
+                  key={a.id}
+                  ref={a.id === highlightId ? highlightRef : undefined}
+                  className={`border-b border-border/60 last:border-0 hover:bg-accent/40 ${a.id === highlightId ? "bg-warning-soft" : ""}`}
+                >
                   <td className="px-4 py-3">
                     <span className="font-medium text-foreground">
                       {project?.projectName ?? "—"}
@@ -162,6 +178,14 @@ export function MasterScheduleTable() {
                       {a.status.replace("_", " ")}
                     </Badge>
                   </td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const pva = computePlanVsActual(a, new Date());
+                      const toneClass =
+                        pva.tone === "success" ? "text-success" : pva.tone === "warning" ? "text-warning-foreground" : pva.tone === "destructive" ? "text-destructive" : "text-muted-foreground";
+                      return <span className={`text-xs font-medium ${toneClass}`}>{pva.label}</span>;
+                    })()}
+                  </td>
                   <td className="px-4 py-3 print:hidden">
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(a)}>
@@ -177,7 +201,7 @@ export function MasterScheduleTable() {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">
                   No activities match your search.
                 </td>
               </tr>

@@ -58,3 +58,7 @@ export function deleteDocument(id: string) {
   documents = documents.filter((d) => d.id !== id);
   persist(); emit();
 }
+export function restoreDocument(doc: ProjectDocument) {
+  documents = [...documents, doc];
+  persist(); emit();
+}

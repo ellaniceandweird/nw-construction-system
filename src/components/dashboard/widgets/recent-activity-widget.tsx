@@ -50,7 +50,7 @@ export function RecentActivityWidget() {
           );
         })}
         <Link
-          href="/reporting"
+          href="/dashboard/activity-log"
           className="mt-1 text-xs font-medium text-primary hover:underline"
         >
           View all activity

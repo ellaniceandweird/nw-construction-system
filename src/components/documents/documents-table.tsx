@@ -17,7 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DocumentEditDialog } from "@/components/documents/document-edit-dialog";
-import { deleteDocument } from "@/lib/documents/document-store";
+import { deleteDocument, restoreDocument } from "@/lib/documents/document-store";
+import { showUndoToast } from "@/lib/toast/toast-store";
 import type { ProjectDocument } from "@/types/documents";
 
 const ALL = "all";
@@ -63,7 +64,12 @@ export function DocumentsTable() {
   const [confirmingBulkDelete, setConfirmingBulkDelete] = React.useState(false);
 
   function handleBulkDelete() {
+    const removed = sorted.filter((d) => selected.has(d.id));
     for (const id of selected) deleteDocument(id);
+    const count = removed.length;
+    showUndoToast(`${count} document${count === 1 ? "" : "s"} deleted`, () => {
+      for (const doc of removed) restoreDocument(doc);
+    });
     clear();
     setConfirmingBulkDelete(false);
   }

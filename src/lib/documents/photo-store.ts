@@ -56,3 +56,7 @@ export function deletePhoto(id: string) {
   photos = photos.filter((p) => p.id !== id);
   persist(); emit();
 }
+export function restorePhoto(photo: FieldPhoto) {
+  photos = [...photos, photo];
+  persist(); emit();
+}

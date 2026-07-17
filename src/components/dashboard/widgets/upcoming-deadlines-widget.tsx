@@ -1,3 +1,5 @@
+"use client";
+import Link from "next/link";
 import {
   Card,
   CardHeader,
@@ -26,6 +28,10 @@ function specificDeadlineLabel(dueDate: Date): string {
   return `Due in ${diff} days`;
 }
 
+function deadlineHref(type: "Activity" | "Maintenance", id: string): string {
+  return type === "Activity" ? `/scheduling/master?highlight=${id}` : `/maintenance?tab=general&highlight=${id}`;
+}
+
 export function UpcomingDeadlinesWidget() {
   const deadlines = getUpcomingDeadlines(6);
 
@@ -49,8 +55,16 @@ export function UpcomingDeadlinesWidget() {
             <tbody>
               {deadlines.map((d) => (
                 <tr key={d.id} className="border-b border-border/60 last:border-0">
-                  <td className="py-2 pr-3 text-muted-foreground">{d.type}</td>
-                  <td className="py-2 pr-3 text-foreground">{d.item}</td>
+                  <td className="py-2 pr-3">
+                    <Link href={deadlineHref(d.type, d.id)} className="block text-muted-foreground hover:text-primary hover:underline">
+                      {d.type}
+                    </Link>
+                  </td>
+                  <td className="py-2 pr-3">
+                    <Link href={deadlineHref(d.type, d.id)} className="block text-foreground hover:text-primary hover:underline">
+                      {d.item}
+                    </Link>
+                  </td>
                   <td className="py-2 pr-3 text-muted-foreground">
                     {d.projectOrProperty}
                   </td>

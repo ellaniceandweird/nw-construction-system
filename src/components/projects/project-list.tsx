@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
-import { HealthScoreBadge } from "@/components/shared/health-score-badge";
 import type { Project, ProjectCalculatedStatus } from "@/types";
 
 /**
@@ -123,7 +122,6 @@ export function ProjectList() {
               <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Location</th>
               <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Health</th>
               <th className="px-4 py-3 font-medium">% Complete</th>
               <th className="px-4 py-3 font-medium">Budget</th>
               <th className="px-4 py-3 font-medium">Target Completion</th>
@@ -143,9 +141,6 @@ export function ProjectList() {
                 <td className="px-4 py-3 text-muted-foreground">{p.address.street}</td>
                 <td className="px-4 py-3">
                   <ProjectStatusBadge status={p.calculatedStatus} />
-                </td>
-                <td className="px-4 py-3">
-                  <HealthScoreBadge score={p.healthScore} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{p.completionPercent}%</td>
                 <td className="px-4 py-3 text-muted-foreground">

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { ToastContainer } from "@/components/shared/toast-container";
 
 /**
  * Persistent application shell.
@@ -19,6 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </main>
       </div>
+      <ToastContainer />
     </div>
   );
 }

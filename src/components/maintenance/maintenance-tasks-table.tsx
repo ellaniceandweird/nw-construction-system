@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, Plus, Pencil } from "lucide-react";
 
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
@@ -52,11 +53,20 @@ function formatDate(d?: string) {
 
 export function MaintenanceTasksTable() {
   const tasks = useMaintenanceTasks();
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("highlight");
+  const highlightRef = React.useRef<HTMLTableRowElement>(null);
   const [search, setSearch] = React.useState("");
   const [propertyFilter, setPropertyFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<SortOption>("default");
   const [adding, setAdding] = React.useState(false);
   const [newProperty, setNewProperty] = React.useState("");
+
+  React.useEffect(() => {
+    if (highlightId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightId]);
   const [newDesc, setNewDesc] = React.useState("");
   const [newPriority, setNewPriority] = React.useState<MaintenancePriority>("medium");
   const [editingTask, setEditingTask] = React.useState<MaintenanceTask | null>(null);
@@ -193,7 +203,11 @@ export function MaintenanceTasksTable() {
           </thead>
           <tbody>
             {filtered.map((task) => (
-              <tr key={task.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
+              <tr
+                key={task.id}
+                ref={task.id === highlightId ? highlightRef : undefined}
+                className={`border-b border-border/60 last:border-0 hover:bg-accent/40 ${task.id === highlightId ? "bg-warning-soft" : ""}`}
+              >
                 <td className="px-4 py-3 font-medium text-foreground">{task.propertyName ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground max-w-sm">{task.taskDescription}</td>
                 <td className="px-4 py-3">

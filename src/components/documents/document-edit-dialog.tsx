@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createDocument, updateDocument, deleteDocument } from "@/lib/documents/document-store";
+import { createDocument, updateDocument, deleteDocument, restoreDocument } from "@/lib/documents/document-store";
+import { showSuccessToast, showUndoToast } from "@/lib/toast/toast-store";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
@@ -102,9 +103,16 @@ export function DocumentEditDialog({ document, open, onOpenChange }: Props) {
       comments: comments || undefined,
     };
     if (document) { updateDocument(document.id, input); } else { createDocument(input); }
+    showSuccessToast(document ? "Document updated" : "Document added");
     onOpenChange(false);
   }
-  function handleDelete() { if (!document) return; deleteDocument(document.id); onOpenChange(false); }
+  function handleDelete() {
+    if (!document) return;
+    const removed = document;
+    deleteDocument(document.id);
+    showUndoToast("Document deleted", () => restoreDocument(removed));
+    onOpenChange(false);
+  }
   const canSave = !!projectId && !!title && !!fileUrl;
 
   return (
