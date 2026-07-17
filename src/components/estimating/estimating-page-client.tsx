@@ -9,8 +9,10 @@ import { TakeoffTable } from "@/components/estimating/takeoff-table";
 import { CostCodesTable } from "@/components/estimating/cost-codes-table";
 import { CostDatabaseTable } from "@/components/estimating/cost-database-table";
 import { CostTrackingTable } from "@/components/estimating/cost-tracking-table";
+import { ChangeOrdersTable } from "@/components/estimating/change-orders-table";
+import { PortfolioRollupTable } from "@/components/estimating/portfolio-rollup-table";
 
-const VALID_TABS = ["estimates", "takeoff", "costcodes", "costdatabase", "costtracking"];
+const VALID_TABS = ["estimates", "takeoff", "costcodes", "costdatabase", "costtracking", "changeorders", "portfolio"];
 
 export function EstimatingPageClient() {
   const searchParams = useSearchParams();
@@ -38,6 +40,8 @@ export function EstimatingPageClient() {
           <TabsTrigger value="costcodes">Cost Codes</TabsTrigger>
           <TabsTrigger value="costdatabase">Cost Database</TabsTrigger>
           <TabsTrigger value="costtracking">Cost Tracking</TabsTrigger>
+          <TabsTrigger value="changeorders">Change Orders</TabsTrigger>
+          <TabsTrigger value="portfolio">Portfolio Rollup</TabsTrigger>
         </TabsList>
         <TabsContent value="estimates">
           <EstimatesTable />
@@ -54,14 +58,20 @@ export function EstimatingPageClient() {
         <TabsContent value="costtracking">
           <CostTrackingTable />
         </TabsContent>
+        <TabsContent value="changeorders">
+          <ChangeOrdersTable />
+        </TabsContent>
+        <TabsContent value="portfolio">
+          <PortfolioRollupTable />
+        </TabsContent>
       </Tabs>
 
       <p className="mt-4 text-xs text-muted-foreground print:hidden">
         The 25 Cross Street estimate is transcribed from your uploaded budget workbook;
         the other two are illustrative. Takeoff quantities tagged with a Forecast Material
-        Match automatically feed Procurement&apos;s Forecast tab. Check Cost Tracking for
-        Budget vs. Actual against real Purchase Orders, and Print Proposal (from the
-        Estimates tab) for a client-facing version.
+        Match automatically feed Procurement&apos;s Forecast tab. Change Orders adjust the
+        Revised Budget shown in Cost Tracking and Portfolio Rollup. Print Estimate (from
+        the Estimates tab) for a clean internal document.
       </p>
     </>
   );

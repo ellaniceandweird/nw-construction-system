@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Input } from "@/components/ui/input";
@@ -11,15 +12,28 @@ import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { useMaintenanceLog } from "@/hooks/use-maintenance-log";
 import { PropertyCard } from "@/components/properties/property-card";
 import { PropertyDetailDialog } from "@/components/properties/property-detail-dialog";
+import { recordRecentlyViewed } from "@/lib/search/recently-viewed-store";
 
 export function PropertiesPageClient() {
   const properties = useProperties();
   const tasks = useMaintenanceTasks();
   const schedules = useEquipmentMaintenance();
   const logEntries = useMaintenanceLog();
+  const searchParams = useSearchParams();
   const [search, setSearch] = React.useState("");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const selectedProperty = properties.find((p) => p.id === selectedId) ?? null;
+
+  React.useEffect(() => {
+    const propertyId = searchParams.get("propertyId");
+    if (propertyId) setSelectedId(propertyId);
+  }, [searchParams]);
+
+  React.useEffect(() => {
+    if (selectedProperty) {
+      recordRecentlyViewed({ title: selectedProperty.name, href: `/properties?propertyId=${selectedProperty.id}`, category: "Property" });
+    }
+  }, [selectedProperty]);
 
   const filtered = properties.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
   const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name));

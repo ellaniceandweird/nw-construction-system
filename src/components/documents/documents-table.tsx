@@ -1,12 +1,14 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus, ExternalLink, Search } from "lucide-react";
+import { Pencil, Plus, ExternalLink, Search, Trash2 } from "lucide-react";
 import { useDocuments } from "@/hooks/use-documents";
+import { useRowSelection } from "@/hooks/use-row-selection";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -15,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DocumentEditDialog } from "@/components/documents/document-edit-dialog";
+import { deleteDocument } from "@/lib/documents/document-store";
 import type { ProjectDocument } from "@/types/documents";
 
 const ALL = "all";
@@ -56,6 +59,14 @@ export function DocumentsTable() {
   const sorted = [...filtered].sort((a, b) => new Date(b.lastModifiedDate).getTime() - new Date(a.lastModifiedDate).getTime());
 
   const hasActiveFilters = search || projectFilter !== ALL || tagFilter !== ALL;
+  const { selected, toggle, toggleAll, clear, allSelected, count } = useRowSelection(sorted.map((d) => d.id));
+  const [confirmingBulkDelete, setConfirmingBulkDelete] = React.useState(false);
+
+  function handleBulkDelete() {
+    for (const id of selected) deleteDocument(id);
+    clear();
+    setConfirmingBulkDelete(false);
+  }
 
   return (
     <>
@@ -98,10 +109,29 @@ export function DocumentsTable() {
         )}
       </div>
 
+      {count > 0 && (
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+          <span className="text-sm font-medium text-foreground">{count} selected</span>
+          {confirmingBulkDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Delete {count} document{count === 1 ? "" : "s"}?</span>
+              <Button variant="destructive" size="sm" onClick={handleBulkDelete}>Confirm Delete</Button>
+              <Button variant="outline" size="sm" onClick={() => setConfirmingBulkDelete(false)}>Cancel</Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setConfirmingBulkDelete(true)}><Trash2 className="size-3.5" /> Delete Selected</Button>
+              <Button variant="ghost" size="sm" onClick={clear}>Clear Selection</Button>
+            </div>
+          )}
+        </div>
+      )}
+
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <th className="w-8 px-4 py-3"><Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Select all" /></th>
               <th className="px-4 py-3 font-medium">Doc #</th>
               <th className="px-4 py-3 font-medium">Title</th>
               <th className="px-4 py-3 font-medium">Property</th>
@@ -115,6 +145,7 @@ export function DocumentsTable() {
           <tbody>
             {sorted.map((d) => (
               <tr key={d.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
+                <td className="px-4 py-3"><Checkbox checked={selected.has(d.id)} onCheckedChange={() => toggle(d.id)} aria-label={`Select ${d.title}`} /></td>
                 <td className="px-4 py-3 font-medium text-foreground">{d.documentNumber}</td>
                 <td className="px-4 py-3 text-foreground max-w-xs">{d.title}</td>
                 <td className="px-4 py-3 text-muted-foreground">{projectName(d.projectId)}</td>
@@ -139,7 +170,7 @@ export function DocumentsTable() {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
+                <td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">
                   {hasActiveFilters ? "No documents match your filters." : "No documents yet — add one above."}
                 </td>
               </tr>

@@ -12,7 +12,7 @@ import type { BaseEntity } from "@/types/common";
 export type EstimateStatus =
   | "draft"
   | "internal_review"
-  | "client_review"
+  | "owner_review"
   | "approved"
   | "rejected"
   | "superseded"

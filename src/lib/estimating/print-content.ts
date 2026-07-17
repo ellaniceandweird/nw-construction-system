@@ -169,6 +169,7 @@ export function buildEstimateDetailHtml(estimate: Estimate, projectName: string)
       <h1>Nice &amp; Weird Group</h1>
       <p>Estimate — ${escapeHtml(projectName)}</p>
       ${estimate.address ? `<p>${escapeHtml(estimate.address)}</p>` : ""}
+      ${estimate.client ? `<p>Owner: ${escapeHtml(estimate.client)}</p>` : ""}
     </div>
     <table>
       <tbody>

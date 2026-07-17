@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, Bell, Search, Settings, LogOut, User } from "lucide-react";
+import { ChevronDown, Bell, Settings, LogOut, User } from "lucide-react";
 
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { ROLE_LABELS } from "@/types/roles";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -16,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { GlobalSearch } from "@/components/layout/global-search";
 
 function initials(name: string) {
   return name
@@ -33,10 +33,7 @@ export function Topbar({ notificationCount = 0 }: { notificationCount?: number }
     <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card px-5 print:hidden">
       <MobileNav />
 
-      <div className="relative ml-1 flex-1 max-w-sm">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search anything..." className="h-9 rounded-full pl-9" />
-      </div>
+      <GlobalSearch />
 
       <div className="ml-auto flex items-center gap-4">
         <button className="relative text-muted-foreground hover:text-foreground" aria-label="Notifications">

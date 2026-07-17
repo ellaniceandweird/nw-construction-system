@@ -11,6 +11,8 @@ import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 import { ProjectMilestones } from "@/components/projects/project-milestones";
 import { ProjectTeam } from "@/components/projects/project-team";
 import { ProjectSchedulePreview } from "@/components/projects/project-schedule-preview";
+import { ProjectRelatedFiles } from "@/components/projects/project-related-files";
+import { RecordProjectView } from "@/components/projects/record-project-view";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 
 function formatCurrency(n?: number) {
@@ -40,6 +42,7 @@ export default async function ProjectDetailsPage({
 
   return (
     <>
+      <RecordProjectView projectId={project.id} title={project.projectName} />
       <PageHeader
         title={project.projectName}
         description={`${project.address.street}, ${project.address.city}, ${project.address.state}`}
@@ -132,6 +135,10 @@ export default async function ProjectDetailsPage({
         <ProjectSchedulePreview projectId={project.id} />
         <ProjectMilestones projectId={project.id} />
         <ProjectTeam projectId={project.id} />
+      </div>
+
+      <div className="mt-4">
+        <ProjectRelatedFiles projectId={project.id} />
       </div>
     </>
   );

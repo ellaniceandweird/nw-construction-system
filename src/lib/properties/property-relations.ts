@@ -49,6 +49,11 @@ function matchesProperty(property: Property, propertyId?: string, propertyName?:
   return false;
 }
 
+export function getPropertyForBillingEntity(billingEntityId: string | undefined, properties: Property[]): Property | undefined {
+  if (!billingEntityId) return undefined;
+  return properties.find((p) => p.billingEntityId === billingEntityId);
+}
+
 export function getMaintenanceHistory(
   property: Property,
   tasks: MaintenanceTask[],

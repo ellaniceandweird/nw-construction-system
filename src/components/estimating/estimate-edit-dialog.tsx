@@ -37,7 +37,7 @@ interface Props {
 const STATUS_OPTIONS: { value: EstimateStatus; label: string }[] = [
   { value: "draft", label: "Draft" },
   { value: "internal_review", label: "Internal Review" },
-  { value: "client_review", label: "Client Review" },
+  { value: "owner_review", label: "Owner Review" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Rejected" },
   { value: "superseded", label: "Superseded" },
@@ -165,7 +165,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-5xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{estimate ? `Edit Estimate ${estimate.estimateNumber}` : "New Estimate"}</DialogTitle>
         </DialogHeader>
@@ -217,7 +217,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="client">Client (optional)</Label>
+              <Label htmlFor="client">Owner (optional)</Label>
               <Input id="client" className="mt-1.5" value={client} onChange={(e) => setClient(e.target.value)} />
             </div>
             <div>
@@ -235,89 +235,93 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
             <div className="mb-2 flex items-center justify-between">
               <Label>Line Items</Label>
               <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
-                <Plus className="size-3.5" /> Add Line Item
+                <Plus className="size-3.5" /> Add Row
               </Button>
             </div>
-            <div className="flex flex-col gap-3">
-              {lineItems.map((li, index) => (
-                <div key={index} className="rounded-md border border-border p-3">
-                  <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[1fr_140px_auto_auto]">
-                    <div>
-                      <Label className="text-xs">Description</Label>
-                      <Input className="mt-1" value={li.description} onChange={(e) => updateLineItem(index, { description: e.target.value })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Cost Code</Label>
-                      <Select value={li.costCode || NONE} onValueChange={(v) => updateLineItem(index, { costCode: v === NONE ? "" : v })}>
-                        <SelectTrigger className="mt-1 w-full">
-                          <SelectValue placeholder="None" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={NONE}>None</SelectItem>
-                          {costCodes.map((c) => (
-                            <SelectItem key={c.id} value={c.code}>{c.code}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      title="Apply default rate for this cost code"
-                      onClick={() => applyRate(index)}
-                      disabled={!findRateForCostCode(li.costCode)}
-                    >
-                      <Zap className="size-3.5" />
-                    </Button>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeLineItem(index)} disabled={lineItems.length === 1}>
-                      <Trash2 className="size-3.5 text-destructive" />
-                    </Button>
-                  </div>
-
-                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-6">
-                    <div>
-                      <Label className="text-xs">Qty</Label>
-                      <Input type="number" className="mt-1" value={li.quantity} onChange={(e) => updateLineItem(index, { quantity: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Unit</Label>
-                      <Input className="mt-1" value={li.unit} onChange={(e) => updateLineItem(index, { unit: e.target.value })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Labor</Label>
-                      <Input type="number" className="mt-1" value={li.laborCost} onChange={(e) => updateLineItem(index, { laborCost: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Material</Label>
-                      <Input type="number" className="mt-1" value={li.materialCost} onChange={(e) => updateLineItem(index, { materialCost: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Equipment</Label>
-                      <Input type="number" className="mt-1" value={li.equipmentCost} onChange={(e) => updateLineItem(index, { equipmentCost: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Subcontract</Label>
-                      <Input type="number" className="mt-1" value={li.subcontractCost} onChange={(e) => updateLineItem(index, { subcontractCost: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                  </div>
-
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    <div>
-                      <Label className="text-xs">Markup %</Label>
-                      <Input type="number" className="mt-1" value={li.markupPercent ?? 0} onChange={(e) => updateLineItem(index, { markupPercent: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Tax ($)</Label>
-                      <Input type="number" className="mt-1" value={li.tax ?? 0} onChange={(e) => updateLineItem(index, { tax: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Line Total</Label>
-                      <p className="mt-1 rounded-md px-2 py-2 text-sm font-medium text-foreground">{currency(computeLineItemTotal(li))}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto rounded-md border border-border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
+                    <th className="min-w-[180px] px-2 py-2 font-medium">Description</th>
+                    <th className="min-w-[110px] px-2 py-2 font-medium">Cost Code</th>
+                    <th className="min-w-[70px] px-2 py-2 font-medium">Qty</th>
+                    <th className="min-w-[70px] px-2 py-2 font-medium">Unit</th>
+                    <th className="min-w-[90px] px-2 py-2 font-medium">Labor</th>
+                    <th className="min-w-[90px] px-2 py-2 font-medium">Material</th>
+                    <th className="min-w-[90px] px-2 py-2 font-medium">Equipment</th>
+                    <th className="min-w-[100px] px-2 py-2 font-medium">Subcontract</th>
+                    <th className="min-w-[80px] px-2 py-2 font-medium">Markup %</th>
+                    <th className="min-w-[80px] px-2 py-2 font-medium">Tax ($)</th>
+                    <th className="min-w-[100px] px-2 py-2 font-medium">Total</th>
+                    <th className="px-2 py-2 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((li, index) => (
+                    <tr key={index} className="border-b border-border/60 last:border-0">
+                      <td className="p-1">
+                        <Input className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.description} onChange={(e) => updateLineItem(index, { description: e.target.value })} />
+                      </td>
+                      <td className="p-1">
+                        <Select value={li.costCode || NONE} onValueChange={(v) => updateLineItem(index, { costCode: v === NONE ? "" : v })}>
+                          <SelectTrigger className="h-8 w-full border-0 shadow-none">
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={NONE}>None</SelectItem>
+                            {costCodes.map((c) => (
+                              <SelectItem key={c.id} value={c.code}>{c.code}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.quantity} onChange={(e) => updateLineItem(index, { quantity: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.unit} onChange={(e) => updateLineItem(index, { unit: e.target.value })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.laborCost} onChange={(e) => updateLineItem(index, { laborCost: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.materialCost} onChange={(e) => updateLineItem(index, { materialCost: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.equipmentCost} onChange={(e) => updateLineItem(index, { equipmentCost: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.subcontractCost} onChange={(e) => updateLineItem(index, { subcontractCost: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.markupPercent ?? 0} onChange={(e) => updateLineItem(index, { markupPercent: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.tax ?? 0} onChange={(e) => updateLineItem(index, { tax: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="whitespace-nowrap p-1 px-2 text-right font-medium text-foreground">{currency(computeLineItemTotal(li))}</td>
+                      <td className="p-1">
+                        <div className="flex gap-0.5">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                            title="Apply default rate for this cost code"
+                            onClick={() => applyRate(index)}
+                            disabled={!findRateForCostCode(li.costCode)}
+                          >
+                            <Zap className="size-3.5" />
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => removeLineItem(index)} disabled={lineItems.length === 1}>
+                            <Trash2 className="size-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 

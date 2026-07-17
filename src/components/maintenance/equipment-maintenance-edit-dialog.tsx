@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { updateEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useProperties } from "@/hooks/use-properties";
+import { createEquipmentMaintenance, updateEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
 
 interface Props {
@@ -23,6 +25,7 @@ interface Props {
 }
 
 export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: Props) {
+  const properties = useProperties();
   const [propertyName, setPropertyName] = React.useState("");
   const [location, setLocation] = React.useState("");
   const [systemType, setSystemType] = React.useState("");
@@ -32,48 +35,51 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
   const [notes, setNotes] = React.useState("");
 
   React.useEffect(() => {
-    if (record) {
-      setPropertyName(record.propertyName);
-      setLocation(record.location);
-      setSystemType(record.systemType);
-      setMaintenanceNeeded(record.maintenanceNeeded ?? "");
-      setFrequency(record.frequency ?? "");
-      setLastCompleted(record.lastCompleted ?? "");
-      setNotes(record.notes ?? "");
+    if (open) {
+      setPropertyName(record?.propertyName ?? "");
+      setLocation(record?.location ?? "");
+      setSystemType(record?.systemType ?? "");
+      setMaintenanceNeeded(record?.maintenanceNeeded ?? "");
+      setFrequency(record?.frequency ?? "");
+      setLastCompleted(record?.lastCompleted ?? "");
+      setNotes(record?.notes ?? "");
     }
-  }, [record]);
+  }, [record, open]);
 
   function handleSave() {
-    if (!record) return;
-    updateEquipmentMaintenance(record.id, {
-      propertyName,
-      location,
-      systemType,
-      maintenanceNeeded,
-      frequency,
-      lastCompleted,
-      notes,
-    });
+    const input = { propertyName, location, systemType, maintenanceNeeded, frequency, lastCompleted, notes };
+    if (record) {
+      updateEquipmentMaintenance(record.id, input);
+    } else {
+      createEquipmentMaintenance(input);
+    }
     onOpenChange(false);
   }
+  const canSave = !!propertyName && !!location && !!systemType;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Equipment Maintenance</DialogTitle>
+          <DialogTitle>{record ? "Edit Equipment Maintenance" : "New Equipment Maintenance"}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="propertyName">Property</Label>
-              <Input
-                id="propertyName"
-                className="mt-1.5"
-                value={propertyName}
-                onChange={(e) => setPropertyName(e.target.value)}
-              />
+              <Label>Property</Label>
+              <Select value={propertyName} onValueChange={setPropertyName}>
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue placeholder="Select a property" />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties.map((p) => (
+                    <SelectItem key={p.id} value={p.name}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="location">Location</Label>
@@ -139,7 +145,7 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <Button onClick={handleSave} disabled={!canSave}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

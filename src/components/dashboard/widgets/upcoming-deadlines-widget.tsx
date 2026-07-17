@@ -11,6 +11,21 @@ function formatDate(d: Date) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function daysBetween(a: Date, b: Date): number {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const aStart = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  const bStart = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((aStart.getTime() - bStart.getTime()) / msPerDay);
+}
+
+function specificDeadlineLabel(dueDate: Date): string {
+  const diff = daysBetween(dueDate, new Date());
+  if (diff < 0) return `Overdue by ${Math.abs(diff)} day${Math.abs(diff) === 1 ? "" : "s"}`;
+  if (diff === 0) return "Due today";
+  if (diff === 1) return "Due tomorrow";
+  return `Due in ${diff} days`;
+}
+
 export function UpcomingDeadlinesWidget() {
   const deadlines = getUpcomingDeadlines(6);
 
@@ -51,6 +66,7 @@ export function UpcomingDeadlinesWidget() {
                           ? "due_soon"
                           : "upcoming"
                       }
+                      label={specificDeadlineLabel(d.dueDate)}
                     />
                   </td>
                 </tr>

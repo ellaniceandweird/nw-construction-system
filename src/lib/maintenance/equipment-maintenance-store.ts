@@ -50,6 +50,33 @@ export interface EquipmentMaintenanceEditInput {
   notes?: string;
 }
 
+function nextId(): string {
+  const maxNum = records.reduce((max, r) => {
+    const n = parseInt(r.id.replace("EQ-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  return `EQ-${String(maxNum + 1).padStart(6, "0")}`;
+}
+
+export function createEquipmentMaintenance(input: EquipmentMaintenanceEditInput) {
+  const now = new Date().toISOString();
+  const newRecord: EquipmentMaintenanceSchedule = {
+    id: nextId(),
+    createdBy: "user",
+    createdDate: now,
+    lastModifiedBy: "user",
+    lastModifiedDate: now,
+    revisionNumber: 1,
+    module: "Maintenance",
+    status: "active",
+    ...input,
+  };
+  records = [...records, newRecord];
+  persist();
+  emit();
+  return newRecord;
+}
+
 export function updateEquipmentMaintenance(id: string, input: EquipmentMaintenanceEditInput) {
   const existing = records.find((r) => r.id === id);
   records = records.map((r) =>

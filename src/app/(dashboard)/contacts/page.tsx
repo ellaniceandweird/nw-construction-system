@@ -1,11 +1,14 @@
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { PageHeader } from "@/components/layout/page-header";
+import { ContactsTable } from "@/components/contacts/contacts-table";
 
-export default function Page() {
+export default function ContactsPage() {
   return (
-    <ModulePlaceholder
-      title="Contacts"
-      description="Clients, vendors, employees, and other project contacts."
-      phase="a later phase"
-    />
+    <>
+      <PageHeader
+        title="Contacts"
+        description="Design professionals, government/regulatory contacts, service providers, and internal team."
+      />
+      <ContactsTable />
+    </>
   );
 }

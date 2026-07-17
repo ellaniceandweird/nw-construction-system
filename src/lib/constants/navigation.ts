@@ -11,9 +11,9 @@ import {
   FileText,
   Building2,
   Users,
-  BarChart3,
   Sparkles,
   Settings,
+  Library,
 } from "lucide-react";
 import type { Role } from "@/types/roles";
 
@@ -55,6 +55,7 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Property Profiles", href: "/properties", icon: Building2 },
   { label: "Projects", href: "/projects", icon: FolderKanban },
   {
     label: "Planning",
@@ -68,7 +69,15 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "Daily Work Plan", href: "/scheduling/daily" },
     ],
   },
-  { label: "Daily Logs", href: "/field-operations", icon: ClipboardList },
+  {
+    label: "Daily Logs",
+    href: "/field-operations",
+    icon: ClipboardList,
+    children: [
+      { label: "Daily Logs", href: "/field-operations?tab=dailylogs" },
+      { label: "Field Worker Invoices", href: "/field-operations?tab=invoices" },
+    ],
+  },
   {
     label: "Maintenance",
     href: "/maintenance",
@@ -104,6 +113,8 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "Cost Codes", href: "/estimating?tab=costcodes" },
       { label: "Cost Database", href: "/estimating?tab=costdatabase" },
       { label: "Cost Tracking", href: "/estimating?tab=costtracking" },
+      { label: "Change Orders", href: "/estimating?tab=changeorders" },
+      { label: "Portfolio Rollup", href: "/estimating?tab=portfolio" },
     ],
   },
   {
@@ -128,9 +139,19 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "Photos", href: "/documents?tab=photos" },
     ],
   },
-  { label: "Property Profiles", href: "/properties", icon: Building2 },
   { label: "Contacts", href: "/contacts", icon: Users },
-  { label: "Reports", href: "/reporting", icon: BarChart3 },
+  {
+    label: "References",
+    href: "/references",
+    icon: Library,
+    children: [
+      { label: "Field Worker Rates", href: "/references?tab=fieldworkerrates" },
+      { label: "US Holidays", href: "/references?tab=holidays" },
+      { label: "Billing Entities", href: "/references?tab=billingentities" },
+      { label: "Cost Codes", href: "/references?tab=costcodes" },
+      { label: "Print Settings", href: "/references?tab=printsettings" },
+    ],
+  },
   { label: "AI Assistant", href: "/ai", icon: Sparkles },
   {
     label: "Settings",

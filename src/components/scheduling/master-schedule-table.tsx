@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Plus, Pencil, Trash2, Upload } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Upload, Table2 } from "lucide-react";
 
 import { useActivities } from "@/hooks/use-activities";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ActivityFormDialog } from "@/components/scheduling/activity-form-dialog";
 import { ImportScheduleDialog } from "@/components/scheduling/import-schedule-dialog";
+import { BulkAddActivitiesDialog } from "@/components/scheduling/bulk-add-activities-dialog";
 import { SchedulePrintTable } from "@/components/scheduling/print/schedule-print-table";
 import type { Activity } from "@/types/scheduling";
 
@@ -43,6 +44,7 @@ export function MasterScheduleTable() {
   const [projectFilter, setProjectFilter] = React.useState("all");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [importDialogOpen, setImportDialogOpen] = React.useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = React.useState(false);
   const [editingActivity, setEditingActivity] = React.useState<Activity | undefined>();
 
   const projectsWithActivities = MOCK_PROJECTS.filter((p) =>
@@ -100,6 +102,9 @@ export function MasterScheduleTable() {
         </Select>
         <Button variant="outline" onClick={() => setImportDialogOpen(true)} className="ml-auto print:hidden">
           <Upload /> Import Schedule
+        </Button>
+        <Button variant="outline" onClick={() => setBulkAddOpen(true)} className="print:hidden">
+          <Table2 /> Add Activities (Table)
         </Button>
         <Button onClick={handleAdd} className="print:hidden">
           <Plus /> Add Activity
@@ -204,6 +209,7 @@ export function MasterScheduleTable() {
         existingActivity={editingActivity}
       />
       <ImportScheduleDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
+      <BulkAddActivitiesDialog open={bulkAddOpen} onOpenChange={setBulkAddOpen} />
     </div>
   );
 }

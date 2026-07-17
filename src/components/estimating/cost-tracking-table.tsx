@@ -5,8 +5,10 @@ import { ChevronRight } from "lucide-react";
 
 import { useEstimates } from "@/hooks/use-estimates";
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
+import { useChangeOrders } from "@/hooks/use-change-orders";
 import { useCostTrackingNotes } from "@/hooks/use-cost-tracking-notes";
 import { setCostTrackingNote } from "@/lib/estimating/cost-tracking-notes-store";
+import { computeApprovedChangesTotal } from "@/lib/estimating/change-order-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { computeDivisionBudget, computeTotalActual } from "@/lib/estimating/budget-tracking";
 import { Card } from "@/components/ui/card";
@@ -19,9 +21,9 @@ function currency(n: number) {
 function projectName(id: string) {
   return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
 }
-function percentVariance(variance: number, estimated: number) {
-  if (estimated === 0) return 0;
-  return (variance / estimated) * 100;
+function percentVariance(variance: number, base: number) {
+  if (base === 0) return 0;
+  return (variance / base) * 100;
 }
 
 function NotesCell({ estimateId, initialValue }: { estimateId: string; initialValue: string }) {
@@ -40,6 +42,7 @@ function NotesCell({ estimateId, initialValue }: { estimateId: string; initialVa
 export function CostTrackingTable() {
   const estimates = useEstimates();
   const purchaseOrders = usePurchaseOrders();
+  const changeOrders = useChangeOrders();
   const notes = useCostTrackingNotes();
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
@@ -48,10 +51,10 @@ export function CostTrackingTable() {
   return (
     <>
       <p className="mb-3 text-xs text-muted-foreground">
-        Compares each estimate&apos;s totals against real Purchase Orders already logged
-        in Procurement for that project. Projects with no POs yet show &quot;—&quot; rather
-        than $0, since there&apos;s simply no data yet. Notes are manual — type an update
-        and click away to save it.
+        Compares each estimate&apos;s revised budget (original estimate + approved change
+        orders) against real Purchase Orders already logged in Procurement. Projects with
+        no POs yet show &quot;—&quot; rather than $0. Notes are manual — type an update and
+        click away to save it.
       </p>
 
       <Card className="overflow-x-auto py-0">
@@ -60,7 +63,9 @@ export function CostTrackingTable() {
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Estimate Number</th>
-              <th className="px-4 py-3 font-medium">Estimated</th>
+              <th className="px-4 py-3 font-medium">Original Estimate</th>
+              <th className="px-4 py-3 font-medium">Approved Changes</th>
+              <th className="px-4 py-3 font-medium">Revised Budget</th>
               <th className="px-4 py-3 font-medium">Actual to Date</th>
               <th className="px-4 py-3 font-medium">Variance</th>
               <th className="px-4 py-3 font-medium">% Variance</th>
@@ -73,9 +78,11 @@ export function CostTrackingTable() {
               const projectPOs = purchaseOrders.filter((po) => po.projectId === e.projectId);
               const hasActuals = projectPOs.length > 0;
               const totalActual = computeTotalActual(projectPOs);
-              const variance = e.totalEstimatedCost - totalActual;
-              const pctVariance = percentVariance(variance, e.totalEstimatedCost);
-              const percentSpent = e.totalEstimatedCost > 0 ? (totalActual / e.totalEstimatedCost) * 100 : 0;
+              const approvedChanges = computeApprovedChangesTotal(e.id, changeOrders);
+              const revisedBudget = e.totalEstimatedCost + approvedChanges;
+              const variance = revisedBudget - totalActual;
+              const pctVariance = percentVariance(variance, revisedBudget);
+              const percentSpent = revisedBudget > 0 ? (totalActual / revisedBudget) * 100 : 0;
               const isExpanded = expandedId === e.id;
               const divisionBudget = computeDivisionBudget(e.lineItems, projectPOs);
 
@@ -92,7 +99,18 @@ export function CostTrackingTable() {
                       </button>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{e.estimateNumber}</td>
-                    <td className="px-4 py-3 font-medium text-foreground">{currency(e.totalEstimatedCost)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{currency(e.totalEstimatedCost)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {approvedChanges !== 0 ? (
+                        <span className={approvedChanges > 0 ? "text-foreground" : "text-destructive"}>
+                          {approvedChanges > 0 ? "+" : ""}
+                          {currency(approvedChanges)}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-foreground">{currency(revisedBudget)}</td>
                     <td className="px-4 py-3 text-muted-foreground">{hasActuals ? currency(totalActual) : "—"}</td>
                     <td className="px-4 py-3">
                       {hasActuals ? (
@@ -114,7 +132,7 @@ export function CostTrackingTable() {
                   </tr>
                   {isExpanded && (
                     <tr>
-                      <td colSpan={8} className="bg-muted/20 px-4 pb-4 pt-1">
+                      <td colSpan={10} className="bg-muted/20 px-4 pb-4 pt-1">
                         <Card className="overflow-x-auto py-0">
                           <table className="w-full text-sm">
                             <thead>
@@ -144,15 +162,17 @@ export function CostTrackingTable() {
                                 );
                               })}
                               {divisionBudget.length === 0 && (
-                                <tr>
-                                  <td colSpan={5} className="px-4 py-4 text-center text-muted-foreground">
-                                    No line items or Purchase Orders to compare yet.
-                                  </td>
-                                </tr>
+                                <tr><td colSpan={5} className="px-4 py-4 text-center text-muted-foreground">No line items or Purchase Orders to compare yet.</td></tr>
                               )}
                             </tbody>
                           </table>
                         </Card>
+                        {approvedChanges !== 0 && (
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            Division breakdown compares against the original per-division estimate; approved
+                            change orders (shown above) are applied only to the overall Revised Budget total.
+                          </p>
+                        )}
                         {!hasActuals && (
                           <p className="mt-2 text-xs text-muted-foreground">
                             No Purchase Orders logged for this project yet in Procurement.
@@ -165,11 +185,7 @@ export function CostTrackingTable() {
               );
             })}
             {sorted.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
-                  No estimates yet — create one on the Estimates tab.
-                </td>
-              </tr>
+              <tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">No estimates yet — create one on the Estimates tab.</td></tr>
             )}
           </tbody>
         </table>

@@ -96,7 +96,7 @@ export const MOCK_ESTIMATES: Estimate[] = [
     estimator: "Ella Esquivel",
     estimateDate: "2026-07-01",
     revision: 1,
-    estimateStatus: "client_review",
+    estimateStatus: "owner_review",
     currency: "USD",
     taxMethod: "Sales tax on materials",
     lineItems: bulkheadLineItems,

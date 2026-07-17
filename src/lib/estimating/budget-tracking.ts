@@ -15,6 +15,9 @@ export interface DivisionBudgetRow {
  * CSI division (matched on the shared cost-code convention) so estimated
  * vs. actual can be compared per division, not just per line item — this
  * avoids double-counting when multiple line items share one cost code.
+ * Approved change orders aren't allocated to a division here (they don't
+ * carry a cost code) — they only affect the overall Revised Budget total
+ * shown in Cost Tracking.
  */
 export function computeDivisionBudget(
   lineItems: EstimateLineItem[],

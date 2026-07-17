@@ -28,15 +28,17 @@ const STATUS_CONFIG: Record<DashboardStatus, { label: string; className: string 
 
 export function StatusBadge({
   status,
+  label,
   className,
 }: {
   status: DashboardStatus;
+  label?: string;
   className?: string;
 }) {
   const config = STATUS_CONFIG[status];
   return (
     <Badge className={cn(config.className, "border-transparent", className)}>
-      {config.label}
+      {label ?? config.label}
     </Badge>
   );
 }

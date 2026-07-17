@@ -19,7 +19,7 @@ import type { Estimate } from "@/types/estimating";
 const STATUS_CLASS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   internal_review: "bg-warning-soft text-warning-foreground",
-  client_review: "bg-info-soft text-info-foreground",
+  owner_review: "bg-info-soft text-info-foreground",
   approved: "bg-success-soft text-success",
   rejected: "bg-destructive-soft text-destructive",
   superseded: "bg-muted text-muted-foreground",

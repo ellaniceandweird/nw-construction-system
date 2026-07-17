@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Pencil } from "lucide-react";
+import { Search, Pencil, Plus } from "lucide-react";
 
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { Input } from "@/components/ui/input";
@@ -58,6 +58,7 @@ export function EquipmentMaintenanceTable() {
   const [propertyFilter, setPropertyFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<SortOption>("default");
   const [editingRecord, setEditingRecord] = React.useState<EquipmentMaintenanceSchedule | null>(null);
+  const [creating, setCreating] = React.useState(false);
 
   const propertyNames = Array.from(new Set(records.map((e) => e.propertyName)));
 
@@ -114,6 +115,9 @@ export function EquipmentMaintenanceTable() {
             <SelectItem value="next_due">Next Due (Earliest → Latest)</SelectItem>
           </SelectContent>
         </Select>
+        <Button size="sm" onClick={() => setCreating(true)} className="print:hidden">
+          <Plus className="size-3.5" /> Add Row
+        </Button>
         <PrintButton />
         <span className="ml-auto text-sm text-muted-foreground print:hidden">
           {filtered.length} of {records.length} equipment records
@@ -176,6 +180,11 @@ export function EquipmentMaintenanceTable() {
         record={editingRecord}
         open={!!editingRecord}
         onOpenChange={(open) => !open && setEditingRecord(null)}
+      />
+      <EquipmentMaintenanceEditDialog
+        record={null}
+        open={creating}
+        onOpenChange={setCreating}
       />
     </div>
   );
