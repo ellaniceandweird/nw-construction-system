@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronDown, Bell, Settings, LogOut, User } from "lucide-react";
 
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { createClient } from "@/lib/supabase/client";
 import { ROLE_LABELS } from "@/types/roles";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -28,6 +30,14 @@ function initials(name: string) {
 
 export function Topbar({ notificationCount = 0 }: { notificationCount?: number }) {
   const user = useCurrentUser();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card px-5 print:hidden">
@@ -72,8 +82,10 @@ export function Topbar({ notificationCount = 0 }: { notificationCount?: number }
               </span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User /> Profile
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <User /> Profile
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/admin">
@@ -81,7 +93,7 @@ export function Topbar({ notificationCount = 0 }: { notificationCount?: number }
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">
+            <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
               <LogOut /> Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
