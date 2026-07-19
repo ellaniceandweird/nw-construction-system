@@ -82,8 +82,10 @@ export function Topbar({ notificationCount = 0 }: { notificationCount?: number }
               </span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User /> Profile
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <User /> Profile
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/admin">

@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ChevronsLeft, ChevronsRight, ChevronDown, HardHat } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, ChevronDown } from "lucide-react";
 
 import { NAV_ITEMS } from "@/lib/constants/navigation";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -45,8 +46,8 @@ export function Sidebar() {
           collapsed && "justify-center px-0"
         )}
       >
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <HardHat className="size-5" />
+        <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
+          <Image src="/nice-and-weird-logo.png" alt="Nice & Weird Group logo" width={36} height={36} className="object-contain" />
         </div>
         {!collapsed && (
           <div className="flex flex-col leading-none">
