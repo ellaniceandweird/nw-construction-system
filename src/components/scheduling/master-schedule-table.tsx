@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Plus, Pencil, Trash2, Upload, Table2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Plus, Pencil, Trash2, Upload, Table2 } from "lucide-react";
 
 import { useActivities } from "@/hooks/use-activities";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
@@ -51,12 +51,30 @@ export function MasterScheduleTable() {
   const [importDialogOpen, setImportDialogOpen] = React.useState(false);
   const [bulkAddOpen, setBulkAddOpen] = React.useState(false);
   const [editingActivity, setEditingActivity] = React.useState<Activity | undefined>();
+  const [expandedProjects, setExpandedProjects] = React.useState<Set<string>>(new Set());
 
   React.useEffect(() => {
     if (highlightId && highlightRef.current) {
       highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [highlightId]);
+
+  React.useEffect(() => {
+    if (!highlightId) return;
+    const owningActivity = activities.find((a) => a.id === highlightId);
+    if (owningActivity) {
+      setExpandedProjects((prev) => new Set(prev).add(owningActivity.projectId));
+    }
+  }, [highlightId, activities]);
+
+  function toggleProject(projectId: string) {
+    setExpandedProjects((prev) => {
+      const next = new Set(prev);
+      if (next.has(projectId)) next.delete(projectId);
+      else next.add(projectId);
+      return next;
+    });
+  }
 
   const projectsWithActivities = MOCK_PROJECTS.filter((p) =>
     activities.some((a) => a.projectId === p.id)
@@ -69,6 +87,22 @@ export function MasterScheduleTable() {
       return matchesSearch && matchesProject;
     })
     .sort((a, b) => new Date(a.plannedStart).getTime() - new Date(b.plannedStart).getTime());
+
+  const groupedByProject = React.useMemo(() => {
+    const groups = new Map<string, Activity[]>();
+    for (const a of filtered) {
+      if (!groups.has(a.projectId)) groups.set(a.projectId, []);
+      groups.get(a.projectId)!.push(a);
+    }
+    return [...groups.entries()]
+      .map(([projectId, projectActivities]) => {
+        const project = MOCK_PROJECTS.find((p) => p.id === projectId);
+        const start = projectActivities.reduce((min, a) => (a.plannedStart < min ? a.plannedStart : min), projectActivities[0].plannedStart);
+        const finish = projectActivities.reduce((max, a) => (a.plannedFinish > max ? a.plannedFinish : max), projectActivities[0].plannedFinish);
+        return { projectId, projectName: project?.projectName ?? "—", activities: projectActivities, start, finish };
+      })
+      .sort((a, b) => a.start.localeCompare(b.start));
+  }, [filtered]);
 
   function handleAdd() {
     setEditingActivity(undefined);
@@ -129,7 +163,6 @@ export function MasterScheduleTable() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Activity</th>
               <th className="px-4 py-3 font-medium">Start</th>
               <th className="px-4 py-3 font-medium">Finish</th>
@@ -142,66 +175,86 @@ export function MasterScheduleTable() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((a) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === a.projectId);
+            {groupedByProject.map((group) => {
+              const isExpanded = expandedProjects.has(group.projectId);
               return (
-                <tr
-                  key={a.id}
-                  ref={a.id === highlightId ? highlightRef : undefined}
-                  className={`border-b border-border/60 last:border-0 hover:bg-accent/40 ${a.id === highlightId ? "bg-warning-soft" : ""}`}
-                >
-                  <td className="px-4 py-3">
-                    <span className="font-medium text-foreground">
-                      {project?.projectName ?? "—"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {a.name}
-                    {a.isCritical && (
-                      <Badge variant="destructive" className="ml-2">
-                        Critical
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(a.plannedStart)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(a.plannedFinish)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.originalDurationDays}d</td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.requiredManpower ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Progress value={a.percentComplete} className="w-16" />
-                      <span className="text-xs text-muted-foreground">{a.percentComplete}%</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={`${STATUS_CLASS[a.status] ?? ""} border-transparent`}>
-                      {a.status.replace("_", " ")}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    {(() => {
-                      const pva = computePlanVsActual(a, new Date());
-                      const toneClass =
-                        pva.tone === "success" ? "text-success" : pva.tone === "warning" ? "text-warning-foreground" : pva.tone === "destructive" ? "text-destructive" : "text-muted-foreground";
-                      return <span className={`text-xs font-medium ${toneClass}`}>{pva.label}</span>;
-                    })()}
-                  </td>
-                  <td className="px-4 py-3 print:hidden">
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(a)}>
-                        <Pencil className="size-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(a)}>
-                        <Trash2 className="size-3.5 text-destructive" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
+                <React.Fragment key={group.projectId}>
+                  <tr
+                    className="cursor-pointer border-b border-border bg-muted/30 hover:bg-muted/50"
+                    onClick={() => toggleProject(group.projectId)}
+                  >
+                    <td colSpan={9} className="px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        {isExpanded ? (
+                          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                        )}
+                        <span className="font-semibold text-foreground">{group.projectName}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(group.start)} – {formatDate(group.finish)}
+                        </span>
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {group.activities.length} activit{group.activities.length === 1 ? "y" : "ies"}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && group.activities.map((a) => (
+                    <tr
+                      key={a.id}
+                      ref={a.id === highlightId ? highlightRef : undefined}
+                      className={`border-b border-border/60 last:border-0 hover:bg-accent/40 ${a.id === highlightId ? "bg-warning-soft" : ""}`}
+                    >
+                      <td className="px-4 py-3 pl-10 text-muted-foreground">
+                        {a.name}
+                        {a.isCritical && (
+                          <Badge variant="destructive" className="ml-2">
+                            Critical
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{formatDate(a.plannedStart)}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{formatDate(a.plannedFinish)}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{a.originalDurationDays}d</td>
+                      <td className="px-4 py-3 text-muted-foreground">{a.requiredManpower ?? "—"}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Progress value={a.percentComplete} className="w-16" />
+                          <span className="text-xs text-muted-foreground">{a.percentComplete}%</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge className={`${STATUS_CLASS[a.status] ?? ""} border-transparent`}>
+                          {a.status.replace("_", " ")}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        {(() => {
+                          const pva = computePlanVsActual(a, new Date());
+                          const toneClass =
+                            pva.tone === "success" ? "text-success" : pva.tone === "warning" ? "text-warning-foreground" : pva.tone === "destructive" ? "text-destructive" : "text-muted-foreground";
+                          return <span className={`text-xs font-medium ${toneClass}`}>{pva.label}</span>;
+                        })()}
+                      </td>
+                      <td className="px-4 py-3 print:hidden">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(a)}>
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(a)}>
+                            <Trash2 className="size-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </React.Fragment>
               );
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
                   No activities match your search.
                 </td>
               </tr>

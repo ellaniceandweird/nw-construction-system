@@ -17,25 +17,22 @@ export const dailyLogFormSchema = z.object({
     "extreme_cold",
   ]),
   preparedBy: z.string().min(2, "Enter who prepared this log"),
-  crewAttendance: z
+  timeEntries: z
     .array(
       z.object({
-        crewName: z.string().min(1, "Name required"),
-        trade: z.string().min(1, "Trade required"),
-        hoursWorked: z.coerce.number().min(0).max(24),
-      })
-    )
-    .min(1, "Add at least one crew member"),
-  activitiesPerformed: z
-    .array(
-      z.object({
+        employeeId: z.string().min(1, "Select an employee"),
+        employeeName: z.string().min(1),
+        trade: z.string().optional(),
+        status: z.enum(["present", "absent", "late"]),
+        projectId: z.string().min(1, "Select a project"),
         activityId: z.string().min(1, "Select an activity"),
-        description: z.string().min(1, "Description required"),
-        hoursWorked: z.coerce.number().min(0).max(24),
+        activityDescription: z.string().min(1),
+        regularHours: z.coerce.number().min(0).max(24),
+        overtimeHours: z.coerce.number().min(0).max(24),
         notes: z.string().optional(),
       })
     )
-    .min(1, "Add at least one activity"),
+    .min(1, "Add at least one time entry"),
   generalNotes: z.string().optional(),
 });
 

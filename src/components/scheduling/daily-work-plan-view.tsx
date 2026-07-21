@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, Users, HardHat, Briefcase, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, HardHat, Briefcase, AlertTriangle, MessageSquare } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,8 @@ import { useActivities } from "@/hooks/use-activities";
 import type { Activity } from "@/types/scheduling";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { getCrewCapacityForDay, getWorkType, type WorkType } from "@/lib/scheduling/capacity";
+import { generateDailyFieldUpdateText } from "@/lib/scheduling/daily-field-update";
+import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-update-dialog";
 
 const TODAY = new Date("2026-07-10");
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -76,6 +78,7 @@ export function DailyWorkPlanView() {
   const activities = useActivities();
   const [dayOffset, setDayOffset] = React.useState(0);
   const [workTypeFilter, setWorkTypeFilter] = React.useState<WorkType | "all">("all");
+  const [updateDialogOpen, setUpdateDialogOpen] = React.useState(false);
 
   const date = new Date(TODAY.getTime() + dayOffset * DAY_MS);
   const capacity = getCrewCapacityForDay(activities, date);
@@ -83,6 +86,8 @@ export function DailyWorkPlanView() {
   const filteredScheduled = capacity.scheduled.filter(
     (s) => workTypeFilter === "all" || getWorkType(s.activity) === workTypeFilter
   );
+
+  const fieldUpdateText = generateDailyFieldUpdateText(date, capacity.scheduled);
 
   return (
     <div className="flex flex-col gap-5">
@@ -99,6 +104,14 @@ export function DailyWorkPlanView() {
             Back to today
           </Button>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={() => setUpdateDialogOpen(true)}
+        >
+          <MessageSquare className="size-3.5" /> Generate Daily Update for Pedro
+        </Button>
       </div>
       <h2 className="hidden text-lg font-semibold print:block">Daily Work Plan — {formatDate(date)}</h2>
 
@@ -243,6 +256,12 @@ export function DailyWorkPlanView() {
           </tbody>
         </table>
       </div>
+
+      <DailyFieldUpdateDialog
+        open={updateDialogOpen}
+        onOpenChange={setUpdateDialogOpen}
+        text={fieldUpdateText}
+      />
     </div>
   );
 }

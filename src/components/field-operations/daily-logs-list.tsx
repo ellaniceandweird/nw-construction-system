@@ -91,8 +91,8 @@ export function DailyLogsList() {
           <tbody>
             {filtered.map((log) => {
               const project = MOCK_PROJECTS.find((p) => p.id === log.projectId);
-              const totalHours = log.crewAttendance.reduce((s, c) => s + c.hoursWorked, 0);
-              const crewCount = new Set(log.crewAttendance.map((c) => c.crewName)).size;
+              const totalHours = log.timeEntries.reduce((s, e) => s + e.regularHours + e.overtimeHours, 0);
+              const crewCount = new Set(log.timeEntries.map((e) => e.employeeId)).size;
               const WeatherIcon = WEATHER_ICON[log.weatherCondition] ?? Sun;
 
               return (

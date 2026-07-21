@@ -18,7 +18,7 @@ export function NotesFromManagementWidget() {
   return (
     <Card className="bg-info-soft/70 border-info/30">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Notes from Management</CardTitle>
+        <CardTitle>Notes</CardTitle>
         <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
           <Plus className="size-3.5" /> Add Note
         </Button>

@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChangeOrderEditDialog } from "@/components/estimating/change-order-edit-dialog";
+import { requiresOwnerApproval, OWNER_APPROVAL_THRESHOLD } from "@/lib/estimating/change-order-approval";
 import type { ChangeOrder } from "@/types/change-orders";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -41,6 +42,7 @@ export function ChangeOrdersTable() {
         <p className="text-xs text-muted-foreground">
           Scope or cost changes after a budget is approved. Approved change orders
           automatically adjust the Revised Budget shown in Cost Tracking and Portfolio Rollup.
+          Changes over {currency(OWNER_APPROVAL_THRESHOLD)} are flagged for owner approval.
         </p>
         <Button size="sm" onClick={() => setCreating(true)} className="shrink-0">
           <Plus className="size-3.5" /> New Change Order
@@ -57,6 +59,7 @@ export function ChangeOrdersTable() {
               <th className="px-4 py-3 font-medium">Cost Impact</th>
               <th className="px-4 py-3 font-medium">Requested</th>
               <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Approval</th>
               <th className="px-4 py-3 font-medium">Edit</th>
             </tr>
           </thead>
@@ -79,13 +82,22 @@ export function ChangeOrdersTable() {
                     <Badge className={`${STATUS_CLASS[c.changeOrderStatus]} border-transparent`}>{c.changeOrderStatus}</Badge>
                   </td>
                   <td className="px-4 py-3">
+                    {requiresOwnerApproval(c.costImpact) ? (
+                      <Badge className="bg-destructive-soft text-destructive border-transparent">
+                        Requires Owner Approval
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Within budget authority</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <Button variant="ghost" size="icon" onClick={() => setEditing(c)}><Pencil className="size-3.5" /></Button>
                   </td>
                 </tr>
               );
             })}
             {sorted.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">No change orders yet — add one above.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">No change orders yet — add one above.</td></tr>
             )}
           </tbody>
         </table>

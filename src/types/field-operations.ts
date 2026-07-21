@@ -21,39 +21,23 @@ export type WeatherCondition =
   | "extreme_heat"
   | "extreme_cold";
 
-export interface CrewAttendanceEntry {
-  crewName: string;
-  foreman?: string;
-  trade: string;
-  workersPresent: number;
-  workersAbsent: number;
-  workersLate: number;
-  hoursWorked: number;
+/**
+ * One worker's time on one project/activity for the day. A worker who
+ * splits their day across two projects gets two entries (same
+ * employeeId, different projectId) instead of needing two separate
+ * daily logs — this is the structure Sjaak asked for on 2026-07-20.
+ */
+export interface DailyTimeEntry {
+  employeeId: string;
+  employeeName: string;
+  trade?: string;
+  status: "present" | "absent" | "late";
+  projectId: string;
+  activityId?: string; // GENERAL_WORK_ACTIVITY_ID or a real Activity id from that project's schedule
+  activityDescription: string;
+  regularHours: number;
   overtimeHours: number;
-  remarks?: string;
-  workers: Array<{
-    employeeId: string;
-    employeeName: string;
-    trade: string;
-    regularHours: number;
-    overtimeHours: number;
-    status: "present" | "absent" | "late";
-  }>;
-}
-
-export interface DailyActivityReportEntry {
-  activityId: string; // links back to Scheduling Activity
-  description: string;
-  location?: string;
-  crew?: string;
-  equipmentUsed?: string[];
-  materialsUsed?: string[];
-  hoursWorked: number;
-  plannedProgress?: number;
-  actualProgress: number;
-  percentComplete: number;
-  status: string;
-  notes?: string;
+  notes?: string; // manual/free-text entry for anything not captured by the activity dropdown
 }
 
 export interface MaterialConsumptionEntry {
@@ -222,8 +206,7 @@ export interface DailyLog extends BaseEntity {
   shift?: "day" | "night" | "weekend";
   overallSiteStatus?: string;
 
-  crewAttendance: CrewAttendanceEntry[];
-  activitiesPerformed: DailyActivityReportEntry[];
+  timeEntries: DailyTimeEntry[];
   materialDeliveries: MaterialDeliveryEntry[];
   materialConsumption: MaterialConsumptionEntry[];
   safetyIncidentIds?: string[];

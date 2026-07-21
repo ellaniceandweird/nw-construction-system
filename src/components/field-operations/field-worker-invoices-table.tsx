@@ -44,6 +44,7 @@ export function FieldWorkerInvoicesTable() {
           "Pay Period": `${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}`,
           Date: formatDate(li.date),
           Project: projectName(li.projectId),
+          Activity: li.activity,
           "Cost Code": li.costCode ?? "",
           "Regular Hours": li.regularHours,
           "Overtime Hours": li.overtimeHours,
@@ -65,6 +66,7 @@ export function FieldWorkerInvoicesTable() {
         <tr>
           <td>${formatDate(li.date)}</td>
           <td>${projectName(li.projectId)}</td>
+          <td>${li.activity}</td>
           <td>${li.costCode ?? "—"}</td>
           <td>${li.regularHours}</td>
           <td>${li.overtimeHours}</td>
@@ -78,12 +80,12 @@ export function FieldWorkerInvoicesTable() {
       `
       <div class="header">
         <h1>Nice &amp; Weird Group</h1>
-        <p>Field Worker Invoice — ${inv.employeeName} (${inv.trade})</p>
+        <p>Field Worker Invoice — ${inv.employeeName}${inv.trade ? ` (${inv.trade})` : ""}</p>
         <p>Pay Period: ${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}</p>
         ${billingEntity ? `<p>Billing Entity: ${billingEntity.companyName}</p>` : ""}
       </div>
       <table>
-        <thead><tr><th>Date</th><th>Project</th><th>Cost Code</th><th>Reg Hrs</th><th>OT Hrs</th><th class="right">Amount</th></tr></thead>
+        <thead><tr><th>Date</th><th>Project</th><th>Activity</th><th>Cost Code</th><th>Reg Hrs</th><th>OT Hrs</th><th class="right">Amount</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
       <div style="margin-top:12px; text-align:right; font-weight:700;">Total: ${currency(inv.totalAmount)}</div>
@@ -111,6 +113,7 @@ export function FieldWorkerInvoicesTable() {
               <th className="px-4 py-3 font-medium">Invoice #</th>
               <th className="px-4 py-3 font-medium">Employee</th>
               <th className="px-4 py-3 font-medium">Property</th>
+              <th className="px-4 py-3 font-medium">Billing Entity</th>
               <th className="px-4 py-3 font-medium">Pay Period</th>
               <th className="px-4 py-3 font-medium">Total Hours</th>
               <th className="px-4 py-3 font-medium">Total Amount</th>
@@ -134,6 +137,9 @@ export function FieldWorkerInvoicesTable() {
                     <td className="px-4 py-3 text-muted-foreground">
                       {getPropertyForBillingEntity(inv.billingEntityId, properties)?.name ?? "—"}
                     </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {billingEntities.find((b) => b.id === inv.billingEntityId)?.companyName ?? "—"}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">{formatDate(inv.payPeriodStart)} – {formatDate(inv.payPeriodEnd)}</td>
                     <td className="px-4 py-3 text-muted-foreground">{inv.totalHours.toFixed(1)}</td>
                     <td className="px-4 py-3 font-medium text-foreground">{currency(inv.totalAmount)}</td>
@@ -142,13 +148,14 @@ export function FieldWorkerInvoicesTable() {
                   </tr>
                   {isExpanded && (
                     <tr>
-                      <td colSpan={8} className="bg-muted/20 px-4 pb-4 pt-1">
+                      <td colSpan={9} className="bg-muted/20 px-4 pb-4 pt-1">
                         <Card className="overflow-x-auto py-0">
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-border text-left text-xs text-muted-foreground">
                                 <th className="px-4 py-2.5 font-medium">Date</th>
                                 <th className="px-4 py-2.5 font-medium">Project</th>
+                                <th className="px-4 py-2.5 font-medium">Activity</th>
                                 <th className="px-4 py-2.5 font-medium">Cost Code</th>
                                 <th className="px-4 py-2.5 font-medium">Reg Hrs</th>
                                 <th className="px-4 py-2.5 font-medium">OT Hrs</th>
@@ -160,6 +167,7 @@ export function FieldWorkerInvoicesTable() {
                                 <tr key={i} className="border-b border-border/60 last:border-0">
                                   <td className="px-4 py-2.5 text-muted-foreground">{formatDate(li.date)}</td>
                                   <td className="px-4 py-2.5 text-foreground">{projectName(li.projectId)}</td>
+                                  <td className="px-4 py-2.5 text-muted-foreground">{li.activity}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.costCode ?? "—"}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.regularHours}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.overtimeHours}</td>
@@ -176,7 +184,7 @@ export function FieldWorkerInvoicesTable() {
               );
             })}
             {sorted.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">No invoices generated yet — click &quot;Generate Invoices&quot; above.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">No invoices generated yet — click &quot;Generate Invoices&quot; above.</td></tr>
             )}
           </tbody>
         </table>

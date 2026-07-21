@@ -2,23 +2,30 @@
 
 import * as React from "react";
 import { useParams, notFound } from "next/navigation";
-import { Cloud, Users, ClipboardList, Package, Plus, Trash2, CheckCircle2, Circle, Pencil } from "lucide-react";
+import { Cloud, Users, ClipboardList, Package, Plus, Trash2 } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { useActivities } from "@/hooks/use-activities";
+import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import {
-  updateCrewHours,
-  addCrewMember,
-  removeCrewMember,
-  addActivityToLog,
-  toggleActivityComplete,
-  removeActivityFromLog,
+  updateTimeEntry,
+  addTimeEntry,
+  removeTimeEntry,
+  GENERAL_WORK_ACTIVITY_ID,
 } from "@/lib/field-operations/daily-log-store";
+import type { DailyTimeEntry } from "@/types/field-operations";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", {
@@ -29,33 +36,49 @@ function formatDate(d: string) {
   });
 }
 
+function emptyEntry(defaultProjectId: string): DailyTimeEntry {
+  return {
+    employeeId: "",
+    employeeName: "",
+    trade: "",
+    status: "present",
+    projectId: defaultProjectId,
+    activityId: "",
+    activityDescription: "",
+    regularHours: 8,
+    overtimeHours: 0,
+    notes: "",
+  };
+}
+
 export default function DailyLogDetailPage() {
   const params = useParams<{ logId: string }>();
   const logs = useDailyLogs();
+  const allActivities = useActivities();
+  const workerRates = useFieldWorkerRates();
   const log = logs.find((l) => l.id === params.logId);
 
-  const [editingCrewIndex, setEditingCrewIndex] = React.useState<number | null>(null);
-  const [newCrewName, setNewCrewName] = React.useState("");
-  const [newCrewTrade, setNewCrewTrade] = React.useState("");
-  const [newCrewHours, setNewCrewHours] = React.useState("8");
-  const [addingCrew, setAddingCrew] = React.useState(false);
-
-  const [newActivityDesc, setNewActivityDesc] = React.useState("");
-  const [newActivityHours, setNewActivityHours] = React.useState("8");
-  const [addingActivity, setAddingActivity] = React.useState(false);
+  const [addingEntry, setAddingEntry] = React.useState(false);
+  const [draft, setDraft] = React.useState<DailyTimeEntry | null>(null);
 
   if (!log) notFound();
 
   const project = MOCK_PROJECTS.find((p) => p.id === log.projectId);
-  const totalHours = log.crewAttendance.reduce((s, c) => s + c.hoursWorked, 0);
-  const totalOvertime = log.crewAttendance.reduce((s, c) => s + c.overtimeHours, 0);
+  const totalHours = log.timeEntries.reduce((s, e) => s + e.regularHours + e.overtimeHours, 0);
+  const totalOvertime = log.timeEntries.reduce((s, e) => s + e.overtimeHours, 0);
+  const crewCount = new Set(log.timeEntries.map((e) => e.employeeId)).size;
 
-  const inProgress = log.activitiesPerformed
-    .map((a, i) => ({ ...a, index: i }))
-    .filter((a) => a.percentComplete < 100);
-  const completed = log.activitiesPerformed
-    .map((a, i) => ({ ...a, index: i }))
-    .filter((a) => a.percentComplete >= 100);
+  function startAdding() {
+    setDraft(emptyEntry(log!.projectId));
+    setAddingEntry(true);
+  }
+
+  function saveDraft() {
+    if (!draft || !draft.employeeId || !draft.projectId || !draft.activityId) return;
+    addTimeEntry(log!.id, draft);
+    setAddingEntry(false);
+    setDraft(null);
+  }
 
   return (
     <>
@@ -79,7 +102,7 @@ export default function DailyLogDetailPage() {
             <span className="text-xs text-muted-foreground">Crew Present</span>
             <span className="flex items-center gap-1.5 font-medium text-foreground">
               <Users className="size-4" />
-              {new Set(log.crewAttendance.map((c) => c.crewName)).size}
+              {crewCount}
             </span>
           </CardContent>
         </Card>
@@ -93,232 +116,137 @@ export default function DailyLogDetailPage() {
         </Card>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Crew Attendance — editable */}
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="size-4" /> Crew Attendance
-            </CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setAddingCrew(true)}>
-              <Plus /> Add Row
-            </Button>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {log.crewAttendance.map((crew, i) => (
+      <Card className="mt-4">
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardList className="size-4" /> Time Entries
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={startAdding}>
+            <Plus /> Add Row
+          </Button>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          {log.timeEntries.map((entry, i) => {
+            const entryProject = MOCK_PROJECTS.find((p) => p.id === entry.projectId);
+            return (
               <div
                 key={i}
-                className="flex items-center justify-between gap-2 border-b border-border/60 pb-2 last:border-0 last:pb-0"
+                className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-2 last:border-0 last:pb-0"
               >
-                <div>
-                  <p className="text-sm font-medium text-foreground">{crew.crewName}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">{entry.employeeName}</p>
                   <p className="text-xs text-muted-foreground">
-                    {crew.trade} · {project?.projectName ?? "—"}
+                    {entry.trade ? `${entry.trade} · ` : ""}
+                    {entryProject?.projectName ?? "—"} · {entry.activityDescription || "General Work"}
+                    {entry.notes ? ` · ${entry.notes}` : ""}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  {editingCrewIndex === i ? (
-                    <Input
-                      type="number"
-                      autoFocus
-                      defaultValue={crew.hoursWorked}
-                      className="h-8 w-16 text-sm"
-                      onBlur={(e) => {
-                        updateCrewHours(log.id, i, Number(e.target.value) || 0);
-                        setEditingCrewIndex(null);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                      }}
-                    />
-                  ) : (
-                    <button
-                      onClick={() => setEditingCrewIndex(i)}
-                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      {crew.hoursWorked}h
-                      <Pencil className="size-3" />
-                    </button>
-                  )}
+                  <Input
+                    type="number"
+                    defaultValue={entry.regularHours}
+                    className="h-8 w-16 text-sm"
+                    onBlur={(e) => updateTimeEntry(log!.id, i, { regularHours: Number(e.target.value) || 0 })}
+                  />
+                  <span className="text-xs text-muted-foreground">reg</span>
+                  <Input
+                    type="number"
+                    defaultValue={entry.overtimeHours}
+                    className="h-8 w-16 text-sm"
+                    onBlur={(e) => updateTimeEntry(log!.id, i, { overtimeHours: Number(e.target.value) || 0 })}
+                  />
+                  <span className="text-xs text-muted-foreground">ot</span>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="size-7"
-                    onClick={() => removeCrewMember(log.id, i)}
+                    onClick={() => removeTimeEntry(log!.id, i)}
                   >
                     <Trash2 className="size-3.5 text-destructive" />
                   </Button>
                 </div>
               </div>
-            ))}
+            );
+          })}
+          {log.timeEntries.length === 0 && (
+            <p className="text-sm text-muted-foreground">No time entries yet.</p>
+          )}
 
-            {addingCrew && (
-              <div className="grid grid-cols-[1fr_1fr_70px_auto] items-end gap-2 rounded-lg bg-accent/40 p-2">
+          {addingEntry && draft && (
+            <div className="rounded-lg bg-accent/40 p-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div>
-                  <label className="text-xs text-muted-foreground">Name</label>
-                  <Input
-                    autoFocus
-                    className="mt-1 h-8"
-                    value={newCrewName}
-                    onChange={(e) => setNewCrewName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newCrewName.trim()) {
-                        addCrewMember(log.id, newCrewName, newCrewTrade || "General", Number(newCrewHours) || 8);
-                        setNewCrewName("");
-                        setNewCrewTrade("");
-                        setNewCrewHours("8");
-                        setAddingCrew(false);
-                      }
+                  <label className="text-xs text-muted-foreground">Employee</label>
+                  <Select
+                    value={draft.employeeId}
+                    onValueChange={(v) => {
+                      const rate = workerRates.find((r) => r.employeeId === v);
+                      setDraft({ ...draft, employeeId: v, employeeName: rate?.employeeName ?? "", trade: rate?.trade ?? "" });
                     }}
-                  />
+                  >
+                    <SelectTrigger className="mt-1 h-8 w-full"><SelectValue placeholder="Select an employee" /></SelectTrigger>
+                    <SelectContent>
+                      {workerRates.map((r) => (
+                        <SelectItem key={r.employeeId} value={r.employeeId}>{r.employeeName} — {r.trade}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground">Trade</label>
-                  <Input
-                    className="mt-1 h-8"
-                    value={newCrewTrade}
-                    onChange={(e) => setNewCrewTrade(e.target.value)}
-                  />
+                  <label className="text-xs text-muted-foreground">Project</label>
+                  <Select
+                    value={draft.projectId}
+                    onValueChange={(v) => setDraft({ ...draft, projectId: v, activityId: "", activityDescription: "" })}
+                  >
+                    <SelectTrigger className="mt-1 h-8 w-full"><SelectValue placeholder="Select a project" /></SelectTrigger>
+                    <SelectContent>
+                      {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">Hours</label>
-                  <Input
-                    type="number"
-                    className="mt-1 h-8"
-                    value={newCrewHours}
-                    onChange={(e) => setNewCrewHours(e.target.value)}
-                  />
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    if (!newCrewName.trim()) return;
-                    addCrewMember(log.id, newCrewName, newCrewTrade || "General", Number(newCrewHours) || 8);
-                    setNewCrewName("");
-                    setNewCrewTrade("");
-                    setNewCrewHours("8");
-                    setAddingCrew(false);
-                  }}
-                >
-                  Save
-                </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Activities — split into In Progress / Completed */}
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="size-4" /> Activities
-            </CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setAddingActivity(true)}>
-              <Plus /> Add Row
-            </Button>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div>
-              <p className="mb-2 text-xs font-semibold text-muted-foreground">IN PROGRESS TODAY</p>
-              <div className="flex flex-col gap-2">
-                {inProgress.map((activity) => (
-                  <div key={activity.index} className="flex items-center gap-2">
-                    <button onClick={() => toggleActivityComplete(log.id, activity.index)}>
-                      <Circle className="size-4 text-muted-foreground/50" />
-                    </button>
-                    <p className="flex-1 text-sm text-foreground">{activity.description}</p>
-                    <Badge variant="outline">{activity.hoursWorked}h</Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-6"
-                      onClick={() => removeActivityFromLog(log.id, activity.index)}
-                    >
-                      <Trash2 className="size-3 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-                {inProgress.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Nothing in progress.</p>
-                )}
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_80px_80px_1fr]">
+                <div>
+                  <label className="text-xs text-muted-foreground">Activity</label>
+                  <Select
+                    value={draft.activityId}
+                    onValueChange={(v) => {
+                      const desc = v === GENERAL_WORK_ACTIVITY_ID
+                        ? "General Work"
+                        : allActivities.find((a) => a.id === v && a.projectId === draft.projectId)?.name ?? "";
+                      setDraft({ ...draft, activityId: v, activityDescription: desc });
+                    }}
+                  >
+                    <SelectTrigger className="mt-1 h-8 w-full"><SelectValue placeholder="Select an activity" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={GENERAL_WORK_ACTIVITY_ID}>General Work</SelectItem>
+                      {allActivities.filter((a) => a.projectId === draft.projectId).map((a) => (
+                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Reg Hrs</label>
+                  <Input type="number" className="mt-1 h-8" value={draft.regularHours} onChange={(e) => setDraft({ ...draft, regularHours: Number(e.target.value) || 0 })} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">OT Hrs</label>
+                  <Input type="number" className="mt-1 h-8" value={draft.overtimeHours} onChange={(e) => setDraft({ ...draft, overtimeHours: Number(e.target.value) || 0 })} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Notes</label>
+                  <Input className="mt-1 h-8" value={draft.notes ?? ""} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+                </div>
+              </div>
+              <div className="mt-2 flex gap-2">
+                <Button size="sm" onClick={saveDraft}>Save</Button>
+                <Button size="sm" variant="outline" onClick={() => { setAddingEntry(false); setDraft(null); }}>Cancel</Button>
               </div>
             </div>
-
-            <div>
-              <p className="mb-2 text-xs font-semibold text-success">COMPLETED YESTERDAY</p>
-              <div className="flex flex-col gap-2">
-                {completed.map((activity) => (
-                  <div key={activity.index} className="flex items-center gap-2">
-                    <button onClick={() => toggleActivityComplete(log.id, activity.index)}>
-                      <CheckCircle2 className="size-4 text-success" />
-                    </button>
-                    <p className="flex-1 text-sm text-muted-foreground line-through">
-                      {activity.description}
-                    </p>
-                    <Badge className="bg-success-soft text-success border-transparent">
-                      {activity.hoursWorked}h
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-6"
-                      onClick={() => removeActivityFromLog(log.id, activity.index)}
-                    >
-                      <Trash2 className="size-3 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-                {completed.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Nothing marked complete yet — click the circle next to an item above to mark it done.</p>
-                )}
-              </div>
-            </div>
-
-            {addingActivity && (
-              <div className="grid grid-cols-[1fr_70px_auto] items-end gap-2 rounded-lg bg-accent/40 p-2">
-                <div>
-                  <label className="text-xs text-muted-foreground">Description</label>
-                  <Input
-                    autoFocus
-                    className="mt-1 h-8"
-                    value={newActivityDesc}
-                    onChange={(e) => setNewActivityDesc(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newActivityDesc.trim()) {
-                        addActivityToLog(log.id, newActivityDesc, Number(newActivityHours) || 8);
-                        setNewActivityDesc("");
-                        setNewActivityHours("8");
-                        setAddingActivity(false);
-                      }
-                    }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">Hours</label>
-                  <Input
-                    type="number"
-                    className="mt-1 h-8"
-                    value={newActivityHours}
-                    onChange={(e) => setNewActivityHours(e.target.value)}
-                  />
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    if (!newActivityDesc.trim()) return;
-                    addActivityToLog(log.id, newActivityDesc, Number(newActivityHours) || 8);
-                    setNewActivityDesc("");
-                    setNewActivityHours("8");
-                    setAddingActivity(false);
-                  }}
-                >
-                  Save
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
       {(log.materialDeliveries.length > 0 || log.materialConsumption.length > 0) && (
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">

@@ -24,11 +24,11 @@ export default function DailyRollupPage() {
 
   const logsForDay = logs.filter((l) => l.date === params.date);
   const uniqueCrewNames = new Set(
-    logsForDay.flatMap((l) => l.crewAttendance.map((c) => c.crewName))
+    logsForDay.flatMap((l) => l.timeEntries.map((e) => e.employeeId))
   );
   const totalCrew = uniqueCrewNames.size;
   const totalHours = logsForDay.reduce(
-    (s, l) => s + l.crewAttendance.reduce((s2, c) => s2 + c.hoursWorked, 0),
+    (s, l) => s + l.timeEntries.reduce((s2, e) => s2 + e.regularHours + e.overtimeHours, 0),
     0
   );
 
@@ -76,27 +76,29 @@ export default function DailyRollupPage() {
             </tr>
           </thead>
           <tbody>
-            {logsForDay.map((log) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === log.projectId);
-              const taskSummary =
-                log.activitiesPerformed.map((a) => a.description).join(", ") || "—";
-              return log.crewAttendance.map((crew, i) => (
-                <tr key={`${log.id}-${i}`} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
-                  <td className="px-4 py-3 font-medium text-foreground">{crew.crewName}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{crew.trade}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{project?.projectName ?? "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground max-w-xs">{taskSummary}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{crew.hoursWorked}h</td>
-                  <td className="px-4 py-3">
+            {logsForDay.flatMap((log) => {
+              return log.timeEntries.map((entry, i) => {
+                const entryProject = MOCK_PROJECTS.find((p) => p.id === entry.projectId);
+                return (
+                  <tr key={`${log.id}-${i}`} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
+                    <td className="px-4 py-3 font-medium text-foreground">{entry.employeeName}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{entry.trade}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{entryProject?.projectName ?? "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground max-w-xs">{entry.activityDescription || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {entry.regularHours}h{entry.overtimeHours > 0 ? ` (+${entry.overtimeHours}h OT)` : ""}
+                    </td>
+                    <td className="px-4 py-3">
                     <Link
                       href={`/field-operations/${log.id}`}
                       className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                     >
                       Edit this log <ExternalLink className="size-3" />
                     </Link>
-                  </td>
-                </tr>
-              ));
+                    </td>
+                  </tr>
+                );
+              });
             })}
             {logsForDay.length === 0 && (
               <tr>

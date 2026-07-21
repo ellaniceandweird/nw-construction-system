@@ -9,6 +9,7 @@ import type { BaseEntity } from "@/types/common";
 export interface FieldWorkerInvoiceLineItem {
   date: string;
   projectId: string;
+  activity: string;
   costCode?: string;
   regularHours: number;
   overtimeHours: number;
@@ -21,7 +22,7 @@ export interface FieldWorkerInvoice extends BaseEntity {
   invoiceNumber: string;
   employeeId: string;
   employeeName: string;
-  trade: string;
+  trade?: string;
   billingEntityId?: string;
   payPeriodStart: string;
   payPeriodEnd: string;
