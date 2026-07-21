@@ -17,9 +17,17 @@ interface DailyFieldUpdateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   text: string;
+  title?: string;
+  recipientLabel?: string;
 }
 
-export function DailyFieldUpdateDialog({ open, onOpenChange, text }: DailyFieldUpdateDialogProps) {
+export function DailyFieldUpdateDialog({
+  open,
+  onOpenChange,
+  text,
+  title = "Daily Field Update",
+  recipientLabel = "the group text",
+}: DailyFieldUpdateDialogProps) {
   const [copied, setCopied] = React.useState(false);
   const [value, setValue] = React.useState(text);
 
@@ -46,11 +54,11 @@ export function DailyFieldUpdateDialog({ open, onOpenChange, text }: DailyFieldU
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="size-4" /> Daily Field Update
+            <MessageSquare className="size-4" /> {title}
           </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Ready to paste into the group text with Pedro. Feel free to edit before copying.
+          Ready to paste into {recipientLabel}. Feel free to edit before copying.
         </p>
         <Textarea
           value={value}

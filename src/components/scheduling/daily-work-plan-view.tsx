@@ -261,6 +261,8 @@ export function DailyWorkPlanView() {
         open={updateDialogOpen}
         onOpenChange={setUpdateDialogOpen}
         text={fieldUpdateText}
+        title="Daily Field Update for Pedro"
+        recipientLabel="the group text with Pedro"
       />
     </div>
   );

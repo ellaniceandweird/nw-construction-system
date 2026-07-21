@@ -22,6 +22,8 @@ export interface PropertyInput {
   town?: string;
   coverPhotoUrl?: string;
   billingEntityId?: string;
+  googleDriveFolderUrl?: string;
+  googleDriveFolderName?: string;
 }
 
 export function updateProperty(id: string, input: PropertyInput) {

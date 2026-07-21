@@ -11,25 +11,27 @@ interface Props {
   onSelect: (files: DrivePickedFile[]) => void;
   multiple?: boolean;
   imagesOnly?: boolean;
+  foldersOnly?: boolean;
   label?: string;
 }
 
-export function DrivePickerButton({ onSelect, multiple, imagesOnly, label = "Browse Google Drive" }: Props) {
+export function DrivePickerButton({ onSelect, multiple, imagesOnly, foldersOnly, label }: Props) {
   const { isConfigured, openPicker, loading, error } = useDrivePicker();
   const [showSetupHelp, setShowSetupHelp] = React.useState(false);
+  const buttonLabel = label ?? (foldersOnly ? "Link Google Drive Folder" : "Browse Google Drive");
 
   function handleClick() {
     if (!isConfigured) {
       setShowSetupHelp(true);
       return;
     }
-    openPicker(onSelect, { multiple, imagesOnly });
+    openPicker(onSelect, { multiple, imagesOnly, foldersOnly });
   }
 
   return (
     <div>
       <Button type="button" variant="outline" size="sm" onClick={handleClick} disabled={loading}>
-        <FolderOpen className="size-3.5" /> {loading ? "Opening…" : label}
+        <FolderOpen className="size-3.5" /> {loading ? "Opening…" : buttonLabel}
       </Button>
       {error && (
         <p className="mt-1.5 flex items-start gap-1.5 text-xs text-destructive">

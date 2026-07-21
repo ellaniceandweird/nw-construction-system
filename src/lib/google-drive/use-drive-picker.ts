@@ -53,7 +53,10 @@ export function useDrivePicker() {
   const tokenClientRef = useRef<any>(null);
 
   const openPicker = useCallback(
-    async (onSelect: (files: DrivePickedFile[]) => void, options?: { multiple?: boolean; imagesOnly?: boolean }) => {
+    async (
+      onSelect: (files: DrivePickedFile[]) => void,
+      options?: { multiple?: boolean; imagesOnly?: boolean; foldersOnly?: boolean }
+    ) => {
       if (!isConfigured) return;
       setError("");
       setLoading(true);
@@ -78,9 +81,16 @@ export function useDrivePicker() {
             return;
           }
 
-          const view = options?.imagesOnly
-            ? new window.google.picker.View(window.google.picker.ViewId.DOCS_IMAGES)
-            : new window.google.picker.View(window.google.picker.ViewId.DOCS);
+          let view;
+          if (options?.foldersOnly) {
+            view = new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS)
+              .setSelectFolderEnabled(true)
+              .setIncludeFolders(true);
+          } else if (options?.imagesOnly) {
+            view = new window.google.picker.View(window.google.picker.ViewId.DOCS_IMAGES);
+          } else {
+            view = new window.google.picker.View(window.google.picker.ViewId.DOCS);
+          }
 
           const builder = new window.google.picker.PickerBuilder()
             .addView(view)

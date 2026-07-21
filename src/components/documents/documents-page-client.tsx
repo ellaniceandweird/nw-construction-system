@@ -49,8 +49,9 @@ export function DocumentsPageClient() {
       <p className="mt-4 text-xs text-muted-foreground">
         All illustrative but grounded in real properties. Documents, Drawings, and Photos
         all link out to Google Drive rather than storing files here — use &quot;Browse
-        Google Drive&quot; to pick files visually instead of pasting links by hand (needs
-        a one-time Google Cloud setup — see .env.local.example).
+        Google Drive&quot; to pick individual files visually instead of pasting links by
+        hand, or link a whole shared folder once per property from that property&apos;s
+        page (needs a one-time Google Cloud setup — see .env.local.example).
       </p>
     </>
   );

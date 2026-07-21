@@ -1,17 +1,25 @@
 "use client";
 
+import * as React from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { MessageSquare } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MaintenanceTasksTable } from "@/components/maintenance/maintenance-tasks-table";
 import { EquipmentMaintenanceTable } from "@/components/maintenance/equipment-maintenance-table";
 import { MaintenanceLogView } from "@/components/maintenance/maintenance-log-view";
+import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-update-dialog";
+import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
+import { generateVinnieDailyReminderText } from "@/lib/maintenance/vinnie-daily-reminder";
 
 export function MaintenancePageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const tasks = useMaintenanceTasks();
+  const [reminderOpen, setReminderOpen] = React.useState(false);
 
   const validTabs = ["general", "recurring", "log"];
   const tabParam = searchParams.get("tab");
@@ -21,11 +29,18 @@ export function MaintenancePageClient() {
     router.push(`${pathname}?tab=${value}`, { scroll: false });
   }
 
+  const reminderText = generateVinnieDailyReminderText(new Date(), tasks);
+
   return (
     <>
       <PageHeader
         title="Maintenance"
         description="Real maintenance tickets and recurring equipment schedules across every company property."
+        actions={
+          <Button variant="outline" size="sm" onClick={() => setReminderOpen(true)}>
+            <MessageSquare className="size-3.5" /> Generate Reminder for Vinnie
+          </Button>
+        }
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -44,6 +59,14 @@ export function MaintenancePageClient() {
           <MaintenanceLogView />
         </TabsContent>
       </Tabs>
+
+      <DailyFieldUpdateDialog
+        open={reminderOpen}
+        onOpenChange={setReminderOpen}
+        text={reminderText}
+        title="Daily Reminder for Vinnie"
+        recipientLabel="a text to Vinnie"
+      />
     </>
   );
 }

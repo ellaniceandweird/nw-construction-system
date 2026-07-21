@@ -29,11 +29,11 @@ export function generateDailyFieldUpdateText(
   }
 
   const lines: string[] = [];
-  lines.push(`Good morning! Here's today's plan — ${formatShortDate(date)}`);
+  lines.push(`Good morning Pedro! Hope you're doing well 🙂 Here's the plan for ${formatShortDate(date)}:`);
   lines.push("");
 
   if (byProject.size === 0) {
-    lines.push("Nothing scheduled today — call Ella if that doesn't sound right.");
+    lines.push("Nothing scheduled today — give Ella a call if that doesn't sound right.");
     return lines.join("\n");
   }
 
@@ -46,7 +46,7 @@ export function generateDailyFieldUpdateText(
     lines.push("");
   }
 
-  lines.push("Questions or something comes up — text the group.");
+  lines.push("Thank you as always — let us know if anything comes up!");
 
   return lines.join("\n").trim();
 }

@@ -15,14 +15,13 @@ import { SubcontractorsTable } from "@/components/procurement/subcontractors-tab
 
 const VALID_TABS = [
   "forecast",
-  "mrs",
-  "rfqs",
-  "quotes",
-  "comparison",
+  "sourcing",
   "pos",
   "vendors",
   "subcontractors",
 ];
+
+const SOURCING_SUB_TABS = ["mrs", "rfqs", "quotes", "comparison"];
 
 export function ProcurementPageClient() {
   const searchParams = useSearchParams();
@@ -32,24 +31,28 @@ export function ProcurementPageClient() {
   const tabParam = searchParams.get("tab");
   const activeTab = VALID_TABS.includes(tabParam ?? "") ? tabParam! : "forecast";
 
+  const subTabParam = searchParams.get("sourcing");
+  const activeSourcingTab = SOURCING_SUB_TABS.includes(subTabParam ?? "") ? subTabParam! : "mrs";
+
   function handleTabChange(value: string) {
     router.push(`${pathname}?tab=${value}`, { scroll: false });
+  }
+
+  function handleSourcingTabChange(value: string) {
+    router.push(`${pathname}?tab=sourcing&sourcing=${value}`, { scroll: false });
   }
 
   return (
     <>
       <PageHeader
         title="Procurement"
-        description="Material forecasting, requests, RFQs, vendor quotes, purchase orders, vendors, and subcontractors across every project."
+        description="Material forecasting, sourcing, purchase orders, vendors, and subcontractors across every project."
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="forecast">Forecast</TabsTrigger>
-          <TabsTrigger value="mrs">Material Request</TabsTrigger>
-          <TabsTrigger value="rfqs">RFQs</TabsTrigger>
-          <TabsTrigger value="quotes">Quotes</TabsTrigger>
-          <TabsTrigger value="comparison">Quote Comparison</TabsTrigger>
+          <TabsTrigger value="sourcing">Sourcing</TabsTrigger>
           <TabsTrigger value="pos">Purchase Order</TabsTrigger>
           <TabsTrigger value="vendors">Vendors</TabsTrigger>
           <TabsTrigger value="subcontractors">Subcontractor</TabsTrigger>
@@ -57,17 +60,31 @@ export function ProcurementPageClient() {
         <TabsContent value="forecast">
           <ForecastTable />
         </TabsContent>
-        <TabsContent value="mrs">
-          <MaterialRequestsTable />
-        </TabsContent>
-        <TabsContent value="rfqs">
-          <RfqsTable />
-        </TabsContent>
-        <TabsContent value="quotes">
-          <QuotesTable />
-        </TabsContent>
-        <TabsContent value="comparison">
-          <QuoteComparison />
+        <TabsContent value="sourcing">
+          <p className="mb-3 text-xs text-muted-foreground">
+            Material Request, RFQs, Quotes, and Quote Comparison — the day-to-day sourcing
+            workflow, grouped together since these all feed into each other.
+          </p>
+          <Tabs value={activeSourcingTab} onValueChange={handleSourcingTabChange}>
+            <TabsList>
+              <TabsTrigger value="mrs">Material Request</TabsTrigger>
+              <TabsTrigger value="rfqs">RFQs</TabsTrigger>
+              <TabsTrigger value="quotes">Quotes</TabsTrigger>
+              <TabsTrigger value="comparison">Quote Comparison</TabsTrigger>
+            </TabsList>
+            <TabsContent value="mrs">
+              <MaterialRequestsTable />
+            </TabsContent>
+            <TabsContent value="rfqs">
+              <RfqsTable />
+            </TabsContent>
+            <TabsContent value="quotes">
+              <QuotesTable />
+            </TabsContent>
+            <TabsContent value="comparison">
+              <QuoteComparison />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
         <TabsContent value="pos">
           <PurchaseOrdersTable />

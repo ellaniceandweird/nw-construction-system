@@ -23,6 +23,11 @@ export interface Property extends BaseEntity {
   billingEntityId?: string;
   relatedProjectId?: string; // set if a construction Project also exists for this property
   coverPhotoUrl?: string;
+  /** Linked shared Google Drive folder for this property — the whole folder
+   *  lives in Drive and stays in sync there; the app just keeps a shortcut
+   *  to it rather than storing files itself (Sjaak's 2026-07-20 request). */
+  googleDriveFolderUrl?: string;
+  googleDriveFolderName?: string;
 }
 
 export type MaintenancePriority =

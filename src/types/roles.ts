@@ -10,6 +10,9 @@
 export const ROLES = [
   "system_administrator",
   "executive",
+  "director_of_construction",
+  "chief_financial_officer",
+  "senior_office_manager",
   "operations_manager",
   "project_manager",
   "project_engineer",
@@ -29,6 +32,9 @@ export type Role = (typeof ROLES)[number];
 export const ROLE_LABELS: Record<Role, string> = {
   system_administrator: "System Administrator",
   executive: "Executive",
+  director_of_construction: "Director of Construction",
+  chief_financial_officer: "Chief Financial Officer",
+  senior_office_manager: "Senior Office Manager",
   operations_manager: "Operations Manager",
   project_manager: "Project Manager",
   project_engineer: "Project Engineer",

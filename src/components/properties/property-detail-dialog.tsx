@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Building2, ArrowUpRight, ImageOff } from "lucide-react";
+import { Building2, ArrowUpRight, ImageOff, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -104,6 +104,11 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
     if (!file || !property) return;
     updateProperty(property.id, { coverPhotoUrl: file.thumbnailUrl ?? file.url });
   }
+  function handleDriveFolderSelect(files: DrivePickedFile[]) {
+    const folder = files[0];
+    if (!folder || !property) return;
+    updateProperty(property.id, { googleDriveFolderUrl: folder.url, googleDriveFolderName: folder.name });
+  }
   function handleSaveInfo() {
     if (!property) return;
     updateProperty(property.id, { address: address || undefined, town: town || undefined });
@@ -179,6 +184,32 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
             {billingEntity?.defaultPaymentTerms && (
               <p className="mt-1 text-xs text-muted-foreground">Default terms: {billingEntity.defaultPaymentTerms}</p>
             )}
+          </div>
+
+          <div>
+            <Label className="text-xs">Google Drive Folder</Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Link this property to a shared Drive folder — everything stays and updates in
+              Drive itself, the app just keeps a shortcut to it.
+            </p>
+            {property.googleDriveFolderUrl ? (
+              <a
+                href={property.googleDriveFolderUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center justify-between rounded-md border border-border p-2.5 text-sm hover:bg-accent/40 hover:border-primary/40"
+              >
+                <span className="font-medium text-foreground">{property.googleDriveFolderName ?? "Open Folder"}</span>
+                <ExternalLink className="size-3.5 text-muted-foreground" />
+              </a>
+            ) : null}
+            <div className="mt-2">
+              <DrivePickerButton
+                onSelect={handleDriveFolderSelect}
+                foldersOnly
+                label={property.googleDriveFolderUrl ? "Change Linked Folder" : "Link Google Drive Folder"}
+              />
+            </div>
           </div>
 
           <div>

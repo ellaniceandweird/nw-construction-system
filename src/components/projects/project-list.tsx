@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Search, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown, Printer } from "lucide-react";
 
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
+import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
 import type { Project, ProjectCalculatedStatus } from "@/types";
 
 /**
@@ -60,6 +62,10 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function statusLabel(status: ProjectCalculatedStatus) {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function ProjectList() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<ProjectCalculatedStatus | "all">("all");
@@ -73,6 +79,37 @@ export function ProjectList() {
   });
 
   const sorted = sortBy === "none" ? filtered : sortProjects(filtered, sortBy);
+
+  function handlePrint() {
+    const rows = sorted
+      .map(
+        (p) => `
+        <tr>
+          <td>${escapeHtml(p.projectName)}</td>
+          <td>${escapeHtml(p.address.street)}</td>
+          <td>${statusLabel(p.calculatedStatus)}</td>
+          <td>${p.completionPercent}%</td>
+          <td class="right">${formatCurrency(p.approvedBudget)}</td>
+          <td>${formatDate(p.plannedCompletionDate)}</td>
+        </tr>`
+      )
+      .join("");
+
+    openPrintWindow(
+      "Projects",
+      `
+      <div class="header">
+        <h1>Nice &amp; Weird Group</h1>
+        <p>Projects — ${sorted.length} of ${MOCK_PROJECTS.length}</p>
+        <p>Printed ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+      </div>
+      <table>
+        <thead><tr><th>Project</th><th>Location</th><th>Status</th><th>% Complete</th><th class="right">Budget</th><th>Target Completion</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      `
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -113,6 +150,9 @@ export function ProjectList() {
         <span className="ml-auto text-sm text-muted-foreground">
           {filtered.length} of {MOCK_PROJECTS.length} projects
         </span>
+        <Button variant="outline" size="sm" onClick={handlePrint}>
+          <Printer className="size-3.5" /> Print
+        </Button>
       </div>
 
       <Card className="overflow-x-auto py-0">
@@ -153,7 +193,7 @@ export function ProjectList() {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
                   No projects match your search.
                 </td>
               </tr>

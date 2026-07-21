@@ -23,14 +23,14 @@ const MODULES = [
  */
 const FULL_ACCESS_ROLES: Role[] = ["system_administrator", "executive", "operations_manager"];
 const MODULE_ACCESS: Record<(typeof MODULES)[number], Role[]> = {
-  Projects: [...FULL_ACCESS_ROLES, "project_manager", "project_engineer", "superintendent", "field_supervisor"],
-  "Estimating & Budgeting": [...FULL_ACCESS_ROLES, "estimator", "project_manager"],
-  "Financial Tracking": [...FULL_ACCESS_ROLES, "accounting", "estimator"],
-  Procurement: [...FULL_ACCESS_ROLES, "procurement_officer", "project_manager"],
-  Maintenance: [...FULL_ACCESS_ROLES, "field_supervisor", "crew_leader", "superintendent"],
-  Documents: [...FULL_ACCESS_ROLES, "project_manager", "project_engineer", "quality_inspector", "safety_officer"],
-  References: [...FULL_ACCESS_ROLES, "accounting"],
-  Settings: ["system_administrator"],
+  Projects: [...FULL_ACCESS_ROLES, "director_of_construction", "project_manager", "project_engineer", "superintendent", "field_supervisor"],
+  "Estimating & Budgeting": [...FULL_ACCESS_ROLES, "director_of_construction", "chief_financial_officer", "estimator", "project_manager"],
+  "Financial Tracking": [...FULL_ACCESS_ROLES, "chief_financial_officer", "accounting", "estimator"],
+  Procurement: [...FULL_ACCESS_ROLES, "director_of_construction", "procurement_officer", "project_manager"],
+  Maintenance: [...FULL_ACCESS_ROLES, "director_of_construction", "field_supervisor", "crew_leader", "superintendent"],
+  Documents: [...FULL_ACCESS_ROLES, "senior_office_manager", "project_manager", "project_engineer", "quality_inspector", "safety_officer"],
+  References: [...FULL_ACCESS_ROLES, "senior_office_manager", "chief_financial_officer", "accounting"],
+  Settings: ["system_administrator", "senior_office_manager"],
 };
 
 export function PermissionsMatrix() {
