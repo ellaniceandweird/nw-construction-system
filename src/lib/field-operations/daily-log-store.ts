@@ -67,6 +67,30 @@ export interface DailyLogInput {
 }
 
 export const GENERAL_WORK_ACTIVITY_ID = "GENERAL_WORK";
+export const MANUAL_ACTIVITY_ID = "MANUAL_ENTRY";
+export const MANUAL_ENTRY = "__manual__";
+
+/**
+ * Returns the crew (unique employeeIds) from the most recent daily log
+ * before the given date, so a new log can pre-fill "who's probably
+ * working today" — Ella just adjusts project/activity/hours instead of
+ * re-picking the same people every morning.
+ */
+export function getMostRecentCrew(beforeDate: string): DailyTimeEntry[] {
+  const priorLogs = logs
+    .filter((l) => l.date < beforeDate)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const mostRecent = priorLogs[0];
+  if (!mostRecent) return [];
+  const seen = new Set<string>();
+  const result: DailyTimeEntry[] = [];
+  for (const entry of mostRecent.timeEntries) {
+    if (seen.has(entry.employeeId)) continue;
+    seen.add(entry.employeeId);
+    result.push(entry);
+  }
+  return result;
+}
 
 export function addDailyLog(input: DailyLogInput) {
   const now = new Date().toISOString();

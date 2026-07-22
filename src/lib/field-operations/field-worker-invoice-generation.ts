@@ -1,11 +1,13 @@
 import type { DailyLog } from "@/types/field-operations";
 import type { FieldWorkerRate } from "@/types/references";
+import type { Property } from "@/types/maintenance";
 import type { FieldWorkerInvoice, FieldWorkerInvoiceLineItem } from "@/types/field-worker-invoices";
+import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
 
 interface GenerateOptions {
   payPeriodStart: string;
   payPeriodEnd: string;
-  billingEntityId?: string;
 }
 
 function inRange(date: string, start: string, end: string): boolean {
@@ -16,14 +18,14 @@ function inRange(date: string, start: string, end: string): boolean {
  * Scans real Daily Log time entries for the given pay period and builds
  * one draft invoice per employee who has hours in that window, with a
  * line item per day/project/activity they worked. Rates come from
- * References > Field Worker Rates — a worker with no rate on file gets
- * 0 (visible in the preview so it can't slip through silently). This is
- * simpler than the old crew/worker nesting since a time entry already
- * carries its own project and activity directly.
+ * References > Field Worker Rates. Billing entity is derived per line
+ * item from the project's matching property, since a worker can cross
+ * projects (and therefore billing entities) within one pay period.
  */
 export function generateFieldWorkerInvoices(
   dailyLogs: DailyLog[],
   rates: FieldWorkerRate[],
+  properties: Property[],
   options: GenerateOptions
 ): Omit<FieldWorkerInvoice, "id" | "createdBy" | "createdDate" | "lastModifiedBy" | "lastModifiedDate" | "revisionNumber" | "module" | "status" | "invoiceNumber">[] {
   const byEmployee = new Map<string, { name: string; trade?: string; lineItems: FieldWorkerInvoiceLineItem[] }>();
@@ -36,10 +38,13 @@ export function generateFieldWorkerInvoices(
       const rate = rates.find((r) => r.employeeId === entry.employeeId);
       const regularRate = rate?.hourlyRate ?? 0;
       const overtimeRate = rate?.overtimeRate ?? regularRate * 1.5;
+      const project = MOCK_PROJECTS.find((p) => p.id === entry.projectId);
+      const billingEntityId = project ? getBillingEntityIdForProject(project, properties) : undefined;
 
       const lineItem: FieldWorkerInvoiceLineItem = {
         date: log.date,
         projectId: entry.projectId,
+        billingEntityId,
         activity: entry.activityDescription || "General Work",
         costCode: rate?.defaultCostCode,
         regularHours: entry.regularHours,
@@ -64,7 +69,6 @@ export function generateFieldWorkerInvoices(
       employeeId,
       employeeName: data.name,
       trade: data.trade,
-      billingEntityId: options.billingEntityId,
       payPeriodStart: options.payPeriodStart,
       payPeriodEnd: options.payPeriodEnd,
       lineItems: data.lineItems.sort((a, b) => a.date.localeCompare(b.date)),

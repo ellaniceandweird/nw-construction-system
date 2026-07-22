@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChangeOrderEditDialog } from "@/components/estimating/change-order-edit-dialog";
-import { requiresOwnerApproval, OWNER_APPROVAL_THRESHOLD } from "@/lib/estimating/change-order-approval";
+import { requiresOwnerApproval, getOwnerApprovalThreshold } from "@/lib/estimating/change-order-approval";
 import type { ChangeOrder } from "@/types/change-orders";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -42,7 +42,7 @@ export function ChangeOrdersTable() {
         <p className="text-xs text-muted-foreground">
           Scope or cost changes after a budget is approved. Approved change orders
           automatically adjust the Revised Budget shown in Cost Tracking and Portfolio Rollup.
-          Changes over {currency(OWNER_APPROVAL_THRESHOLD)} are flagged for owner approval.
+          Changes over {currency(getOwnerApprovalThreshold())} are flagged for owner approval.
         </p>
         <Button size="sm" onClick={() => setCreating(true)} className="shrink-0">
           <Plus className="size-3.5" /> New Change Order

@@ -33,6 +33,7 @@ export type DocumentCategory =
   | "quality_report"
   // Commercial documents
   | "contract"
+  | "master_subcontract_agreement"
   | "purchase_order"
   | "quotation"
   | "change_order"
@@ -59,6 +60,9 @@ export type DocumentStatus =
 /** SDS §11.6 — Document Metadata (independent of the underlying file). */
 export interface ProjectDocument extends BaseEntity {
   projectId: string;
+  projectName?: string; // set when projectId is the manual-entry sentinel
+  propertyId?: string;
+  propertyName?: string; // set when propertyId is the manual-entry sentinel, or resolved for display
   documentNumber: string;
   title: string;
   category: DocumentCategory;

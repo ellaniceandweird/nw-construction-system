@@ -32,8 +32,13 @@ export interface DailyTimeEntry {
   employeeName: string;
   trade?: string;
   status: "present" | "absent" | "late";
+  /** Real Property id, or unset/manual if typed by hand (propertyName holds the text either way). */
+  propertyId?: string;
+  propertyName?: string;
+  /** Real Project id, or the MANUAL_ENTRY sentinel if typed by hand (projectName holds the text in that case). */
   projectId: string;
-  activityId?: string; // GENERAL_WORK_ACTIVITY_ID or a real Activity id from that project's schedule
+  projectName?: string;
+  activityId?: string; // GENERAL_WORK_ACTIVITY_ID, MANUAL_ACTIVITY_ID, or a real Activity id from that project's schedule
   activityDescription: string;
   regularHours: number;
   overtimeHours: number;

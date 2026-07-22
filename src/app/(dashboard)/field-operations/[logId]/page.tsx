@@ -137,7 +137,8 @@ export default function DailyLogDetailPage() {
                   <p className="text-sm font-medium text-foreground">{entry.employeeName}</p>
                   <p className="text-xs text-muted-foreground">
                     {entry.trade ? `${entry.trade} · ` : ""}
-                    {entryProject?.projectName ?? "—"} · {entry.activityDescription || "General Work"}
+                    {entryProject?.projectName ?? entry.projectName ?? "—"}
+                    {entry.propertyName ? ` · ${entry.propertyName}` : ""} · {entry.activityDescription || "General Work"}
                     {entry.notes ? ` · ${entry.notes}` : ""}
                   </p>
                 </div>

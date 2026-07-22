@@ -23,8 +23,9 @@ import type { ProjectDocument } from "@/types/documents";
 
 const ALL = "all";
 
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function resolvedProjectName(d: ProjectDocument) {
+  const match = MOCK_PROJECTS.find((p) => p.id === d.projectId);
+  return match?.projectName ?? d.projectName ?? "—";
 }
 function categoryLabel(category: string) {
   return category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -141,6 +142,7 @@ export function DocumentsTable() {
               <th className="px-4 py-3 font-medium">Doc #</th>
               <th className="px-4 py-3 font-medium">Title</th>
               <th className="px-4 py-3 font-medium">Property</th>
+              <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Category</th>
               <th className="px-4 py-3 font-medium">Tags</th>
               <th className="px-4 py-3 font-medium">Rev</th>
@@ -154,7 +156,8 @@ export function DocumentsTable() {
                 <td className="px-4 py-3"><Checkbox checked={selected.has(d.id)} onCheckedChange={() => toggle(d.id)} aria-label={`Select ${d.title}`} /></td>
                 <td className="px-4 py-3 font-medium text-foreground">{d.documentNumber}</td>
                 <td className="px-4 py-3 text-foreground max-w-xs">{d.title}</td>
-                <td className="px-4 py-3 text-muted-foreground">{projectName(d.projectId)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{d.propertyName ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{resolvedProjectName(d)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{categoryLabel(d.category)}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
@@ -176,7 +179,7 @@ export function DocumentsTable() {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">
+                <td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">
                   {hasActiveFilters ? "No documents match your filters." : "No documents yet — add one above."}
                 </td>
               </tr>

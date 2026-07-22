@@ -83,7 +83,7 @@ export default function DailyRollupPage() {
                   <tr key={`${log.id}-${i}`} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                     <td className="px-4 py-3 font-medium text-foreground">{entry.employeeName}</td>
                     <td className="px-4 py-3 text-muted-foreground">{entry.trade}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{entryProject?.projectName ?? "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{entryProject?.projectName ?? entry.projectName ?? "—"}</td>
                     <td className="px-4 py-3 text-muted-foreground max-w-xs">{entry.activityDescription || "—"}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {entry.regularHours}h{entry.overtimeHours > 0 ? ` (+${entry.overtimeHours}h OT)` : ""}

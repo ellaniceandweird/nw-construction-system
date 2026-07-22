@@ -52,6 +52,79 @@ export function useDrivePicker() {
   const [error, setError] = useState("");
   const tokenClientRef = useRef<any>(null);
 
+  const getAccessToken = useCallback((): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await loadScript("https://accounts.google.com/gsi/client");
+        if (!tokenClientRef.current) {
+          tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+            client_id: GOOGLE_CLIENT_ID,
+            // drive.readonly: browse/pick existing files & folders.
+            // drive.file: upload/create files the app itself creates — a narrower,
+            // safer grant than full Drive write access.
+            scope: "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file",
+            callback: "",
+          });
+        }
+        tokenClientRef.current.callback = (response: { error?: string; access_token: string }) => {
+          if (response.error) {
+            reject(new Error("Google sign-in was cancelled or failed."));
+            return;
+          }
+          resolve(response.access_token);
+        };
+        tokenClientRef.current.requestAccessToken();
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }, []);
+
+  /**
+   * Uploads a local File object straight into a chosen Drive folder using
+   * the drive.file scope, and returns the new file's id/link — this is a
+   * real multipart upload to the Drive API, not a picker over existing
+   * files.
+   */
+  const uploadFile = useCallback(
+    async (file: File, folderId?: string): Promise<DrivePickedFile> => {
+      setError("");
+      setLoading(true);
+      try {
+        const accessToken = await getAccessToken();
+        const metadata = {
+          name: file.name,
+          ...(folderId ? { parents: [folderId] } : {}),
+        };
+        const form = new FormData();
+        form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+        form.append("file", file);
+
+        const response = await fetch(
+          "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,mimeType",
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${accessToken}` },
+            body: form,
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Upload to Google Drive failed. Please try again.");
+        }
+        const data = await response.json();
+        return {
+          id: data.id,
+          name: data.name,
+          url: data.webViewLink,
+          mimeType: data.mimeType,
+        };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken]
+  );
+
   const openPicker = useCallback(
     async (
       onSelect: (files: DrivePickedFile[]) => void,
@@ -69,7 +142,7 @@ export function useDrivePicker() {
         if (!tokenClientRef.current) {
           tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
             client_id: GOOGLE_CLIENT_ID,
-            scope: "https://www.googleapis.com/auth/drive.readonly",
+            scope: "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file",
             callback: "",
           });
         }
@@ -126,5 +199,5 @@ export function useDrivePicker() {
     [isConfigured]
   );
 
-  return { isConfigured, openPicker, loading, error };
+  return { isConfigured, openPicker, uploadFile, loading, error };
 }

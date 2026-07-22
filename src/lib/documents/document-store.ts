@@ -24,6 +24,9 @@ export function getDocumentsSnapshot(): ProjectDocument[] { return documents; }
 
 export interface DocumentInput {
   projectId: string;
+  projectName?: string;
+  propertyId?: string;
+  propertyName?: string;
   title: string;
   category: DocumentCategory;
   revision: string;

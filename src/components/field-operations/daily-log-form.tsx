@@ -21,7 +21,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
-import { addDailyLog, GENERAL_WORK_ACTIVITY_ID } from "@/lib/field-operations/daily-log-store";
+import { useProperties } from "@/hooks/use-properties";
+import {
+  addDailyLog,
+  getMostRecentCrew,
+  GENERAL_WORK_ACTIVITY_ID,
+  MANUAL_ACTIVITY_ID,
+  MANUAL_ENTRY,
+} from "@/lib/field-operations/daily-log-store";
 import {
   dailyLogFormSchema,
   type DailyLogFormValues,
@@ -52,7 +59,10 @@ function emptyTimeEntry(defaultProjectId: string) {
     employeeName: "",
     trade: "",
     status: "present" as const,
+    propertyId: "",
+    propertyName: "",
     projectId: defaultProjectId,
+    projectName: "",
     activityId: "",
     activityDescription: "",
     regularHours: 8,
@@ -66,6 +76,8 @@ export function DailyLogForm() {
   const [submitted, setSubmitted] = React.useState(false);
   const allActivities = useActivities();
   const workerRates = useFieldWorkerRates();
+  const properties = useProperties();
+  const seededRef = React.useRef(false);
 
   const {
     register,
@@ -78,18 +90,34 @@ export function DailyLogForm() {
     resolver: zodResolver(dailyLogFormSchema),
     defaultValues: {
       weatherCondition: "clear",
+      date: new Date().toISOString().slice(0, 10),
       timeEntries: [],
     },
   });
 
   const timeEntryFields = useFieldArray({ control, name: "timeEntries" });
   const mainProjectId = watch("projectId");
+  const watchedDate = watch("date");
 
-  // Once a main project is picked, seed the first time entry row so the
-  // form isn't empty — subsequent rows can still point at other projects.
+  // Once a main project is picked, auto-populate rows from the most
+  // recent daily log's crew — Ella just adjusts project/activity/hours
+  // instead of re-picking the same people every morning.
   React.useEffect(() => {
-    if (mainProjectId && timeEntryFields.fields.length === 0) {
-      timeEntryFields.append(emptyTimeEntry(mainProjectId));
+    if (mainProjectId && !seededRef.current) {
+      seededRef.current = true;
+      const recentCrew = getMostRecentCrew(watchedDate || new Date().toISOString().slice(0, 10));
+      if (recentCrew.length > 0) {
+        recentCrew.forEach((entry) => {
+          timeEntryFields.append({
+            ...emptyTimeEntry(mainProjectId),
+            employeeId: entry.employeeId,
+            employeeName: entry.employeeName,
+            trade: entry.trade,
+          });
+        });
+      } else {
+        timeEntryFields.append(emptyTimeEntry(mainProjectId));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainProjectId]);
@@ -101,16 +129,47 @@ export function DailyLogForm() {
   }
 
   function handleEmployeeChange(index: number, employeeId: string) {
+    if (employeeId === MANUAL_ENTRY) {
+      setValue(`timeEntries.${index}.employeeId`, MANUAL_ENTRY, { shouldValidate: true });
+      setValue(`timeEntries.${index}.employeeName`, "");
+      setValue(`timeEntries.${index}.trade`, "");
+      return;
+    }
     const rate = workerRates.find((r) => r.employeeId === employeeId);
     setValue(`timeEntries.${index}.employeeId`, employeeId, { shouldValidate: true });
     setValue(`timeEntries.${index}.employeeName`, rate?.employeeName ?? "");
     setValue(`timeEntries.${index}.trade`, rate?.trade ?? "");
   }
 
+  function handlePropertyChange(index: number, propertyId: string) {
+    if (propertyId === MANUAL_ENTRY) {
+      setValue(`timeEntries.${index}.propertyId`, MANUAL_ENTRY);
+      setValue(`timeEntries.${index}.propertyName`, "");
+      return;
+    }
+    const property = properties.find((p) => p.id === propertyId);
+    setValue(`timeEntries.${index}.propertyId`, propertyId);
+    setValue(`timeEntries.${index}.propertyName`, property?.name ?? "");
+  }
+
+  function handleProjectChange(index: number, projectId: string) {
+    setValue(`timeEntries.${index}.activityId`, "");
+    setValue(`timeEntries.${index}.activityDescription`, "");
+    if (projectId === MANUAL_ENTRY) {
+      setValue(`timeEntries.${index}.projectId`, MANUAL_ENTRY, { shouldValidate: true });
+      setValue(`timeEntries.${index}.projectName`, "");
+      return;
+    }
+    setValue(`timeEntries.${index}.projectId`, projectId, { shouldValidate: true });
+    setValue(`timeEntries.${index}.projectName`, "");
+  }
+
   function handleActivityChange(index: number, projectId: string, activityId: string) {
     setValue(`timeEntries.${index}.activityId`, activityId, { shouldValidate: true });
     if (activityId === GENERAL_WORK_ACTIVITY_ID) {
       setValue(`timeEntries.${index}.activityDescription`, "General Work");
+    } else if (activityId === MANUAL_ACTIVITY_ID) {
+      setValue(`timeEntries.${index}.activityDescription`, "");
     } else {
       const activity = allActivities.find((a) => a.id === activityId && a.projectId === projectId);
       setValue(`timeEntries.${index}.activityDescription`, activity?.name ?? "");
@@ -184,8 +243,8 @@ export function DailyLogForm() {
           <div>
             <CardTitle>Time Entries</CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
-              One row per worker per project/activity — if someone split their day across two
-              projects, just add a second row for that same person with the other project.
+              Worker rows are pre-filled from the last daily log — adjust property, project,
+              activity, and hours below, delete anyone not working today, or add someone new.
             </p>
           </div>
           <Button
@@ -197,107 +256,142 @@ export function DailyLogForm() {
             <Plus /> Add Row
           </Button>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {timeEntryFields.fields.map((field, index) => {
-            const rowProjectId = watch(`timeEntries.${index}.projectId`);
-            const rowActivities = allActivities.filter((a) => a.projectId === rowProjectId);
-            return (
-              <div key={field.id} className="rounded-lg border border-border p-3">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <div>
-                    <Label className="text-xs">Employee</Label>
-                    <Select
-                      value={watch(`timeEntries.${index}.employeeId`)}
-                      onValueChange={(v) => handleEmployeeChange(index, v)}
-                    >
-                      <SelectTrigger className="mt-1 w-full">
-                        <SelectValue placeholder="Select an employee" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {workerRates.map((r) => (
-                          <SelectItem key={r.employeeId} value={r.employeeId}>
-                            {r.employeeName} — {r.trade}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {fieldError(errors.timeEntries?.[index]?.employeeId?.message)}
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      Not listed? Add them in References &gt; Field Worker Rates first.
-                    </p>
-                  </div>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full min-w-[1100px] text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                <th className="px-2 py-2 font-medium">Worker&apos;s Name</th>
+                <th className="px-2 py-2 font-medium">Property</th>
+                <th className="px-2 py-2 font-medium">Project</th>
+                <th className="px-2 py-2 font-medium">Activity</th>
+                <th className="px-2 py-2 font-medium w-20">Reg Hrs</th>
+                <th className="px-2 py-2 font-medium w-20">OT Hrs</th>
+                <th className="px-2 py-2 font-medium">Notes</th>
+                <th className="px-2 py-2 font-medium w-10"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {timeEntryFields.fields.map((field, index) => {
+                const rowProjectId = watch(`timeEntries.${index}.projectId`);
+                const rowActivities = allActivities.filter((a) => a.projectId === rowProjectId);
+                const employeeId = watch(`timeEntries.${index}.employeeId`);
+                const propertyId = watch(`timeEntries.${index}.propertyId`);
+                const activityId = watch(`timeEntries.${index}.activityId`);
 
-                  <div>
-                    <Label className="text-xs">Project</Label>
-                    <Select
-                      value={rowProjectId}
-                      onValueChange={(v) => {
-                        setValue(`timeEntries.${index}.projectId`, v, { shouldValidate: true });
-                        setValue(`timeEntries.${index}.activityId`, "");
-                        setValue(`timeEntries.${index}.activityDescription`, "");
-                      }}
-                    >
-                      <SelectTrigger className="mt-1 w-full">
-                        <SelectValue placeholder="Select a project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_PROJECTS.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {fieldError(errors.timeEntries?.[index]?.projectId?.message)}
-                  </div>
-                </div>
+                return (
+                  <tr key={field.id} className="border-b border-border/60 last:border-0 align-top">
+                    <td className="px-2 py-2">
+                      <Select value={employeeId} onValueChange={(v) => handleEmployeeChange(index, v)}>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="Select worker" /></SelectTrigger>
+                        <SelectContent>
+                          {workerRates.map((r) => (
+                            <SelectItem key={r.employeeId} value={r.employeeId}>{r.employeeName} — {r.trade}</SelectItem>
+                          ))}
+                          <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {employeeId === MANUAL_ENTRY && (
+                        <Input
+                          className="mt-1"
+                          placeholder="Type worker's name"
+                          {...register(`timeEntries.${index}.employeeName`)}
+                        />
+                      )}
+                      {fieldError(errors.timeEntries?.[index]?.employeeId?.message)}
+                    </td>
 
-                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_80px_80px_1fr_auto] sm:items-end">
-                  <div>
-                    <Label className="text-xs">Activity</Label>
-                    <Select
-                      value={watch(`timeEntries.${index}.activityId`)}
-                      onValueChange={(v) => handleActivityChange(index, rowProjectId, v)}
-                    >
-                      <SelectTrigger className="mt-1 w-full">
-                        <SelectValue placeholder={rowProjectId ? "Select an activity" : "Pick a project first"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={GENERAL_WORK_ACTIVITY_ID}>General Work</SelectItem>
-                        {rowActivities.map((a) => (
-                          <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {fieldError(errors.timeEntries?.[index]?.activityId?.message)}
-                  </div>
-                  <div>
-                    <Label className="text-xs">Reg Hrs</Label>
-                    <Input type="number" className="mt-1" {...register(`timeEntries.${index}.regularHours`)} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">OT Hrs</Label>
-                    <Input type="number" className="mt-1" {...register(`timeEntries.${index}.overtimeHours`)} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Notes (optional)</Label>
-                    <Input
-                      className="mt-1"
-                      placeholder="Anything worth noting manually"
-                      {...register(`timeEntries.${index}.notes`)}
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => timeEntryFields.remove(index)}
-                    disabled={timeEntryFields.fields.length === 1}
-                  >
-                    <Trash2 className="size-3.5 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+                    <td className="px-2 py-2">
+                      <Select value={propertyId} onValueChange={(v) => handlePropertyChange(index, v)}>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="Select property" /></SelectTrigger>
+                        <SelectContent>
+                          {properties.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                          ))}
+                          <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {propertyId === MANUAL_ENTRY && (
+                        <Input
+                          className="mt-1"
+                          placeholder="Type property name"
+                          {...register(`timeEntries.${index}.propertyName`)}
+                        />
+                      )}
+                    </td>
+
+                    <td className="px-2 py-2">
+                      <Select value={rowProjectId} onValueChange={(v) => handleProjectChange(index, v)}>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="Select project" /></SelectTrigger>
+                        <SelectContent>
+                          {MOCK_PROJECTS.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
+                          ))}
+                          <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {rowProjectId === MANUAL_ENTRY && (
+                        <Input
+                          className="mt-1"
+                          placeholder="Type project name"
+                          {...register(`timeEntries.${index}.projectName`)}
+                        />
+                      )}
+                      {fieldError(errors.timeEntries?.[index]?.projectId?.message)}
+                    </td>
+
+                    <td className="px-2 py-2">
+                      <Select
+                        value={activityId}
+                        onValueChange={(v) => handleActivityChange(index, rowProjectId, v)}
+                        disabled={!rowProjectId}
+                      >
+                        <SelectTrigger className="w-full"><SelectValue placeholder={rowProjectId ? "Select activity" : "Pick a project first"} /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={GENERAL_WORK_ACTIVITY_ID}>General Work</SelectItem>
+                          {rowActivities.map((a) => (
+                            <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                          ))}
+                          <SelectItem value={MANUAL_ACTIVITY_ID}>Manual entry…</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {activityId === MANUAL_ACTIVITY_ID && (
+                        <Input
+                          className="mt-1"
+                          placeholder="Type activity"
+                          {...register(`timeEntries.${index}.activityDescription`)}
+                        />
+                      )}
+                      {fieldError(errors.timeEntries?.[index]?.activityId?.message)}
+                    </td>
+
+                    <td className="px-2 py-2">
+                      <Input type="number" className="w-20" {...register(`timeEntries.${index}.regularHours`)} />
+                    </td>
+                    <td className="px-2 py-2">
+                      <Input type="number" className="w-20" {...register(`timeEntries.${index}.overtimeHours`)} />
+                    </td>
+                    <td className="px-2 py-2">
+                      <Input
+                        placeholder="Optional"
+                        {...register(`timeEntries.${index}.notes`)}
+                      />
+                    </td>
+                    <td className="px-2 py-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => timeEntryFields.remove(index)}
+                        disabled={timeEntryFields.fields.length === 1}
+                      >
+                        <Trash2 className="size-3.5 text-destructive" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
           {fieldError(errors.timeEntries?.message)}
         </CardContent>
       </Card>

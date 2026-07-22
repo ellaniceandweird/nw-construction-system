@@ -12,16 +12,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
-import { useBillingEntities } from "@/hooks/use-billing-entities";
+import { useProperties } from "@/hooks/use-properties";
 import { generateFieldWorkerInvoices } from "@/lib/field-operations/field-worker-invoice-generation";
 import { saveFieldWorkerInvoices } from "@/lib/field-operations/field-worker-invoice-store";
 import type { FieldWorkerInvoiceDraft } from "@/lib/field-operations/field-worker-invoice-store";
 
 interface Props { open: boolean; onOpenChange: (open: boolean) => void; }
-const NONE = "none";
 
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -30,28 +28,25 @@ function currency(n: number) {
 export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
   const dailyLogs = useDailyLogs();
   const rates = useFieldWorkerRates();
-  const billingEntities = useBillingEntities();
+  const properties = useProperties();
 
   const [payPeriodStart, setPayPeriodStart] = React.useState("");
   const [payPeriodEnd, setPayPeriodEnd] = React.useState("");
-  const [billingEntityId, setBillingEntityId] = React.useState(NONE);
   const [preview, setPreview] = React.useState<FieldWorkerInvoiceDraft[] | null>(null);
   const [saved, setSaved] = React.useState(false);
 
   function reset() {
     setPayPeriodStart("");
     setPayPeriodEnd("");
-    setBillingEntityId(NONE);
     setPreview(null);
     setSaved(false);
   }
 
   function handlePreview() {
     if (!payPeriodStart || !payPeriodEnd) return;
-    const drafts = generateFieldWorkerInvoices(dailyLogs, rates, {
+    const drafts = generateFieldWorkerInvoices(dailyLogs, rates, properties, {
       payPeriodStart,
       payPeriodEnd,
-      billingEntityId: billingEntityId === NONE ? undefined : billingEntityId,
     });
     setPreview(drafts);
   }
@@ -80,16 +75,6 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
             <div className="grid grid-cols-2 gap-4">
               <div><Label htmlFor="payPeriodStart">Pay Period Start</Label><Input id="payPeriodStart" type="date" className="mt-1.5" value={payPeriodStart} onChange={(e) => setPayPeriodStart(e.target.value)} /></div>
               <div><Label htmlFor="payPeriodEnd">Pay Period End</Label><Input id="payPeriodEnd" type="date" className="mt-1.5" value={payPeriodEnd} onChange={(e) => setPayPeriodEnd(e.target.value)} /></div>
-            </div>
-            <div>
-              <Label>Billing Entity (optional)</Label>
-              <Select value={billingEntityId} onValueChange={setBillingEntityId}>
-                <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="None" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>None</SelectItem>
-                  {billingEntities.map((b) => (<SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>))}
-                </SelectContent>
-              </Select>
             </div>
             <Button variant="outline" onClick={handlePreview} disabled={!payPeriodStart || !payPeriodEnd}>
               <Sparkles className="size-3.5" /> Preview Invoices

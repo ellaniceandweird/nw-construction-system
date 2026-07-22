@@ -9,6 +9,8 @@ import type { BaseEntity } from "@/types/common";
 export interface FieldWorkerInvoiceLineItem {
   date: string;
   projectId: string;
+  /** Derived from the project's property's billing entity — per line item, since one worker can cross projects/billing entities within a pay period. */
+  billingEntityId?: string;
   activity: string;
   costCode?: string;
   regularHours: number;
