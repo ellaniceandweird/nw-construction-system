@@ -63,6 +63,7 @@ export interface CreateRFQInput {
   scope?: string;
   materialList: string;
   notes?: string;
+  attachments?: { name: string; url: string }[];
 }
 
 export function createRFQ(input: CreateRFQInput) {

@@ -11,6 +11,7 @@ interface Props {
   onUploaded: (file: DrivePickedFile) => void;
   label?: string;
   accept?: string;
+  multiple?: boolean;
 }
 
 /**
@@ -18,14 +19,15 @@ interface Props {
  * picker opens so you choose where it lands, then it actually uploads
  * (not just linking to something already in Drive — see DrivePickerButton
  * for that). Needs the same Google Cloud setup as the browse picker,
- * plus the drive.file scope for writing.
+ * plus the drive.file scope for writing. With `multiple`, each selected
+ * file uploads into the same chosen folder and onUploaded fires once per file.
  */
-export function DriveUploadButton({ onUploaded, label = "Upload to Google Drive", accept }: Props) {
+export function DriveUploadButton({ onUploaded, label = "Upload to Google Drive", accept, multiple }: Props) {
   const { isConfigured, openPicker, uploadFile, loading, error } = useDrivePicker();
   const [showSetupHelp, setShowSetupHelp] = React.useState(false);
   const [stage, setStage] = React.useState<"idle" | "choosing_folder" | "uploading">("idle");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const pendingFileRef = React.useRef<File | null>(null);
+  const pendingFilesRef = React.useRef<File[]>([]);
 
   function handleClick() {
     if (!isConfigured) {
@@ -36,25 +38,26 @@ export function DriveUploadButton({ onUploaded, label = "Upload to Google Drive"
   }
 
   function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file) return;
-    pendingFileRef.current = file;
+    if (files.length === 0) return;
+    pendingFilesRef.current = files;
     setStage("choosing_folder");
     openPicker(
       async (folders) => {
         const folder = folders[0];
-        const fileToUpload = pendingFileRef.current;
-        if (!fileToUpload) return;
+        const filesToUpload = pendingFilesRef.current;
         setStage("uploading");
         try {
-          const uploaded = await uploadFile(fileToUpload, folder?.id);
-          onUploaded(uploaded);
+          for (const file of filesToUpload) {
+            const uploaded = await uploadFile(file, folder?.id);
+            onUploaded(uploaded);
+          }
         } catch {
           // error state is already surfaced via the hook's `error`
         } finally {
           setStage("idle");
-          pendingFileRef.current = null;
+          pendingFilesRef.current = [];
         }
       },
       { foldersOnly: true }
@@ -67,7 +70,7 @@ export function DriveUploadButton({ onUploaded, label = "Upload to Google Drive"
 
   return (
     <div>
-      <input ref={fileInputRef} type="file" accept={accept} className="hidden" onChange={handleFileChosen} />
+      <input ref={fileInputRef} type="file" accept={accept} multiple={multiple} className="hidden" onChange={handleFileChosen} />
       <Button type="button" variant="outline" size="sm" onClick={handleClick} disabled={busy}>
         <UploadCloud className="size-3.5" /> {buttonText}
       </Button>

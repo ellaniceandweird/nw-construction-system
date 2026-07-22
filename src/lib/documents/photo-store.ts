@@ -23,6 +23,9 @@ export function getPhotosSnapshot(): FieldPhoto[] { return photos; }
 
 export interface PhotoInput {
   projectId: string;
+  projectName?: string;
+  propertyId?: string;
+  propertyName?: string;
   dateTaken: string;
   uploadedBy: string;
   caption?: string;

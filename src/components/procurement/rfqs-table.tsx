@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Plus, FileText, Upload } from "lucide-react";
+import { Pencil, Plus, FileText, Upload, Mail } from "lucide-react";
 
 import { useRFQs } from "@/hooks/use-rfqs";
 import { getRFQStatus } from "@/lib/procurement/rfq-store";
@@ -14,6 +14,7 @@ import { RfqCreateDialog } from "@/components/procurement/rfq-create-dialog";
 import { RfqEditDialog } from "@/components/procurement/rfq-edit-dialog";
 import { QuoteResponseDialog } from "@/components/procurement/quote-response-dialog";
 import { ImportQuoteDialog } from "@/components/procurement/import-quote-dialog";
+import { RfqEmailPreviewDialog } from "@/components/procurement/rfq-email-preview-dialog";
 import type { RequestForQuotation } from "@/types/procurement";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -39,6 +40,7 @@ export function RfqsTable() {
   const [editingRfq, setEditingRfq] = React.useState<RequestForQuotation | null>(null);
   const [quotingRfq, setQuotingRfq] = React.useState<RequestForQuotation | null>(null);
   const [uploadingRfq, setUploadingRfq] = React.useState<RequestForQuotation | null>(null);
+  const [emailingRfq, setEmailingRfq] = React.useState<RequestForQuotation | null>(null);
 
   const sorted = [...rfqs].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
@@ -94,6 +96,9 @@ export function RfqsTable() {
                       <Button variant="ghost" size="icon" title="Upload Quote PDF" onClick={() => setUploadingRfq(r)}>
                         <Upload className="size-3.5" />
                       </Button>
+                      <Button variant="ghost" size="icon" title="Send Quote Request Email" onClick={() => setEmailingRfq(r)}>
+                        <Mail className="size-3.5" />
+                      </Button>
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -123,6 +128,11 @@ export function RfqsTable() {
         open={!!uploadingRfq}
         onOpenChange={(open) => !open && setUploadingRfq(null)}
         initialRfqId={uploadingRfq?.id}
+      />
+      <RfqEmailPreviewDialog
+        rfq={emailingRfq}
+        open={!!emailingRfq}
+        onOpenChange={(open) => !open && setEmailingRfq(null)}
       />
     </>
   );

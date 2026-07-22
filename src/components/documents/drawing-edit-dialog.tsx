@@ -8,11 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createDrawing, updateDrawing, deleteDrawing } from "@/lib/documents/drawing-store";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
+import { DriveUploadButton } from "@/components/shared/drive-upload-button";
+import { useProperties } from "@/hooks/use-properties";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import type { Drawing, DrawingDiscipline, DocumentStatus } from "@/types/documents";
 
 interface Props { drawing: Drawing | null; open: boolean; onOpenChange: (open: boolean) => void; }
+const MANUAL_ENTRY = "__manual__";
 const DISCIPLINE_OPTIONS: DrawingDiscipline[] = ["architectural", "structural", "civil", "mechanical", "electrical", "plumbing", "fire_protection", "landscape", "interior_design", "survey"];
 const STATUS_OPTIONS: { value: DocumentStatus; label: string }[] = [
   { value: "draft", label: "Draft" },
@@ -26,7 +29,11 @@ const STATUS_OPTIONS: { value: DocumentStatus; label: string }[] = [
 ];
 
 export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
+  const properties = useProperties();
+  const [propertyId, setPropertyId] = React.useState("");
+  const [propertyName, setPropertyName] = React.useState("");
   const [projectId, setProjectId] = React.useState("");
+  const [projectName, setProjectName] = React.useState("");
   const [drawingNumber, setDrawingNumber] = React.useState("");
   const [drawingTitle, setDrawingTitle] = React.useState("");
   const [discipline, setDiscipline] = React.useState<DrawingDiscipline>("architectural");
@@ -41,7 +48,10 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
 
   React.useEffect(() => {
     if (open) {
+      setPropertyId(drawing?.propertyId ?? "");
+      setPropertyName(drawing?.propertyName ?? "");
       setProjectId(drawing?.projectId ?? "");
+      setProjectName(drawing?.projectName ?? "");
       setDrawingNumber(drawing?.drawingNumber ?? "");
       setDrawingTitle(drawing?.drawingTitle ?? "");
       setDiscipline(drawing?.discipline ?? "architectural");
@@ -62,11 +72,30 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
     setCurrentRevisionUrl(file.url);
     if (!drawingTitle) setDrawingTitle(file.name);
   }
+  function handleUploaded(file: DrivePickedFile) {
+    setCurrentRevisionUrl(file.url);
+    if (!drawingTitle) setDrawingTitle(file.name);
+  }
+
+  function handlePropertyChange(value: string) {
+    if (value === MANUAL_ENTRY) { setPropertyId(MANUAL_ENTRY); setPropertyName(""); return; }
+    const property = properties.find((p) => p.id === value);
+    setPropertyId(value);
+    setPropertyName(property?.name ?? "");
+  }
+  function handleProjectChange(value: string) {
+    if (value === MANUAL_ENTRY) { setProjectId(MANUAL_ENTRY); setProjectName(""); return; }
+    setProjectId(value);
+    setProjectName("");
+  }
 
   function handleSave() {
     if (!projectId || !drawingNumber || !drawingTitle || !currentRevisionUrl) return;
     const input = {
-      projectId, drawingNumber, drawingTitle, discipline,
+      projectId, projectName: projectId === MANUAL_ENTRY ? projectName : undefined,
+      propertyId: propertyId || undefined,
+      propertyName: propertyId === MANUAL_ENTRY ? propertyName : undefined,
+      drawingNumber, drawingTitle, discipline,
       sheetNumber: sheetNumber || undefined, revision, scale: scale || undefined,
       issueDate, currentRevisionUrl, drawingStatus, architect: architect || undefined,
       uploadedBy: drawing?.uploadedBy ?? "Ella Esquivel",
@@ -82,12 +111,33 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{drawing ? `Edit ${drawing.drawingNumber}` : "New Drawing"}</DialogTitle></DialogHeader>
         <div className="flex flex-col gap-4">
-          <div>
-            <Label>Property</Label>
-            <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select project" /></SelectTrigger>
-              <SelectContent>{MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}</SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Property</Label>
+              <Select value={propertyId} onValueChange={handlePropertyChange}>
+                <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select property" /></SelectTrigger>
+                <SelectContent>
+                  {properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
+                  <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                </SelectContent>
+              </Select>
+              {propertyId === MANUAL_ENTRY && (
+                <Input className="mt-2" placeholder="Type property name" value={propertyName} onChange={(e) => setPropertyName(e.target.value)} />
+              )}
+            </div>
+            <div>
+              <Label>Project</Label>
+              <Select value={projectId} onValueChange={handleProjectChange}>
+                <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select project" /></SelectTrigger>
+                <SelectContent>
+                  {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+                  <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                </SelectContent>
+              </Select>
+              {projectId === MANUAL_ENTRY && (
+                <Input className="mt-2" placeholder="Type project name" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div><Label htmlFor="drawingNumber">Drawing Number</Label><Input id="drawingNumber" className="mt-1.5" placeholder="e.g. A-101" value={drawingNumber} onChange={(e) => setDrawingNumber(e.target.value)} /></div>
@@ -118,8 +168,11 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
           <div><Label htmlFor="architect">Architect / Engineer (optional)</Label><Input id="architect" className="mt-1.5" value={architect} onChange={(e) => setArchitect(e.target.value)} /></div>
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <Label htmlFor="currentRevisionUrl">Link to Current Revision</Label>
-              <DrivePickerButton onSelect={handleDriveSelect} />
+              <Label htmlFor="currentRevisionUrl">Upload / Link to Current Revision</Label>
+              <div className="flex gap-2">
+                <DriveUploadButton onUploaded={handleUploaded} />
+                <DrivePickerButton onSelect={handleDriveSelect} label="Link Existing File" />
+              </div>
             </div>
             <Input id="currentRevisionUrl" placeholder="Google Drive, Dropbox, or shared drive link" value={currentRevisionUrl} onChange={(e) => setCurrentRevisionUrl(e.target.value)} />
             {drawing && drawing.revision !== revision && (

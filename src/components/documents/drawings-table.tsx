@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { DrawingEditDialog } from "@/components/documents/drawing-edit-dialog";
 import type { Drawing } from "@/types/documents";
 
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function resolvedProjectName(d: Drawing) {
+  const match = MOCK_PROJECTS.find((p) => p.id === d.projectId);
+  return match?.projectName ?? d.projectName ?? "—";
 }
 
 export function DrawingsTable() {
@@ -36,6 +37,7 @@ export function DrawingsTable() {
               <th className="px-4 py-3 font-medium">Drawing #</th>
               <th className="px-4 py-3 font-medium">Title</th>
               <th className="px-4 py-3 font-medium">Property</th>
+              <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Rev</th>
               <th className="px-4 py-3 font-medium">Link</th>
               <th className="px-4 py-3 font-medium">Edit</th>
@@ -57,7 +59,8 @@ export function DrawingsTable() {
                       ) : d.drawingNumber}
                     </td>
                     <td className="px-4 py-3 text-foreground max-w-xs">{d.drawingTitle}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{projectName(d.projectId)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{d.propertyName ?? "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{resolvedProjectName(d)}</td>
                     <td className="px-4 py-3 text-muted-foreground">{d.revision}</td>
                     <td className="px-4 py-3">
                       <a href={d.currentRevisionUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
@@ -70,7 +73,7 @@ export function DrawingsTable() {
                   </tr>
                   {isExpanded && hasHistory && (
                     <tr>
-                      <td colSpan={6} className="bg-muted/20 px-4 py-2">
+                      <td colSpan={7} className="bg-muted/20 px-4 py-2">
                         <p className="mb-1 text-xs font-medium text-muted-foreground">Previous revisions:</p>
                         <ul className="flex flex-col gap-1">
                           {d.previousRevisionUrls!.map((url, i) => (
@@ -87,7 +90,7 @@ export function DrawingsTable() {
                 </React.Fragment>
               );
             })}
-            {sorted.length === 0 && (<tr><td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">No drawings yet — add one above.</td></tr>)}
+            {sorted.length === 0 && (<tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">No drawings yet — add one above.</td></tr>)}
           </tbody>
         </table>
       </Card>

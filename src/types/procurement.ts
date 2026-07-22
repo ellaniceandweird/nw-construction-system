@@ -150,6 +150,8 @@ export interface RequestForQuotation extends BaseEntity {
   materialList: string;
   notes?: string;
   responses: VendorQuoteResponse[];
+  /** Reference files (spec sheets, photos) linked from Drive to include with the vendor invite email. */
+  attachments?: { name: string; url: string }[];
   /** Set once a vendor is selected via Quote Comparison (SDS §8.10). */
   awardedVendorId?: string;
   /**

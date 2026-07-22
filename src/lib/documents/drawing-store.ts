@@ -23,6 +23,9 @@ export function getDrawingsSnapshot(): Drawing[] { return drawings; }
 
 export interface DrawingInput {
   projectId: string;
+  projectName?: string;
+  propertyId?: string;
+  propertyName?: string;
   drawingNumber: string;
   drawingTitle: string;
   discipline: DrawingDiscipline;

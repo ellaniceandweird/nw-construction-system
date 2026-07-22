@@ -104,6 +104,9 @@ export type DrawingDiscipline =
 /** SDS §11.9 — Drawing Management (drawings get their own record type). */
 export interface Drawing extends BaseEntity {
   projectId: string;
+  projectName?: string; // set when projectId is the manual-entry sentinel
+  propertyId?: string;
+  propertyName?: string;
   drawingNumber: string;
   drawingTitle: string;
   discipline: DrawingDiscipline;

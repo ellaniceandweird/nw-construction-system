@@ -22,6 +22,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createRFQ } from "@/lib/procurement/rfq-store";
+import { DrivePickerButton } from "@/components/shared/drive-picker-button";
+import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
+import { Trash2 } from "lucide-react";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
 import { useMaterialRequests } from "@/hooks/use-material-requests";
@@ -52,6 +55,7 @@ export function RfqCreateDialog({
   const [scope, setScope] = React.useState("");
   const [materialList, setMaterialList] = React.useState(initialMaterialList ?? "");
   const [notes, setNotes] = React.useState("");
+  const [attachments, setAttachments] = React.useState<{ name: string; url: string }[]>([]);
 
   React.useEffect(() => {
     if (open) {
@@ -69,6 +73,14 @@ export function RfqCreateDialog({
     setScope("");
     setMaterialList("");
     setNotes("");
+    setAttachments([]);
+  }
+
+  function handleAttachmentsPicked(files: DrivePickedFile[]) {
+    setAttachments((prev) => [...prev, ...files.map((f) => ({ name: f.name, url: f.url }))]);
+  }
+  function removeAttachment(index: number) {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   }
 
   function toggleVendor(id: string, checked: boolean) {
@@ -86,6 +98,7 @@ export function RfqCreateDialog({
       scope: scope || undefined,
       materialList,
       notes: notes || undefined,
+      attachments: attachments.length > 0 ? attachments : undefined,
     });
     reset();
     onOpenChange(false);
@@ -199,6 +212,25 @@ export function RfqCreateDialog({
                 </label>
               ))}
             </div>
+          </div>
+
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <Label>Attachments (spec sheets, photos — optional)</Label>
+              <DrivePickerButton onSelect={handleAttachmentsPicked} multiple label="Attach from Google Drive" />
+            </div>
+            {attachments.length > 0 && (
+              <div className="flex flex-col gap-1.5 rounded-md border border-border p-2">
+                {attachments.map((a, i) => (
+                  <div key={i} className="flex items-center justify-between gap-2 text-sm">
+                    <a href={a.url} target="_blank" rel="noopener noreferrer" className="truncate text-primary hover:underline">{a.name}</a>
+                    <Button type="button" variant="ghost" size="icon" className="size-6 shrink-0" onClick={() => removeAttachment(i)}>
+                      <Trash2 className="size-3 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>

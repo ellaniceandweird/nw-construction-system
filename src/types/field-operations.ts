@@ -161,6 +161,9 @@ export type PhotoCategory =
 /** SDS §7.17 — Field Photos. */
 export interface FieldPhoto extends BaseEntity {
   projectId: string;
+  projectName?: string; // set when projectId is the manual-entry sentinel
+  propertyId?: string;
+  propertyName?: string;
   activityId?: string;
   dateTaken: string;
   uploadedBy: string;

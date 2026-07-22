@@ -43,7 +43,9 @@ export function ForecastTable() {
           trade/material keywords (a rule-based classifier, not a live AI model call —
           same approach the app already uses for schedule risk flags). Quantities come
           from Estimating &gt; Takeoff when a matching entry exists there; otherwise
-          it&apos;s an illustrative per-activity placeholder.
+          it&apos;s an illustrative per-activity placeholder. &quot;Request Quote&quot; creates
+          the RFQ — head to the RFQs tab afterward and click the mail icon to preview
+          and send the actual vendor invite email.
         </p>
       </div>
 
