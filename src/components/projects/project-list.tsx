@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Search, ArrowUpDown, Printer } from "lucide-react";
 
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,11 +67,12 @@ function statusLabel(status: ProjectCalculatedStatus) {
 }
 
 export function ProjectList() {
+  const projects = useProjects();
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<ProjectCalculatedStatus | "all">("all");
   const [sortBy, setSortBy] = React.useState<SortOption | "none">("status");
 
-  const filtered = MOCK_PROJECTS.filter((p) => {
+  const filtered = projects.filter((p) => {
     const matchesSearch = p.projectName.toLowerCase().includes(search.toLowerCase()) ||
       p.address.street.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "all" || p.calculatedStatus === statusFilter;
@@ -101,7 +102,7 @@ export function ProjectList() {
       `
       <div class="header">
         <h1>Nice &amp; Weird Group</h1>
-        <p>Projects — ${sorted.length} of ${MOCK_PROJECTS.length}</p>
+        <p>Projects — ${sorted.length} of ${projects.length}</p>
         <p>Printed ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
       </div>
       <table>
@@ -149,7 +150,7 @@ export function ProjectList() {
           </SelectContent>
         </Select>
         <span className="ml-auto text-sm text-muted-foreground">
-          {filtered.length} of {MOCK_PROJECTS.length} projects
+          {filtered.length} of {projects.length} projects
         </span>
         <Button variant="outline" size="sm" onClick={handlePrint}>
           <Printer className="size-3.5" /> Print

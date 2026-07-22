@@ -1,16 +1,15 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useParams, notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { ProjectForm } from "@/components/projects/project-form";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 
-export default async function EditProjectPage({
-  params,
-}: {
-  params: Promise<{ projectId: string }>;
-}) {
-  const { projectId } = await params;
-  const project = MOCK_PROJECTS.find((p) => p.id === projectId);
+export default function EditProjectPage() {
+  const params = useParams<{ projectId: string }>();
+  const projects = useProjects();
+  const project = projects.find((p) => p.id === params.projectId);
 
   if (!project) notFound();
 
@@ -18,7 +17,6 @@ export default async function EditProjectPage({
     <>
       <PageHeader
         title={`Edit ${project.projectName}`}
-        description="Changes here don't persist until Excel read/write is wired up in Phase 8."
       />
       <ProjectForm existingProject={project} />
     </>

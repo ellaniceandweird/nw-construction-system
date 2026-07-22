@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { useBillingEntities } from "@/hooks/use-billing-entities";
+import { createProject, updateProject } from "@/lib/projects/project-store";
 import {
   projectFormSchema,
   type ProjectFormValues,
@@ -39,6 +41,7 @@ function fieldError(message?: string) {
 
 export function ProjectForm({ existingProject }: { existingProject?: Project }) {
   const router = useRouter();
+  const billingEntities = useBillingEntities();
   const [submitted, setSubmitted] = React.useState(false);
 
   const {
@@ -54,12 +57,15 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           projectName: existingProject.projectName,
           propertyName: existingProject.propertyName ?? "",
           clientName: existingProject.clientName,
+          billingEntityId: existingProject.billingEntityId,
           street: existingProject.address.street,
           city: existingProject.address.city,
           state: existingProject.address.state,
           zip: existingProject.address.zip,
           projectType: existingProject.projectType,
           contractType: existingProject.contractType,
+          currentPhase: existingProject.currentPhase,
+          manualStatus: existingProject.manualStatus,
           priority: existingProject.priority,
           startDate: existingProject.startDate,
           plannedCompletionDate: existingProject.plannedCompletionDate,
@@ -69,6 +75,8 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           notes: existingProject.notes ?? "",
         }
       : {
+          currentPhase: "construction",
+          manualStatus: "active",
           priority: "medium",
           tags: [],
           estimatedContractValue: 0,
@@ -87,12 +95,41 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
   }
 
   function onSubmit(values: ProjectFormValues) {
-    // No backend yet — Excel read/write arrives in Phase 8. For now this
-    // proves the form validates correctly end-to-end and shows what would
-    // be saved.
-    console.log("Project form submitted (not yet persisted):", values);
+    const input = {
+      projectNumber: existingProject?.projectNumber ?? `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
+      projectName: values.projectName,
+      propertyName: values.propertyName || undefined,
+      clientName: values.clientName,
+      billingEntityId: values.billingEntityId,
+      address: {
+        street: values.street,
+        city: values.city,
+        state: values.state,
+        zip: values.zip,
+        country: "USA",
+      },
+      projectType: values.projectType,
+      constructionCategory: existingProject?.constructionCategory ?? values.projectType,
+      contractType: values.contractType,
+      currentPhase: values.currentPhase,
+      manualStatus: values.manualStatus,
+      calculatedStatus: values.manualStatus,
+      priority: values.priority,
+      startDate: values.startDate,
+      plannedCompletionDate: values.plannedCompletionDate,
+      estimatedContractValue: values.estimatedContractValue,
+      approvedBudget: values.approvedBudget,
+      tags: values.tags as Project["tags"],
+      notes: values.notes || undefined,
+    };
+
+    if (existingProject) {
+      updateProject(existingProject.id, input);
+    } else {
+      createProject(input);
+    }
     setSubmitted(true);
-    setTimeout(() => router.push("/projects"), 1200);
+    setTimeout(() => router.push("/projects"), 800);
   }
 
   return (
@@ -110,9 +147,26 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             <Input id="propertyName" className="mt-1.5" {...register("propertyName")} />
           </div>
           <div>
-            <Label htmlFor="clientName">Client / Billing Entity</Label>
+            <Label htmlFor="clientName">Client / Billing Entity Name</Label>
             <Input id="clientName" className="mt-1.5" {...register("clientName")} />
             {fieldError(errors.clientName?.message)}
+          </div>
+          <div>
+            <Label>Billing Entity</Label>
+            <Select
+              value={watch("billingEntityId")}
+              onValueChange={(v) => setValue("billingEntityId", v, { shouldValidate: true })}
+            >
+              <SelectTrigger className="mt-1.5 w-full">
+                <SelectValue placeholder="Select billing entity" />
+              </SelectTrigger>
+              <SelectContent>
+                {billingEntities.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldError(errors.billingEntityId?.message)}
           </div>
 
           <div className="sm:col-span-2">
@@ -176,7 +230,48 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
               </SelectContent>
             </Select>
           </div>
-          <div />
+          <div>
+            <Label>Current Phase</Label>
+            <Select
+              value={watch("currentPhase")}
+              onValueChange={(v) => setValue("currentPhase", v as ProjectFormValues["currentPhase"], { shouldValidate: true })}
+            >
+              <SelectTrigger className="mt-1.5 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="opportunity">Opportunity</SelectItem>
+                <SelectItem value="preconstruction">Preconstruction</SelectItem>
+                <SelectItem value="estimating">Estimating</SelectItem>
+                <SelectItem value="design_coordination">Design Coordination</SelectItem>
+                <SelectItem value="procurement">Procurement</SelectItem>
+                <SelectItem value="construction">Construction</SelectItem>
+                <SelectItem value="commissioning">Commissioning</SelectItem>
+                <SelectItem value="punch_list">Punch List</SelectItem>
+                <SelectItem value="substantial_completion">Substantial Completion</SelectItem>
+                <SelectItem value="closeout">Closeout</SelectItem>
+                <SelectItem value="warranty">Warranty</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Status</Label>
+            <Select
+              value={watch("manualStatus")}
+              onValueChange={(v) => setValue("manualStatus", v as ProjectFormValues["manualStatus"], { shouldValidate: true })}
+            >
+              <SelectTrigger className="mt-1.5 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="on_hold">On Hold</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div>
             <Label htmlFor="startDate">Start Date</Label>
@@ -251,7 +346,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
         </Button>
         {submitted && (
           <span className="text-sm text-success">
-            Saved locally — Excel sync arrives in Phase 8. Redirecting…
+            Saved! Redirecting…
           </span>
         )}
       </div>

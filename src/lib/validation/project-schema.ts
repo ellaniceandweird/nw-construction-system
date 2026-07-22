@@ -10,6 +10,7 @@ export const projectFormSchema = z.object({
   projectName: z.string().min(3, "Project name must be at least 3 characters"),
   propertyName: z.string().optional(),
   clientName: z.string().min(2, "Client name is required"),
+  billingEntityId: z.string().min(1, "Select a billing entity"),
 
   street: z.string().min(2, "Street address is required"),
   city: z.string().min(2, "City is required"),
@@ -18,6 +19,21 @@ export const projectFormSchema = z.object({
 
   projectType: z.string().min(2, "Project type is required"),
   contractType: z.string().min(2, "Contract type is required"),
+  currentPhase: z.enum([
+    "opportunity",
+    "preconstruction",
+    "estimating",
+    "design_coordination",
+    "procurement",
+    "construction",
+    "commissioning",
+    "punch_list",
+    "substantial_completion",
+    "closeout",
+    "warranty",
+    "archived",
+  ]),
+  manualStatus: z.enum(["active", "on_hold", "closed", "archived"]),
   priority: z.enum(["low", "medium", "high", "urgent"]),
 
   startDate: z.string().min(1, "Start date is required"),

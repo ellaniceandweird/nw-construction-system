@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { Pencil } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -13,7 +15,7 @@ import { ProjectTeam } from "@/components/projects/project-team";
 import { ProjectSchedulePreview } from "@/components/projects/project-schedule-preview";
 import { ProjectRelatedFiles } from "@/components/projects/project-related-files";
 import { RecordProjectView } from "@/components/projects/record-project-view";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 
 function formatCurrency(n?: number) {
   if (!n) return "—";
@@ -25,13 +27,10 @@ function formatDate(d?: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default async function ProjectDetailsPage({
-  params,
-}: {
-  params: Promise<{ projectId: string }>;
-}) {
-  const { projectId } = await params;
-  const project = MOCK_PROJECTS.find((p) => p.id === projectId);
+export default function ProjectDetailsPage() {
+  const params = useParams<{ projectId: string }>();
+  const projects = useProjects();
+  const project = projects.find((p) => p.id === params.projectId);
 
   if (!project) notFound();
 
