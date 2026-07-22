@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { VendorEditDialog } from "@/components/procurement/vendor-edit-dialog";
+import { CopyableText } from "@/components/shared/copyable-text";
 import type { Vendor } from "@/types/procurement";
 
 /** Vendors tab: suppliers only — subcontractors live on their own tab. */
@@ -74,8 +75,8 @@ export function VendorsTable() {
                 <td className="px-4 py-3 font-medium text-foreground">{v.vendorName}</td>
                 <td className="px-4 py-3 text-muted-foreground">{v.vendorCategory}</td>
                 <td className="px-4 py-3 text-muted-foreground">{v.primaryContact ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{v.phone ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{v.email ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{v.phone ? <CopyableText value={v.phone} href={`tel:${v.phone}`} /> : "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{v.email ? <CopyableText value={v.email} href={`mailto:${v.email}`} /> : "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {v.website ? (
                     <a

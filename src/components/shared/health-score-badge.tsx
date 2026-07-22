@@ -1,52 +1,48 @@
-import { cn } from "@/lib/utils";
-
-function healthTone(score: number) {
-  if (score >= 75) return { bg: "bg-success-soft", text: "text-success", ring: "stroke-success" };
-  if (score >= 50) return { bg: "bg-warning-soft", text: "text-warning-foreground", ring: "stroke-warning" };
-  return { bg: "bg-destructive-soft", text: "text-destructive", ring: "stroke-destructive" };
+interface Props {
+  score: number;
+  size?: number;
 }
 
-/** Compact numeric badge — used in tables and list rows. */
-export function HealthScoreBadge({ score, className }: { score: number; className?: string }) {
-  const tone = healthTone(score);
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold",
-        tone.bg,
-        tone.text,
-        className
-      )}
-    >
-      {score}
-    </span>
-  );
+function toneForScore(score: number): { stroke: string; text: string } {
+  if (score >= 80) return { stroke: "var(--success)", text: "text-success" };
+  if (score >= 60) return { stroke: "var(--warning)", text: "text-warning-foreground" };
+  return { stroke: "var(--destructive)", text: "text-destructive" };
 }
 
-/** Larger ring gauge — used on the Project Details header. */
-export function HealthScoreGauge({ score }: { score: number }) {
-  const tone = healthTone(score);
-  const radius = 32;
+/** Circular 0-100 health score gauge — used on the Project detail page. */
+export function HealthScoreGauge({ score, size = 88 }: Props) {
+  const clamped = Math.max(0, Math.min(100, score));
+  const strokeWidth = 8;
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
+  const offset = circumference * (1 - clamped / 100);
+  const tone = toneForScore(clamped);
 
   return (
-    <div className="relative flex size-20 shrink-0 items-center justify-center">
-      <svg viewBox="0 0 80 80" className="size-20 -rotate-90">
-        <circle cx="40" cy="40" r={radius} strokeWidth="8" className="fill-none stroke-muted" />
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
         <circle
-          cx="40"
-          cy="40"
+          cx={size / 2}
+          cy={size / 2}
           r={radius}
-          strokeWidth="8"
-          strokeLinecap="round"
-          className={cn("fill-none transition-all duration-500", tone.ring)}
+          fill="none"
+          stroke="var(--border)"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={tone.stroke}
+          strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
+          strokeLinecap="round"
         />
       </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className="text-lg font-semibold text-foreground">{score}</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className={`text-xl font-semibold ${tone.text}`}>{clamped}</span>
         <span className="text-[10px] text-muted-foreground">Health</span>
       </div>
     </div>
