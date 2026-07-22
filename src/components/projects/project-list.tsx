@@ -91,6 +91,7 @@ export function ProjectList() {
           <td>${statusLabel(p.calculatedStatus)}</td>
           <td>${p.completionPercent}%</td>
           <td class="right">${formatCurrency(p.approvedBudget)}</td>
+          <td>${formatDate(p.startDate)}</td>
           <td>${formatDate(p.plannedCompletionDate)}</td>
           <td>${escapeHtml(p.notes ?? "")}</td>
         </tr>`
@@ -106,7 +107,7 @@ export function ProjectList() {
         <p>Printed ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
       </div>
       <table>
-        <thead><tr><th>Project</th><th>Location</th><th>Status</th><th>% Complete</th><th class="right">Budget</th><th>Target Completion</th><th>Notes</th></tr></thead>
+        <thead><tr><th>Project</th><th>Location</th><th>Status</th><th>% Complete</th><th class="right">Budget</th><th>Start Date</th><th>Target Completion</th><th>Notes</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
       `
@@ -166,6 +167,7 @@ export function ProjectList() {
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">% Complete</th>
               <th className="px-4 py-3 font-medium">Budget</th>
+              <th className="px-4 py-3 font-medium">Start Date</th>
               <th className="px-4 py-3 font-medium">Target Completion</th>
               <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium print:hidden">Edit</th>
@@ -191,6 +193,9 @@ export function ProjectList() {
                   {formatCurrency(p.approvedBudget)}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
+                  {formatDate(p.startDate)}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground">
                   {formatDate(p.plannedCompletionDate)}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate" title={p.notes}>
@@ -207,7 +212,7 @@ export function ProjectList() {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
                   No projects match your search.
                 </td>
               </tr>

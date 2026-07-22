@@ -156,3 +156,7 @@ export function createProject(input: ProjectInput) {
 export function updateProject(id: string, input: Partial<ProjectInput>) {
   void store.update(id, input);
 }
+
+export function deleteProject(id: string) {
+  void store.remove(id);
+}

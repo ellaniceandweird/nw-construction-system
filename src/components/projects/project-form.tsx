@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
-import { createProject, updateProject } from "@/lib/projects/project-store";
+import { createProject, updateProject, deleteProject } from "@/lib/projects/project-store";
 import {
   projectFormSchema,
   type ProjectFormValues,
@@ -43,6 +44,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
   const router = useRouter();
   const billingEntities = useBillingEntities();
   const [submitted, setSubmitted] = React.useState(false);
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   const {
     register,
@@ -123,6 +125,12 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
     }
     setSubmitted(true);
     setTimeout(() => router.push("/projects"), 800);
+  }
+
+  function handleDelete() {
+    if (!existingProject) return;
+    deleteProject(existingProject.id);
+    router.push("/projects");
   }
 
   return (
@@ -275,6 +283,27 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
         <Button type="button" variant="outline" onClick={() => router.push("/projects")}>
           Cancel
         </Button>
+        {existingProject && !confirmingDelete && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="ml-auto text-destructive hover:text-destructive"
+            onClick={() => setConfirmingDelete(true)}
+          >
+            <Trash2 className="size-3.5" /> Delete Project
+          </Button>
+        )}
+        {existingProject && confirmingDelete && (
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Delete this project?</span>
+            <Button type="button" variant="destructive" size="sm" onClick={handleDelete}>
+              Confirm Delete
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>
+              Cancel
+            </Button>
+          </div>
+        )}
         {submitted && (
           <span className="text-sm text-success">
             Saved! Redirecting…
