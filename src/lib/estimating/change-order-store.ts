@@ -52,6 +52,7 @@ export interface ChangeOrderInput {
   reason?: string;
   costImpact: number;
   scheduleImpactDays?: number;
+  relatedItem?: string;
   changeOrderStatus: ChangeOrderStatus;
   requestedBy?: string;
   requestedDate: string;

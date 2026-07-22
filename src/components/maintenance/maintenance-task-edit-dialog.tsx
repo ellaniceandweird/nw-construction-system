@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { Trash2 } from "lucide-react";
+
 import {
   Dialog,
   DialogContent,
@@ -21,7 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MOCK_PROPERTIES } from "@/lib/data/mock/properties";
-import { updateTask } from "@/lib/maintenance/maintenance-task-store";
+import { updateTask, deleteMaintenanceTask, restoreMaintenanceTask } from "@/lib/maintenance/maintenance-task-store";
+import { showUndoToast } from "@/lib/toast/toast-store";
 import type {
   MaintenanceTask,
   MaintenancePriority,
@@ -42,6 +45,7 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
   const [responsibleParty, setResponsibleParty] = React.useState("");
   const [plannedCompletionDate, setPlannedCompletionDate] = React.useState("");
   const [comments, setComments] = React.useState("");
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   React.useEffect(() => {
     if (task) {
@@ -52,8 +56,17 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
       setResponsibleParty(task.responsibleParty ?? "");
       setPlannedCompletionDate(task.plannedCompletionDate ?? "");
       setComments(task.comments ?? "");
+      setConfirmingDelete(false);
     }
   }, [task]);
+
+  function handleDelete() {
+    if (!task) return;
+    const removed = task;
+    deleteMaintenanceTask(task.id);
+    showUndoToast("Maintenance task deleted", () => restoreMaintenanceTask(removed));
+    onOpenChange(false);
+  }
 
   function handleSave() {
     if (!task) return;
@@ -168,11 +181,24 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+        <DialogFooter className="sm:justify-between">
+          {confirmingDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Delete this task?</span>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
+              <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+            </div>
+          ) : (
+            <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmingDelete(true)}>
+              <Trash2 className="size-3.5" /> Delete
+            </Button>
+          )}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

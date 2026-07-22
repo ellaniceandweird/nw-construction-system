@@ -113,6 +113,9 @@ export interface Project extends BaseEntity {
   completionPercent: number;
 
   attachments?: Attachment[];
+
+  /** Free-text notes about the project, shown in the Projects list. */
+  notes?: string;
 }
 
 /** SDS §5.10 — Milestone Management. */

@@ -21,26 +21,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updatePurchaseOrder, computeTotal } from "@/lib/procurement/purchase-order-store";
+import { updatePurchaseOrder, createPurchaseOrder, computeTotal } from "@/lib/procurement/purchase-order-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useBillingEntities } from "@/hooks/use-billing-entities";
 import type { PurchaseOrder, PurchaseOrderLineItem, PurchaseOrderStatus } from "@/types/procurement";
 
 interface Props {
   order: PurchaseOrder | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** When true and order is null, the dialog opens in create mode instead of doing nothing. */
+  createMode?: boolean;
 }
 
 const STATUS_OPTIONS: { value: PurchaseOrderStatus; label: string }[] = [
-  { value: "draft", label: "Draft" },
-  { value: "pending_approval", label: "Pending Approval" },
   { value: "approved", label: "Approved" },
-  { value: "issued", label: "Issued" },
-  { value: "acknowledged", label: "Acknowledged" },
+  { value: "paid", label: "Paid" },
   { value: "partially_delivered", label: "Partially Delivered" },
   { value: "delivered", label: "Delivered" },
-  { value: "closed", label: "Closed" },
   { value: "cancelled", label: "Cancelled" },
 ];
 
@@ -52,14 +51,16 @@ function emptyLineItem(): PurchaseOrderLineItem {
   return { description: "", quantity: 1, unit: "each", unitPrice: 0, extendedPrice: 0 };
 }
 
-export function PurchaseOrderEditDialog({ order, open, onOpenChange }: Props) {
+export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode }: Props) {
+  const billingEntities = useBillingEntities();
   const [projectId, setProjectId] = React.useState("");
   const [vendorId, setVendorId] = React.useState("");
-  const [orderDate, setOrderDate] = React.useState("");
+  const [billingEntityId, setBillingEntityId] = React.useState("");
+  const [orderDate, setOrderDate] = React.useState(() => new Date().toISOString().slice(0, 10));
   const [expectedDelivery, setExpectedDelivery] = React.useState("");
   const [buyer, setBuyer] = React.useState("");
   const [terms, setTerms] = React.useState("");
-  const [poStatus, setPoStatus] = React.useState<PurchaseOrderStatus>("draft");
+  const [poStatus, setPoStatus] = React.useState<PurchaseOrderStatus>("approved");
   const [tax, setTax] = React.useState("");
   const [freight, setFreight] = React.useState("");
   const [notes, setNotes] = React.useState("");
@@ -69,6 +70,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange }: Props) {
     if (order) {
       setProjectId(order.projectId);
       setVendorId(order.vendorId);
+      setBillingEntityId(order.billingEntityId);
       setOrderDate(order.orderDate);
       setExpectedDelivery(order.expectedDelivery ?? "");
       setBuyer(order.buyer ?? "");
@@ -78,8 +80,21 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange }: Props) {
       setFreight(order.freight != null ? String(order.freight) : "");
       setNotes(order.notes ?? "");
       setLineItems(order.lineItems.length ? order.lineItems : [emptyLineItem()]);
+    } else if (open && createMode) {
+      setProjectId("");
+      setVendorId("");
+      setBillingEntityId("");
+      setOrderDate(new Date().toISOString().slice(0, 10));
+      setExpectedDelivery("");
+      setBuyer("");
+      setTerms("");
+      setPoStatus("approved");
+      setTax("");
+      setFreight("");
+      setNotes("");
+      setLineItems([emptyLineItem()]);
     }
-  }, [order]);
+  }, [order, open, createMode]);
 
   function updateLineItem(index: number, patch: Partial<PurchaseOrderLineItem>) {
     setLineItems((prev) =>
@@ -107,10 +122,11 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange }: Props) {
   });
 
   function handleSave() {
-    if (!order || !projectId || !vendorId || !orderDate) return;
-    updatePurchaseOrder(order.id, {
+    if (!projectId || !vendorId || !billingEntityId || !orderDate) return;
+    const input = {
       projectId,
       vendorId,
+      billingEntityId,
       orderDate,
       expectedDelivery: expectedDelivery || undefined,
       buyer: buyer || undefined,
@@ -120,17 +136,22 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange }: Props) {
       freight: freight ? parseFloat(freight) : undefined,
       notes: notes || undefined,
       lineItems,
-    });
+    };
+    if (order) {
+      updatePurchaseOrder(order.id, input);
+    } else {
+      createPurchaseOrder(input);
+    }
     onOpenChange(false);
   }
 
-  const canSave = !!projectId && !!vendorId && !!orderDate && lineItems.every((li) => li.description);
+  const canSave = !!projectId && !!vendorId && !!billingEntityId && !!orderDate && lineItems.every((li) => li.description);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Purchase Order {order?.poNumber}</DialogTitle>
+          <DialogTitle>{order ? `Edit Purchase Order ${order.poNumber}` : "New Purchase Order"}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
@@ -165,6 +186,20 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange }: Props) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div>
+            <Label>Billing Entity</Label>
+            <Select value={billingEntityId} onValueChange={setBillingEntityId}>
+              <SelectTrigger className="mt-1.5 w-full">
+                <SelectValue placeholder="Select billing entity" />
+              </SelectTrigger>
+              <SelectContent>
+                {billingEntities.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -322,7 +357,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange }: Props) {
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={!canSave}>
-            Save Changes
+            {order ? "Save Changes" : "Create Purchase Order"}
           </Button>
         </DialogFooter>
       </DialogContent>

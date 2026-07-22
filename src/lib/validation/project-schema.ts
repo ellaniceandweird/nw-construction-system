@@ -29,6 +29,7 @@ export const projectFormSchema = z.object({
   approvedBudget: z.coerce.number().min(0, "Budget can't be negative"),
 
   tags: z.array(z.string()),
+  notes: z.string().optional(),
 }).refine((data) => data.plannedCompletionDate >= data.startDate, {
   message: "Target completion date must be on or after the start date",
   path: ["plannedCompletionDate"],

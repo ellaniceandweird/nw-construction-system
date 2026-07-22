@@ -17,6 +17,8 @@ export interface ChangeOrder extends BaseEntity {
   /** Positive = adds to budget, negative = a deduction. */
   costImpact: number;
   scheduleImpactDays?: number;
+  /** Which estimate line item this change relates to (e.g. "Roofing") — picked from the estimate, or typed manually. */
+  relatedItem?: string;
   changeOrderStatus: ChangeOrderStatus;
   requestedBy?: string;
   requestedDate: string;

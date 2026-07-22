@@ -20,6 +20,8 @@ const STATUS_OPTIONS: { value: ChangeOrderStatus; label: string }[] = [
   { value: "rejected", label: "Rejected" },
 ];
 
+const MANUAL_ENTRY = "__manual__";
+
 function projectName(id: string) {
   return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
 }
@@ -27,6 +29,8 @@ function projectName(id: string) {
 export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props) {
   const estimates = useEstimates();
   const [estimateId, setEstimateId] = React.useState("");
+  const [relatedItem, setRelatedItem] = React.useState("");
+  const [manualItem, setManualItem] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [reason, setReason] = React.useState("");
   const [costImpact, setCostImpact] = React.useState("");
@@ -49,8 +53,21 @@ export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props
       setRequestedDate(changeOrder?.requestedDate ?? new Date().toISOString().slice(0, 10));
       setNotes(changeOrder?.notes ?? "");
       setConfirmingDelete(false);
+
+      const estimate = estimates.find((e) => e.id === (changeOrder?.estimateId ?? ""));
+      const itemOptions = estimate ? [...new Set(estimate.lineItems.map((li) => li.description))] : [];
+      if (changeOrder?.relatedItem && itemOptions.includes(changeOrder.relatedItem)) {
+        setRelatedItem(changeOrder.relatedItem);
+        setManualItem("");
+      } else if (changeOrder?.relatedItem) {
+        setRelatedItem(MANUAL_ENTRY);
+        setManualItem(changeOrder.relatedItem);
+      } else {
+        setRelatedItem("");
+        setManualItem("");
+      }
     }
-  }, [changeOrder, open]);
+  }, [changeOrder, open, estimates]);
 
   function handleSave() {
     const estimate = estimates.find((e) => e.id === estimateId);
@@ -62,6 +79,7 @@ export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props
       reason: reason || undefined,
       costImpact: parseFloat(costImpact),
       scheduleImpactDays: scheduleImpactDays ? parseInt(scheduleImpactDays, 10) : undefined,
+      relatedItem: (relatedItem === MANUAL_ENTRY ? manualItem : relatedItem) || undefined,
       changeOrderStatus,
       requestedBy: requestedBy || undefined,
       requestedDate,
@@ -94,6 +112,26 @@ export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <Label>Item (optional)</Label>
+            <Select value={relatedItem} onValueChange={setRelatedItem} disabled={!estimateId}>
+              <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder={estimateId ? "Select an item from the estimate" : "Select an estimate first"} /></SelectTrigger>
+              <SelectContent>
+                {[...new Set(estimates.find((e) => e.id === estimateId)?.lineItems.map((li) => li.description) ?? [])].map((item) => (
+                  <SelectItem key={item} value={item}>{item}</SelectItem>
+                ))}
+                <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+              </SelectContent>
+            </Select>
+            {relatedItem === MANUAL_ENTRY && (
+              <Input
+                className="mt-2"
+                placeholder="Type the item name"
+                value={manualItem}
+                onChange={(e) => setManualItem(e.target.value)}
+              />
+            )}
           </div>
           <div>
             <Label htmlFor="description">Description</Label>

@@ -170,8 +170,8 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
           <div>
             <div className="mb-1.5 flex items-center justify-between">
               <Label className="text-xs">Billing Entity</Label>
-              <Link href="/financial?tab=billingentities" className="group flex items-center gap-1 text-xs text-primary hover:underline">
-                Manage in Financial <ArrowUpRight className="size-3" />
+              <Link href="/references?tab=billingentities" className="group flex items-center gap-1 text-xs text-primary hover:underline">
+                Manage in References <ArrowUpRight className="size-3" />
               </Link>
             </div>
             <Select value={property.billingEntityId ?? NONE} onValueChange={handleBillingEntityChange}>

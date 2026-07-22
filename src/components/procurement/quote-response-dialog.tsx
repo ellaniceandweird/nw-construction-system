@@ -21,7 +21,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRFQs } from "@/hooks/use-rfqs";
-import { upsertQuoteResponse } from "@/lib/procurement/rfq-store";
+import { useProperties } from "@/hooks/use-properties";
+import { upsertQuoteResponse, awardRFQ } from "@/lib/procurement/rfq-store";
+import { createPurchaseOrderFromQuote } from "@/lib/procurement/purchase-order-store";
+import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
 import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import type { VendorQuoteResponse } from "@/types/procurement";
@@ -42,6 +45,7 @@ interface Props {
 
 export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange }: Props) {
   const rfqs = useRFQs();
+  const properties = useProperties();
   const [selectedRfqId, setSelectedRfqId] = React.useState("");
   const [selectedVendorId, setSelectedVendorId] = React.useState("");
   const [quotedPrice, setQuotedPrice] = React.useState("");
@@ -54,6 +58,7 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
     new Date().toISOString().slice(0, 10)
   );
   const [notes, setNotes] = React.useState("");
+  const [status, setStatus] = React.useState<"pending_approval" | "rejected" | "awarded">("pending_approval");
 
   const rfqLocked = !!initialRfqId;
   const rfq = rfqs.find((r) => r.id === selectedRfqId);
@@ -78,6 +83,12 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
     setValidityPeriodDays(existing?.validityPeriodDays != null ? String(existing.validityPeriodDays) : "");
     setSubmittedDate(existing?.submittedDate ?? new Date().toISOString().slice(0, 10));
     setNotes(existing?.notes ?? "");
+    const effectiveVendorId = vendorId ?? existing?.vendorId;
+    setStatus(
+      rfq.awardedVendorId && rfq.awardedVendorId === effectiveVendorId
+        ? "awarded"
+        : existing?.quoteStatus ?? "pending_approval"
+    );
   }, [rfq, vendorId]);
 
   function handleSave() {
@@ -92,8 +103,30 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
       validityPeriodDays: validityPeriodDays ? parseInt(validityPeriodDays, 10) : undefined,
       submittedDate,
       notes: notes || undefined,
+      quoteStatus: status === "awarded" ? undefined : status,
     };
     upsertQuoteResponse(rfq.id, input);
+    if (status === "awarded") {
+      awardRFQ(rfq.id, selectedVendorId);
+      const project = MOCK_PROJECTS.find((p) => p.id === rfq.projectId);
+      const billingEntityId = project ? getBillingEntityIdForProject(project, properties) : undefined;
+      if (billingEntityId) {
+        createPurchaseOrderFromQuote({
+          rfqId: rfq.id,
+          projectId: rfq.projectId,
+          vendorId: selectedVendorId,
+          billingEntityId,
+          materialList: rfq.materialList,
+          quotedPrice: input.quotedPrice,
+          freight: input.freight,
+          tax: input.tax,
+          leadTimeDays: input.leadTimeDays,
+        });
+      }
+    } else if (rfq.awardedVendorId === selectedVendorId) {
+      // Was awarded, now changed to something else — clear the award.
+      awardRFQ(rfq.id, undefined);
+    }
     onOpenChange(false);
   }
 
@@ -231,6 +264,18 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
               value={submittedDate}
               onChange={(e) => setSubmittedDate(e.target.value)}
             />
+          </div>
+
+          <div>
+            <Label>Status</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+              <SelectTrigger className="mt-1.5 w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending_approval">Pending Approval</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="awarded">Awarded</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

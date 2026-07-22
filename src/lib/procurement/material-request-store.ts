@@ -58,3 +58,52 @@ export function updateMaterialRequest(id: string, input: MaterialRequestEditInpu
   persist();
   emit();
 }
+
+export interface MaterialRequestCreateInput {
+  projectId: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  requiredOnSiteDate: string;
+  requestedBy: string;
+  notes?: string;
+  referenceUrl?: string;
+}
+
+function nextMrNumber(): string {
+  const nums = requests
+    .map((r) => parseInt(r.mrNumber.replace(/\D/g, ""), 10))
+    .filter((n) => !isNaN(n));
+  const max = nums.length ? Math.max(...nums) : 0;
+  return `MR-${(max + 1).toString().padStart(5, "0")}`;
+}
+
+export function createMaterialRequest(input: MaterialRequestCreateInput) {
+  const now = new Date().toISOString();
+  const mrNumber = nextMrNumber();
+  const newRequest: MaterialRequest = {
+    id: mrNumber,
+    createdBy: "current-user",
+    createdDate: now,
+    lastModifiedBy: "current-user",
+    lastModifiedDate: now,
+    revisionNumber: 1,
+    module: "Procurement",
+    status: "active",
+    projectId: input.projectId,
+    mrNumber,
+    requestedBy: input.requestedBy,
+    priority: "medium",
+    requestDate: now.slice(0, 10),
+    requiredOnSiteDate: input.requiredOnSiteDate,
+    approvalStatus: "pending",
+    notes: input.notes,
+    referenceUrl: input.referenceUrl,
+    requestStatus: "draft",
+    lineItems: [{ description: input.description, quantity: input.quantity, unit: input.unit }],
+  };
+  requests = [...requests, newRequest];
+  persist();
+  emit();
+  return newRequest.id;
+}

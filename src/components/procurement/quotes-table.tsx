@@ -6,11 +6,23 @@ import { Pencil, Plus } from "lucide-react";
 import { useRFQs } from "@/hooks/use-rfqs";
 import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { getRequiredApprovers } from "@/lib/procurement/quote-approval";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QuoteResponseDialog } from "@/components/procurement/quote-response-dialog";
 import type { RequestForQuotation, VendorQuoteResponse } from "@/types/procurement";
+
+const STATUS_CLASS: Record<string, string> = {
+  pending_approval: "bg-warning-soft text-warning-foreground",
+  rejected: "bg-destructive-soft text-destructive",
+  awarded: "bg-success-soft text-success",
+};
+const STATUS_LABEL: Record<string, string> = {
+  pending_approval: "Pending Approval",
+  rejected: "Rejected",
+  awarded: "Awarded",
+};
 
 function formatDate(d?: string) {
   if (!d) return "—";
@@ -61,6 +73,8 @@ export function QuotesTable() {
               <th className="px-4 py-3 font-medium">Lead Time</th>
               <th className="px-4 py-3 font-medium">Warranty</th>
               <th className="px-4 py-3 font-medium">Received</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Approval</th>
               <th className="px-4 py-3 font-medium">Edit</th>
             </tr>
           </thead>
@@ -68,6 +82,8 @@ export function QuotesTable() {
             {rows.map(({ rfq, resp }: { rfq: RequestForQuotation; resp: VendorQuoteResponse }) => {
               const project = MOCK_PROJECTS.find((p) => p.id === rfq.projectId);
               const isAwarded = rfq.awardedVendorId === resp.vendorId;
+              const status = isAwarded ? "awarded" : resp.quoteStatus ?? "pending_approval";
+              const totalCost = resp.quotedPrice + (resp.freight ?? 0) + (resp.tax ?? 0);
               return (
                 <tr
                   key={`${rfq.id}-${resp.vendorId}`}
@@ -75,18 +91,17 @@ export function QuotesTable() {
                 >
                   <td className="px-4 py-3 font-medium text-foreground">{rfq.rfqNumber}</td>
                   <td className="px-4 py-3 text-muted-foreground">{project?.projectName ?? "—"}</td>
-                  <td className="px-4 py-3 text-foreground">
-                    {vendorName(resp.vendorId)}
-                    {isAwarded && (
-                      <Badge className="ml-2 bg-success-soft text-success border-transparent">Awarded</Badge>
-                    )}
-                  </td>
+                  <td className="px-4 py-3 text-foreground">{vendorName(resp.vendorId)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{currency(resp.quotedPrice)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{currency(resp.freight)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{currency(resp.tax)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{resp.leadTimeDays}d</td>
                   <td className="px-4 py-3 text-muted-foreground max-w-[10rem]">{resp.warranty ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(resp.submittedDate)}</td>
+                  <td className="px-4 py-3">
+                    <Badge className={`${STATUS_CLASS[status]} border-transparent`}>{STATUS_LABEL[status]}</Badge>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{getRequiredApprovers(totalCost)}</td>
                   <td className="px-4 py-3">
                     <Button
                       variant="ghost"
@@ -101,7 +116,7 @@ export function QuotesTable() {
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">
+                <td colSpan={12} className="px-4 py-6 text-center text-muted-foreground">
                   No quotes logged yet — add one from the RFQs tab, or use &quot;Add Quote&quot; above.
                 </td>
               </tr>

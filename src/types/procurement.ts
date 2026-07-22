@@ -113,6 +113,8 @@ export interface MaterialRequest extends BaseEntity {
   lineItems: MaterialRequestLineItem[];
 }
 
+export type QuoteApprovalStatus = "pending_approval" | "rejected";
+
 export interface VendorQuoteResponse {
   vendorId: string;
   quotedPrice: number;
@@ -126,6 +128,12 @@ export interface VendorQuoteResponse {
   submittedDate?: string;
   /** Computed overall score for Quote Comparison (SDS §8.10). */
   overallScore?: number;
+  /**
+   * Manual status set on the Quotes tab. "Awarded" isn't stored here —
+   * it's derived from the parent RFQ's awardedVendorId so there's one
+   * source of truth for who won.
+   */
+  quoteStatus?: QuoteApprovalStatus;
 }
 
 export type RFQStatus = "open" | "partial" | "quoted" | "awarded";
@@ -154,14 +162,10 @@ export interface RequestForQuotation extends BaseEntity {
 }
 
 export type PurchaseOrderStatus =
-  | "draft"
-  | "pending_approval"
   | "approved"
-  | "issued"
-  | "acknowledged"
+  | "paid"
   | "partially_delivered"
   | "delivered"
-  | "closed"
   | "cancelled";
 
 export interface PurchaseOrderLineItem {
@@ -194,6 +198,8 @@ export interface PurchaseOrder extends BaseEntity {
   total: number;
   notes?: string;
   lineItems: PurchaseOrderLineItem[];
+  /** Set when this PO was auto-generated from an awarded quote, rather than entered by hand. */
+  sourceRfqId?: string;
 }
 
 export type DeliveryTrackingStatus =

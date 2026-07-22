@@ -29,7 +29,7 @@ export function generateDailyFieldUpdateText(
   }
 
   const lines: string[] = [];
-  lines.push(`Good morning Pedro! Hope you're doing well 🙂 Here's the plan for ${formatShortDate(date)}:`);
+  lines.push(`Good morning Pedro! Here's the plan for ${formatShortDate(date)}:`);
   lines.push("");
 
   if (byProject.size === 0) {

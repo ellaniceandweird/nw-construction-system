@@ -56,6 +56,7 @@ export function ChangeOrdersTable() {
               <th className="px-4 py-3 font-medium">CO Number</th>
               <th className="px-4 py-3 font-medium">Property</th>
               <th className="px-4 py-3 font-medium">Description</th>
+              <th className="px-4 py-3 font-medium">Item</th>
               <th className="px-4 py-3 font-medium">Cost Impact</th>
               <th className="px-4 py-3 font-medium">Requested</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -73,6 +74,7 @@ export function ChangeOrdersTable() {
                     {estimate ? projectName(estimate.projectId) : projectName(c.projectId)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground max-w-md">{c.description}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.relatedItem ?? "—"}</td>
                   <td className={`px-4 py-3 font-medium ${c.costImpact >= 0 ? "text-foreground" : "text-destructive"}`}>
                     {c.costImpact >= 0 ? "+" : ""}
                     {currency(c.costImpact)}
@@ -97,7 +99,7 @@ export function ChangeOrdersTable() {
               );
             })}
             {sorted.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">No change orders yet — add one above.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">No change orders yet — add one above.</td></tr>
             )}
           </tbody>
         </table>

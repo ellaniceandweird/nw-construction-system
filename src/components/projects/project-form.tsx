@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import {
   projectFormSchema,
   type ProjectFormValues,
@@ -65,12 +66,14 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           estimatedContractValue: existingProject.estimatedContractValue,
           approvedBudget: existingProject.approvedBudget,
           tags: existingProject.tags,
+          notes: existingProject.notes ?? "",
         }
       : {
           priority: "medium",
           tags: [],
           estimatedContractValue: 0,
           approvedBudget: 0,
+          notes: "",
         },
   });
 
@@ -230,6 +233,11 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="sm:col-span-2">
+            <Label htmlFor="notes">Notes (optional)</Label>
+            <Textarea id="notes" className="mt-1.5" {...register("notes")} />
           </div>
         </CardContent>
       </Card>

@@ -1,32 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Paperclip } from "lucide-react";
+import { Pencil, Paperclip, Plus } from "lucide-react";
 
 import { useMaterialRequests } from "@/hooks/use-material-requests";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MaterialRequestEditDialog } from "@/components/procurement/material-request-edit-dialog";
+import { MaterialRequestCreateDialog } from "@/components/procurement/material-request-create-dialog";
 import type { MaterialRequest } from "@/types/procurement";
-
-const STATUS_CLASS: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  pending_approval: "bg-warning-soft text-warning-foreground",
-  approved: "bg-success-soft text-success",
-  rejected: "bg-destructive-soft text-destructive",
-  rfq_issued: "bg-info-soft text-info-foreground",
-  po_issued: "bg-primary-soft text-primary",
-  closed: "bg-muted text-muted-foreground",
-};
-
-const PRIORITY_CLASS: Record<string, string> = {
-  low: "bg-muted text-muted-foreground",
-  medium: "bg-info-soft text-info-foreground",
-  high: "bg-warning-soft text-warning-foreground",
-  critical: "bg-destructive-soft text-destructive",
-};
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -35,6 +18,7 @@ function formatDate(d: string) {
 export function MaterialRequestsTable() {
   const requests = useMaterialRequests();
   const [editingRequest, setEditingRequest] = React.useState<MaterialRequest | null>(null);
+  const [creating, setCreating] = React.useState(false);
 
   const sorted = [...requests].sort(
     (a, b) => new Date(a.requiredOnSiteDate).getTime() - new Date(b.requiredOnSiteDate).getTime()
@@ -42,6 +26,12 @@ export function MaterialRequestsTable() {
 
   return (
     <>
+      <div className="mb-3 flex justify-end">
+        <Button size="sm" onClick={() => setCreating(true)}>
+          <Plus className="size-3.5" /> Add Entry
+        </Button>
+      </div>
+
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">
           <thead>
@@ -50,8 +40,6 @@ export function MaterialRequestsTable() {
               <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Description</th>
               <th className="px-4 py-3 font-medium">Needed By</th>
-              <th className="px-4 py-3 font-medium">Priority</th>
-              <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Reference</th>
               <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium">Edit</th>
@@ -69,16 +57,6 @@ export function MaterialRequestsTable() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatDate(mr.requiredOnSiteDate)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={`${PRIORITY_CLASS[mr.priority]} border-transparent`}>
-                      {mr.priority}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={`${STATUS_CLASS[mr.requestStatus] ?? ""} border-transparent`}>
-                      {mr.requestStatus.replace(/_/g, " ")}
-                    </Badge>
                   </td>
                   <td className="px-4 py-3">
                     {mr.referenceUrl ? (
@@ -103,6 +81,9 @@ export function MaterialRequestsTable() {
                 </tr>
               );
             })}
+            {sorted.length === 0 && (
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">No material requests yet — click &quot;Add Entry&quot; above.</td></tr>
+            )}
           </tbody>
         </table>
       </Card>
@@ -112,6 +93,7 @@ export function MaterialRequestsTable() {
         open={!!editingRequest}
         onOpenChange={(open) => !open && setEditingRequest(null)}
       />
+      <MaterialRequestCreateDialog open={creating} onOpenChange={setCreating} />
     </>
   );
 }

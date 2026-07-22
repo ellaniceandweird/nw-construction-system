@@ -11,6 +11,14 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowUpDown } from "lucide-react";
 import { AddCostTransactionDialog } from "@/components/financial/add-cost-transaction-dialog";
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -48,9 +56,31 @@ function NotesCell({ transactionId, initialValue }: { transactionId: string; ini
 }
 
 export function CostLedgerTable() {
-  const transactions = useCostTransactions();
+  const allTransactions = useCostTransactions();
   const notes = useCostLedgerNotes();
   const [adding, setAdding] = React.useState(false);
+  const [projectFilter, setProjectFilter] = React.useState("all");
+  const [sourceFilter, setSourceFilter] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState<"date_desc" | "date_asc" | "amount_desc" | "amount_asc">("date_desc");
+
+  const filtered = allTransactions.filter((t) => {
+    const matchesProject = projectFilter === "all" || t.projectId === projectFilter;
+    const matchesSource = sourceFilter === "all" || t.sourceModule === sourceFilter;
+    return matchesProject && matchesSource;
+  });
+
+  const transactions = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case "date_asc":
+        return a.date.localeCompare(b.date);
+      case "amount_desc":
+        return b.amount - a.amount;
+      case "amount_asc":
+        return a.amount - b.amount;
+      default:
+        return b.date.localeCompare(a.date);
+    }
+  });
 
   const total = transactions.reduce((sum, t) => sum + t.amount, 0);
 
@@ -73,6 +103,36 @@ export function CostLedgerTable() {
 
   return (
     <>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <Select value={projectFilter} onValueChange={setProjectFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Projects" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Projects</SelectItem>
+            {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+          </SelectContent>
+        </Select>
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Sources" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            <SelectItem value="procurement">Procurement</SelectItem>
+            <SelectItem value="field_operations">Field Ops</SelectItem>
+            <SelectItem value="estimating">Estimating</SelectItem>
+            <SelectItem value="manual">Manual</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[170px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date_desc">Date (Newest)</SelectItem>
+            <SelectItem value="date_asc">Date (Oldest)</SelectItem>
+            <SelectItem value="amount_desc">Amount (Highest)</SelectItem>
+            <SelectItem value="amount_asc">Amount (Lowest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{transactions.length} of {allTransactions.length}</span>
+      </div>
+
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           Every real cost hitting a property — Purchase Orders flow in automatically from

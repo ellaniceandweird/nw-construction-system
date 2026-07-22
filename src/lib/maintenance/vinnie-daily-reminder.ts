@@ -20,7 +20,7 @@ export function generateVinnieDailyReminderText(date: Date, tasks: MaintenanceTa
   );
 
   const lines: string[] = [];
-  lines.push(`Good morning Vinnie! Hope you're doing well 🙂 Here's what's due ${formatShortDate(date)}:`);
+  lines.push(`Good morning Vinnie! Here's what's due ${formatShortDate(date)}:`);
   lines.push("");
 
   if (dueToday.length === 0) {

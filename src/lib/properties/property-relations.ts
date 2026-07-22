@@ -54,6 +54,22 @@ export function getPropertyForBillingEntity(billingEntityId: string | undefined,
   return properties.find((p) => p.billingEntityId === billingEntityId);
 }
 
+/**
+ * Reverse of getRelatedProjects — given a construction Project, finds its
+ * matching Property and returns that property's billing entity, if any.
+ * Used to auto-populate Billing Entity on Purchase Orders and Field
+ * Worker Invoices from the project alone, since a property's billing
+ * entity is the closest thing to a canonical "who gets billed" answer.
+ */
+export function getBillingEntityIdForProject(project: Project, properties: Property[]): string | undefined {
+  for (const property of properties) {
+    if (getRelatedProjects(property, [project]).length > 0 && property.billingEntityId) {
+      return property.billingEntityId;
+    }
+  }
+  return undefined;
+}
+
 export function getMaintenanceHistory(
   property: Property,
   tasks: MaintenanceTask[],

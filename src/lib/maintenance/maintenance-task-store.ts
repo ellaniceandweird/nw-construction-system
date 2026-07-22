@@ -148,3 +148,15 @@ export function updateTask(taskId: string, input: MaintenanceTaskEditInput) {
   persist();
   emit();
 }
+
+export function deleteMaintenanceTask(taskId: string) {
+  tasks = tasks.filter((t) => t.id !== taskId);
+  persist();
+  emit();
+}
+
+export function restoreMaintenanceTask(task: MaintenanceTask) {
+  tasks = [...tasks, task];
+  persist();
+  emit();
+}
