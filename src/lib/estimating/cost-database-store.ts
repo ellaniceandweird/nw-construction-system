@@ -1,47 +1,68 @@
 "use client";
 
+import { createCollectionStore } from "@/lib/supabase/collection-store";
 import { MOCK_COST_DATABASE } from "@/lib/data/mock/cost-database";
 import type { CostDatabaseItem } from "@/types/estimating";
 
-const STORAGE_KEY = "project-nw:cost-database";
-type Listener = () => void;
-let rates: CostDatabaseItem[] = loadInitial();
-const listeners = new Set<Listener>();
-
-function loadInitial(): CostDatabaseItem[] {
-  if (typeof window === "undefined") return MOCK_COST_DATABASE;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return MOCK_COST_DATABASE;
-    return JSON.parse(raw) as CostDatabaseItem[];
-  } catch {
-    return MOCK_COST_DATABASE;
-  }
-}
-function persist() {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rates));
-}
-function emit() {
-  listeners.forEach((l) => l());
-}
-function nextId(): string {
-  const maxNum = rates.reduce((max, r) => {
-    const n = parseInt(r.id.replace("CDB-", ""), 10);
-    return Number.isFinite(n) ? Math.max(max, n) : max;
-  }, 0);
-  return `CDB-${String(maxNum + 1).padStart(6, "0")}`;
+function fromRow(row: Record<string, any>): CostDatabaseItem {
+  return {
+    id: row.id,
+    costCode: row.cost_code,
+    description: row.description,
+    category: row.category ?? undefined,
+    unit: row.unit,
+    laborCost: Number(row.labor_cost ?? 0),
+    materialCost: Number(row.material_cost ?? 0),
+    equipmentCost: Number(row.equipment_cost ?? 0),
+    subcontractCost: Number(row.subcontract_cost ?? 0),
+    overheadPercent: row.overhead_percent != null ? Number(row.overhead_percent) : undefined,
+    profitPercent: row.profit_percent != null ? Number(row.profit_percent) : undefined,
+    lastUpdated: row.last_updated,
+    supplier: row.supplier ?? undefined,
+    historicalAverage: row.historical_average != null ? Number(row.historical_average) : undefined,
+    createdBy: row.created_by ?? "system",
+    createdDate: row.created_date ?? new Date().toISOString(),
+    lastModifiedBy: row.last_modified_by ?? "system",
+    lastModifiedDate: row.last_modified_date ?? new Date().toISOString(),
+    revisionNumber: row.revision_number ?? 1,
+    module: "Estimating",
+    status: row.status ?? "active",
+  };
 }
 
-export function subscribeCostDatabase(listener: Listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+function toRow(input: Record<string, any>): Record<string, any> {
+  const row: Record<string, any> = {};
+  if (input.id !== undefined) row.id = input.id;
+  if (input.costCode !== undefined) row.cost_code = input.costCode;
+  if (input.description !== undefined) row.description = input.description;
+  if (input.category !== undefined) row.category = input.category;
+  if (input.unit !== undefined) row.unit = input.unit;
+  if (input.laborCost !== undefined) row.labor_cost = input.laborCost;
+  if (input.materialCost !== undefined) row.material_cost = input.materialCost;
+  if (input.equipmentCost !== undefined) row.equipment_cost = input.equipmentCost;
+  if (input.subcontractCost !== undefined) row.subcontract_cost = input.subcontractCost;
+  if (input.overheadPercent !== undefined) row.overhead_percent = input.overheadPercent;
+  if (input.profitPercent !== undefined) row.profit_percent = input.profitPercent;
+  if (input.supplier !== undefined) row.supplier = input.supplier;
+  if (input.historicalAverage !== undefined) row.historical_average = input.historicalAverage;
+  row.last_updated = new Date().toISOString().slice(0, 10);
+  row.last_modified_date = new Date().toISOString();
+  return row;
 }
-export function getCostDatabaseSnapshot(): CostDatabaseItem[] {
-  return rates;
-}
+
+const store = createCollectionStore<CostDatabaseItem>({
+  table: "cost_database",
+  seedData: MOCK_COST_DATABASE,
+  fromRow,
+  toRow,
+  orderBy: "cost_code",
+});
+
+export const subscribeCostDatabase = store.subscribe;
+export const getCostDatabaseSnapshot = store.getSnapshot;
+
 export function findRateForCostCode(costCode: string): CostDatabaseItem | undefined {
-  return rates.find((r) => r.costCode === costCode);
+  return store.getSnapshot().find((r) => r.costCode === costCode);
 }
 
 export interface CostDatabaseInput {
@@ -56,29 +77,23 @@ export interface CostDatabaseInput {
   supplier?: string;
 }
 
+function nextId(): string {
+  const items = store.getSnapshot();
+  const maxNum = items.reduce((max, r) => {
+    const n = parseInt(r.id.replace("CDB-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  return `CDB-${String(maxNum + 1).padStart(6, "0")}`;
+}
+
 export function createCostDatabaseItem(input: CostDatabaseInput) {
-  const newItem: CostDatabaseItem = {
-    id: nextId(),
-    createdBy: "user", createdDate: new Date().toISOString(),
-    lastModifiedBy: "user", lastModifiedDate: new Date().toISOString(),
-    revisionNumber: 1, module: "Estimating", status: "active",
-    lastUpdated: new Date().toISOString().slice(0, 10),
-    ...input,
-  };
-  rates = [...rates, newItem];
-  persist();
-  emit();
-  return newItem;
+  const id = nextId();
+  void store.create({ id, ...input });
+  return id;
 }
 export function updateCostDatabaseItem(id: string, input: CostDatabaseInput) {
-  rates = rates.map((r) =>
-    r.id === id ? { ...r, ...input, lastUpdated: new Date().toISOString().slice(0, 10), lastModifiedDate: new Date().toISOString() } : r
-  );
-  persist();
-  emit();
+  void store.update(id, input);
 }
 export function deleteCostDatabaseItem(id: string) {
-  rates = rates.filter((r) => r.id !== id);
-  persist();
-  emit();
+  void store.remove(id);
 }

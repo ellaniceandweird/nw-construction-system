@@ -1,50 +1,81 @@
 "use client";
 
+import { createCollectionStore } from "@/lib/supabase/collection-store";
 import { MOCK_ESTIMATES } from "@/lib/data/mock/estimates";
-import { computeLineItemTotal, computeEstimateTotal } from "@/lib/estimating/estimate-calculations";
+import { computeEstimateTotal, computeLineItemTotal } from "@/lib/estimating/estimate-calculations";
 import type { Estimate, EstimateLineItem, EstimateStatus } from "@/types/estimating";
 
-const STORAGE_KEY = "project-nw:estimates";
-type Listener = () => void;
-let estimates: Estimate[] = loadInitial();
-const listeners = new Set<Listener>();
+function fromRow(row: Record<string, any>): Estimate {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    estimateNumber: row.estimate_number,
+    client: row.client ?? undefined,
+    address: row.address ?? undefined,
+    estimator: row.estimator,
+    estimateDate: row.estimate_date,
+    revision: row.revision ?? 1,
+    estimateStatus: row.estimate_status,
+    proposalNumber: row.proposal_number ?? undefined,
+    currency: row.currency ?? "USD",
+    taxMethod: row.tax_method ?? undefined,
+    profitMarginPercent: row.profit_margin_percent != null ? Number(row.profit_margin_percent) : undefined,
+    markupPercent: row.markup_percent != null ? Number(row.markup_percent) : undefined,
+    notes: row.notes ?? undefined,
+    lineItems: row.line_items ?? [],
+    takeoffItems: row.takeoff_items ?? undefined,
+    subcontractOptions: row.subcontract_options ?? undefined,
+    indirectCosts: row.indirect_costs ?? undefined,
+    contingency: row.contingency ?? undefined,
+    totalEstimatedCost: Number(row.total_estimated_cost ?? 0),
+    createdBy: row.created_by ?? "system",
+    createdDate: row.created_date ?? new Date().toISOString(),
+    lastModifiedBy: row.last_modified_by ?? "system",
+    lastModifiedDate: row.last_modified_date ?? new Date().toISOString(),
+    revisionNumber: row.revision_number ?? 1,
+    module: "Estimating",
+    status: row.status ?? "active",
+  };
+}
 
-function loadInitial(): Estimate[] {
-  if (typeof window === "undefined") return MOCK_ESTIMATES;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return MOCK_ESTIMATES;
-    return JSON.parse(raw) as Estimate[];
-  } catch {
-    return MOCK_ESTIMATES;
-  }
-}
-function persist() {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(estimates));
-}
-function emit() {
-  listeners.forEach((l) => l());
-}
-function nextEstimateNumber(): string {
-  const year = new Date().getFullYear();
-  return `EST-${year}-${String(estimates.length + 1).padStart(4, "0")}`;
-}
-function nextId(): string {
-  const maxNum = estimates.reduce((max, e) => {
-    const n = parseInt(e.id.replace("EST-", ""), 10);
-    return Number.isFinite(n) ? Math.max(max, n) : max;
-  }, 0);
-  return `EST-${String(maxNum + 1).padStart(6, "0")}`;
+function toRow(input: Record<string, any>): Record<string, any> {
+  const row: Record<string, any> = {};
+  if (input.id !== undefined) row.id = input.id;
+  if (input.projectId !== undefined) row.project_id = input.projectId;
+  if (input.estimateNumber !== undefined) row.estimate_number = input.estimateNumber;
+  if (input.client !== undefined) row.client = input.client;
+  if (input.address !== undefined) row.address = input.address;
+  if (input.estimator !== undefined) row.estimator = input.estimator;
+  if (input.estimateDate !== undefined) row.estimate_date = input.estimateDate;
+  if (input.revision !== undefined) row.revision = input.revision;
+  if (input.estimateStatus !== undefined) row.estimate_status = input.estimateStatus;
+  if (input.proposalNumber !== undefined) row.proposal_number = input.proposalNumber;
+  if (input.currency !== undefined) row.currency = input.currency;
+  if (input.taxMethod !== undefined) row.tax_method = input.taxMethod;
+  if (input.profitMarginPercent !== undefined) row.profit_margin_percent = input.profitMarginPercent;
+  if (input.markupPercent !== undefined) row.markup_percent = input.markupPercent;
+  if (input.notes !== undefined) row.notes = input.notes;
+  if (input.lineItems !== undefined) row.line_items = input.lineItems;
+  if (input.takeoffItems !== undefined) row.takeoff_items = input.takeoffItems;
+  if (input.subcontractOptions !== undefined) row.subcontract_options = input.subcontractOptions;
+  if (input.indirectCosts !== undefined) row.indirect_costs = input.indirectCosts;
+  if (input.contingency !== undefined) row.contingency = input.contingency;
+  if (input.totalEstimatedCost !== undefined) row.total_estimated_cost = input.totalEstimatedCost;
+  row.last_modified_date = new Date().toISOString();
+  return row;
 }
 
-export function subscribeEstimates(listener: Listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-export function getEstimatesSnapshot(): Estimate[] {
-  return estimates;
-}
+const store = createCollectionStore<Estimate>({
+  table: "estimates",
+  seedData: MOCK_ESTIMATES,
+  fromRow,
+  toRow,
+  orderBy: "estimate_date",
+});
+
+export const subscribeEstimates = store.subscribe;
+export const getEstimatesSnapshot = store.getSnapshot;
+
 export function withComputedLineItemTotals(
   lineItems: Omit<EstimateLineItem, "totalCost">[]
 ): EstimateLineItem[] {
@@ -66,48 +97,43 @@ export interface EstimateEditInput {
   contingency?: Estimate["contingency"];
 }
 
+function nextId(): string {
+  const items = store.getSnapshot();
+  const maxNum = items.reduce((max, e) => {
+    const n = parseInt(e.id.replace("EST-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  return `EST-${String(maxNum + 1).padStart(6, "0")}`;
+}
+
+function nextEstimateNumber(): string {
+  const year = new Date().getFullYear();
+  const items = store.getSnapshot();
+  return `EST-${year}-${String(items.length + 1).padStart(4, "0")}`;
+}
+
 export function createEstimate(input: EstimateEditInput) {
-  const now = new Date().toISOString();
-  const newEstimate: Estimate = {
-    id: nextId(),
-    createdBy: "user",
-    createdDate: now,
-    lastModifiedBy: "user",
-    lastModifiedDate: now,
-    revisionNumber: 1,
-    module: "Estimating",
-    status: "active",
+  const id = nextId();
+  void store.create({
+    id,
     estimateNumber: nextEstimateNumber(),
     revision: 1,
     currency: "USD",
     totalEstimatedCost: computeEstimateTotal(input.lineItems, input.indirectCosts, input.contingency),
     ...input,
-  };
-  estimates = [...estimates, newEstimate];
-  persist();
-  emit();
-  return newEstimate;
+  });
+  return id;
 }
 
 export function updateEstimate(id: string, input: EstimateEditInput) {
-  estimates = estimates.map((e) =>
-    e.id === id
-      ? {
-          ...e,
-          ...input,
-          revision: e.revision + 1,
-          revisionNumber: e.revisionNumber + 1,
-          totalEstimatedCost: computeEstimateTotal(input.lineItems, input.indirectCosts, input.contingency),
-          lastModifiedDate: new Date().toISOString(),
-        }
-      : e
-  );
-  persist();
-  emit();
+  const existing = store.getSnapshot().find((e) => e.id === id);
+  void store.update(id, {
+    ...input,
+    revision: (existing?.revision ?? 1) + 1,
+    totalEstimatedCost: computeEstimateTotal(input.lineItems, input.indirectCosts, input.contingency),
+  });
 }
 
 export function deleteEstimate(id: string) {
-  estimates = estimates.filter((e) => e.id !== id);
-  persist();
-  emit();
+  void store.remove(id);
 }
