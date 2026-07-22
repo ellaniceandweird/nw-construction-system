@@ -44,7 +44,10 @@ const STATUS_CLASS: Record<string, string> = {
   complete: "bg-success-soft text-success",
 };
 
-type SortOption = "default" | "target_completion";
+type SortOption = "default" | "target_completion" | "status" | "priority";
+
+const STATUS_ORDER: Record<string, number> = { stuck: 0, working_on: 1, not_started: 2, complete: 3 };
+const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2, on_hold: 3, long_term_project: 4 };
 
 function formatDate(d?: string) {
   if (!d) return "—";
@@ -83,6 +86,14 @@ export function MaintenanceTasksTable() {
       if (!b.plannedCompletionDate) return -1;
       return new Date(a.plannedCompletionDate).getTime() - new Date(b.plannedCompletionDate).getTime();
     });
+  } else if (sortBy === "status") {
+    filtered = [...filtered].sort(
+      (a, b) => (STATUS_ORDER[a.taskStatus] ?? 99) - (STATUS_ORDER[b.taskStatus] ?? 99)
+    );
+  } else if (sortBy === "priority") {
+    filtered = [...filtered].sort(
+      (a, b) => (PRIORITY_ORDER[a.priority ?? ""] ?? 99) - (PRIORITY_ORDER[b.priority ?? ""] ?? 99)
+    );
   } else {
     filtered = [...filtered].sort(
       (a, b) => new Date(b.dateEntered).getTime() - new Date(a.dateEntered).getTime()
@@ -123,6 +134,8 @@ export function MaintenanceTasksTable() {
           <SelectContent>
             <SelectItem value="default">Default Order</SelectItem>
             <SelectItem value="target_completion">Target Completion (Earliest)</SelectItem>
+            <SelectItem value="status">Status (Stuck First)</SelectItem>
+            <SelectItem value="priority">Priority (High First)</SelectItem>
           </SelectContent>
         </Select>
         <PrintButton />

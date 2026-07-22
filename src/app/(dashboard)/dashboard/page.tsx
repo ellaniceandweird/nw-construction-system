@@ -28,6 +28,7 @@ import {
   getMaintenanceDueThisWeek,
   getProcurementRequiringAttention,
   getBudgetOverview,
+  getUpcomingWorkNext2Weeks,
 } from "@/lib/dashboard/metrics";
 
 export default function DashboardPage() {
@@ -48,6 +49,7 @@ export default function DashboardPage() {
       behindSchedule,
       overBudget,
       pendingApprovalsCount: pendingApprovals.length,
+      upcomingWork: getUpcomingWorkNext2Weeks(),
     });
   }
 

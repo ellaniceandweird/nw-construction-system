@@ -183,6 +183,44 @@ export interface UpcomingDeadline {
   status: "overdue" | "due_soon" | "upcoming";
 }
 
+export interface UpcomingWorkItem {
+  projectId: string;
+  projectName: string;
+  activityName: string;
+  plannedStart: string;
+  plannedFinish: string;
+  percentComplete: number;
+}
+
+/**
+ * Activities either starting or still in progress within the next 14
+ * days, grouped by project — used for the Print Executive Summary's
+ * "what's coming up" snapshot.
+ */
+export function getUpcomingWorkNext2Weeks(): UpcomingWorkItem[] {
+  const twoWeeksOut = new Date(TODAY.getTime() + 14 * 24 * 60 * 60 * 1000);
+  return MOCK_ACTIVITIES.filter((a) => {
+    if (a.status === "completed" || a.status === "cancelled") return false;
+    const start = new Date(a.plannedStart);
+    const finish = new Date(a.plannedFinish);
+    // Overlaps the next 14 days if it starts before the window closes
+    // and finishes after today.
+    return start <= twoWeeksOut && finish >= TODAY;
+  })
+    .map((a) => {
+      const project = MOCK_PROJECTS.find((p) => p.id === a.projectId);
+      return {
+        projectId: a.projectId,
+        projectName: project?.projectName ?? "—",
+        activityName: a.name,
+        plannedStart: a.plannedStart,
+        plannedFinish: a.plannedFinish,
+        percentComplete: a.percentComplete,
+      };
+    })
+    .sort((a, b) => a.plannedStart.localeCompare(b.plannedStart));
+}
+
 export function getUpcomingDeadlines(limit = 6): UpcomingDeadline[] {
   const items: UpcomingDeadline[] = [];
 

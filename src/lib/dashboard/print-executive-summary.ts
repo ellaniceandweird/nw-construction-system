@@ -1,8 +1,13 @@
 import { escapeHtml } from "@/lib/estimating/print-window";
 import type { Project } from "@/types/project";
+import type { UpcomingWorkItem } from "@/lib/dashboard/metrics";
 
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function formatShortDate(d: string) {
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 interface ExecutiveSummaryInput {
@@ -13,6 +18,7 @@ interface ExecutiveSummaryInput {
   behindSchedule: Project[];
   overBudget: Project[];
   pendingApprovalsCount: number;
+  upcomingWork: UpcomingWorkItem[];
 }
 
 /**
@@ -55,6 +61,49 @@ export function printExecutiveSummary(input: ExecutiveSummaryInput) {
     ...input.behindSchedule.map((p) => projectRow(p, "Behind Schedule", "oklch(0.78 0.13 65)")),
     ...input.overBudget.map((p) => projectRow(p, "Over Budget", "oklch(0.65 0.18 25)")),
   ].join("");
+
+  const workByProject = new Map<string, { projectName: string; items: UpcomingWorkItem[] }>();
+  for (const item of input.upcomingWork) {
+    if (!workByProject.has(item.projectId)) {
+      workByProject.set(item.projectId, { projectName: item.projectName, items: [] });
+    }
+    workByProject.get(item.projectId)!.items.push(item);
+  }
+
+  const accentColors = [
+    "oklch(0.62 0.11 250)",
+    "oklch(0.72 0.12 155)",
+    "oklch(0.78 0.13 65)",
+    "oklch(0.65 0.15 320)",
+    "oklch(0.7 0.13 200)",
+  ];
+
+  const upcomingWorkCards = [...workByProject.values()]
+    .map((group, i) => {
+      const color = accentColors[i % accentColors.length];
+      const activityRows = group.items
+        .map(
+          (item) => `
+          <div style="padding:10px 0; border-top:1px solid oklch(0.94 0.01 260 / 0.7);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:12.5px; font-weight:500; color:oklch(0.24 0.02 265);">${escapeHtml(item.activityName)}</span>
+              <span style="font-size:11px; color:oklch(0.55 0.02 265); white-space:nowrap; margin-left:12px;">${formatShortDate(item.plannedStart)} – ${formatShortDate(item.plannedFinish)}</span>
+            </div>
+            <div style="height:6px; border-radius:999px; background:oklch(0.92 0.01 260);">
+              <div style="height:6px; border-radius:999px; width:${item.percentComplete}%; background:${color};"></div>
+            </div>
+          </div>`
+        )
+        .join("");
+
+      return `
+        <div style="background:oklch(0.985 0.003 247.86); border:1px solid oklch(0.9 0.01 260); border-left:4px solid ${color}; border-radius:14px; padding:16px 18px; margin-bottom:12px; break-inside:avoid;">
+          <div style="font-size:14px; font-weight:700; color:oklch(0.24 0.02 265); margin-bottom:2px;">${escapeHtml(group.projectName)}</div>
+          <div style="font-size:11px; color:oklch(0.55 0.02 265); margin-bottom:4px;">${group.items.length} ${group.items.length === 1 ? "activity" : "activities"} in the next 2 weeks</div>
+          ${activityRows}
+        </div>`;
+    })
+    .join("");
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -116,9 +165,12 @@ export function printExecutiveSummary(input: ExecutiveSummaryInput) {
         </div>
 
         <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:oklch(0.55 0.02 265); margin-bottom:10px;">Needs Your Attention</div>
-        <div style="background:oklch(0.985 0.003 247.86); border:1px solid oklch(0.9 0.01 260); border-radius:14px; overflow:hidden;">
+        <div style="background:oklch(0.985 0.003 247.86); border:1px solid oklch(0.9 0.01 260); border-radius:14px; overflow:hidden; margin-bottom:28px;">
           ${projectRows || `<div style="padding:16px; font-size:13px; color:oklch(0.55 0.02 265);">Nothing flagged — every active project is on schedule and within budget.</div>`}
         </div>
+
+        <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:oklch(0.55 0.02 265); margin-bottom:10px;">Upcoming Work — Next 2 Weeks</div>
+        ${upcomingWorkCards || `<div style="background:oklch(0.985 0.003 247.86); border:1px solid oklch(0.9 0.01 260); border-radius:14px; padding:16px; font-size:13px; color:oklch(0.55 0.02 265);">Nothing scheduled to start or continue in the next two weeks.</div>`}
       </body>
     </html>
   `);

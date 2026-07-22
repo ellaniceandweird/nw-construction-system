@@ -25,10 +25,14 @@ export function VendorsTable() {
   const vendors = useVendors();
   const [editingVendor, setEditingVendor] = React.useState<Vendor | null>(null);
   const [search, setSearch] = React.useState("");
+  const [categoryFilter, setCategoryFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<"name" | "category">("name");
 
   const suppliers = vendors.filter((v) => v.supplierType !== "subcontractor");
+  const categories = [...new Set(suppliers.map((v) => v.vendorCategory))].sort();
   const filtered = suppliers.filter((v) => {
+    const matchesCategory = categoryFilter === "all" || v.vendorCategory === categoryFilter;
+    if (!matchesCategory) return false;
     if (!search) return true;
     const haystack = `${v.vendorName} ${v.vendorCategory} ${v.primaryContact ?? ""}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
@@ -44,6 +48,13 @@ export function VendorsTable() {
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-8" placeholder="Search vendors…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-[170px]"><SelectValue placeholder="All Categories" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+          </SelectContent>
+        </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
           <SelectTrigger className="w-[160px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
           <SelectContent>

@@ -41,9 +41,16 @@ export function ForecastTable() {
     null
   );
   const [urgencyFilter, setUrgencyFilter] = React.useState("all");
+  const [projectFilter, setProjectFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<"neededby_asc" | "neededby_desc">("neededby_asc");
 
-  const filtered = allRows.filter((r) => urgencyFilter === "all" || r.urgency === urgencyFilter);
+  const projectOptions = [...new Map(allRows.map((r) => [r.projectId, r.projectName])).entries()];
+
+  const filtered = allRows.filter((r) => {
+    const matchesUrgency = urgencyFilter === "all" || r.urgency === urgencyFilter;
+    const matchesProject = projectFilter === "all" || r.projectId === projectFilter;
+    return matchesUrgency && matchesProject;
+  });
   const rows = [...filtered].sort((a, b) =>
     sortBy === "neededby_asc" ? a.neededBy.localeCompare(b.neededBy) : b.neededBy.localeCompare(a.neededBy)
   );
@@ -64,6 +71,13 @@ export function ForecastTable() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-3">
+        <Select value={projectFilter} onValueChange={setProjectFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Projects" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Projects</SelectItem>
+            {projectOptions.map(([id, name]) => (<SelectItem key={id} value={id}>{name}</SelectItem>))}
+          </SelectContent>
+        </Select>
         <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Urgency" /></SelectTrigger>
           <SelectContent>
