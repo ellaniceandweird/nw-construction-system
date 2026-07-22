@@ -1,12 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, FileText } from "lucide-react";
+import { Sparkles, FileText, ArrowUpDown } from "lucide-react";
 
 import { useForecast } from "@/hooks/use-forecast";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RfqCreateDialog } from "@/components/procurement/rfq-create-dialog";
 import type { ForecastRow } from "@/hooks/use-forecast";
 
@@ -29,9 +36,16 @@ function formatDate(d: string) {
 }
 
 export function ForecastTable() {
-  const rows = useForecast();
+  const allRows = useForecast();
   const [rfqPrefill, setRfqPrefill] = React.useState<{ projectId: string; materialList: string } | null>(
     null
+  );
+  const [urgencyFilter, setUrgencyFilter] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState<"neededby_asc" | "neededby_desc">("neededby_asc");
+
+  const filtered = allRows.filter((r) => urgencyFilter === "all" || r.urgency === urgencyFilter);
+  const rows = [...filtered].sort((a, b) =>
+    sortBy === "neededby_asc" ? a.neededBy.localeCompare(b.neededBy) : b.neededBy.localeCompare(a.neededBy)
   );
 
   return (
@@ -47,6 +61,27 @@ export function ForecastTable() {
           the RFQ — head to the RFQs tab afterward and click the mail icon to preview
           and send the actual vendor invite email.
         </p>
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Urgency" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Urgency</SelectItem>
+            <SelectItem value="overdue">Overdue</SelectItem>
+            <SelectItem value="urgent">Urgent</SelectItem>
+            <SelectItem value="upcoming">Upcoming</SelectItem>
+            <SelectItem value="planned">Planned</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[170px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="neededby_asc">Needed By (Soonest)</SelectItem>
+            <SelectItem value="neededby_desc">Needed By (Latest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{rows.length} of {allRows.length}</span>
       </div>
 
       <Card className="overflow-x-auto py-0">

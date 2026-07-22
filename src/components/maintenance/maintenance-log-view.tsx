@@ -1,9 +1,18 @@
 "use client";
 
-import { CheckCircle2, Wrench } from "lucide-react";
+import * as React from "react";
+import { CheckCircle2, Wrench, Search, ArrowUpDown } from "lucide-react";
 
 import { useMaintenanceLog } from "@/hooks/use-maintenance-log";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function formatTimestamp(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -16,7 +25,17 @@ function formatTimestamp(iso: string) {
 }
 
 export function MaintenanceLogView() {
-  const entries = useMaintenanceLog();
+  const allEntries = useMaintenanceLog();
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"newest" | "oldest">("newest");
+
+  const filtered = allEntries.filter((e) => {
+    if (!search) return true;
+    return `${e.description} ${e.propertyName ?? ""} ${e.detail}`.toLowerCase().includes(search.toLowerCase());
+  });
+  const entries = [...filtered].sort((a, b) =>
+    sortBy === "newest" ? b.timestamp.localeCompare(a.timestamp) : a.timestamp.localeCompare(b.timestamp)
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -26,12 +45,27 @@ export function MaintenanceLogView() {
         an entry appears here. Nothing is entered manually.
       </p>
 
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search log…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-40"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card>
         <CardContent className="flex flex-col gap-3">
           {entries.length === 0 && (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No completions logged yet. Mark a task complete or update an equipment&apos;s
-              Last Completed date to see it appear here.
+              {allEntries.length === 0
+                ? "No completions logged yet. Mark a task complete or update an equipment's Last Completed date to see it appear here."
+                : "No entries match your search."}
             </p>
           )}
           {entries.map((entry) => (

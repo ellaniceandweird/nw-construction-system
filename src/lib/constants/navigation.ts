@@ -94,10 +94,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: ShoppingCart,
     children: [
       { label: "Forecast", href: "/procurement?tab=forecast" },
-      { label: "Material Request", href: "/procurement?tab=mrs" },
-      { label: "RFQs", href: "/procurement?tab=rfqs" },
-      { label: "Quotes", href: "/procurement?tab=quotes" },
-      { label: "Quote Comparison", href: "/procurement?tab=comparison" },
+      { label: "Sourcing", href: "/procurement?tab=sourcing" },
       { label: "Purchase Order", href: "/procurement?tab=pos" },
       { label: "Vendors", href: "/procurement?tab=vendors" },
       { label: "Subcontractor", href: "/procurement?tab=subcontractors" },
@@ -109,8 +106,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Calculator,
     children: [
       { label: "Estimates", href: "/estimating?tab=estimates" },
-      { label: "Takeoff", href: "/estimating?tab=takeoff" },
-      { label: "Cost Codes", href: "/estimating?tab=costcodes" },
       { label: "Cost Database", href: "/estimating?tab=costdatabase" },
       { label: "Cost Tracking", href: "/estimating?tab=costtracking" },
       { label: "Change Orders", href: "/estimating?tab=changeorders" },
@@ -122,10 +117,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/financial",
     icon: Wallet,
     children: [
-      { label: "Budget", href: "/financial?tab=budget" },
       { label: "Cost Ledger", href: "/financial?tab=costledger" },
-      { label: "Invoices", href: "/financial?tab=invoices" },
-      { label: "Billing Entities", href: "/financial?tab=billingentities" },
       { label: "Financial Rollup", href: "/financial?tab=rollup" },
     ],
   },
@@ -158,5 +150,10 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/admin",
     icon: Settings,
     roles: ["system_administrator"],
+    children: [
+      { label: "Users", href: "/admin?tab=users" },
+      { label: "Permissions", href: "/admin?tab=permissions" },
+      { label: "Automation Rules", href: "/admin?tab=automation" },
+    ],
   },
 ];

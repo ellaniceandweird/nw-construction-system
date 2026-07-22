@@ -1,13 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, Search, ArrowUpDown } from "lucide-react";
 
 import { useVendors } from "@/hooks/use-vendors";
 import { toggleVendorRecommended } from "@/lib/procurement/vendor-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { VendorEditDialog } from "@/components/procurement/vendor-edit-dialog";
 import type { Vendor } from "@/types/procurement";
 
@@ -15,12 +23,36 @@ import type { Vendor } from "@/types/procurement";
 export function SubcontractorsTable() {
   const vendors = useVendors();
   const [editingVendor, setEditingVendor] = React.useState<Vendor | null>(null);
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"name" | "trade">("name");
 
   const subs = vendors.filter((v) => v.supplierType === "subcontractor");
-  const sorted = [...subs].sort((a, b) => a.vendorName.localeCompare(b.vendorName));
+  const filtered = subs.filter((v) => {
+    if (!search) return true;
+    const haystack = `${v.vendorName} ${v.trade ?? v.vendorCategory} ${v.primaryContact ?? ""}`.toLowerCase();
+    return haystack.includes(search.toLowerCase());
+  });
+  const sorted = [...filtered].sort((a, b) =>
+    sortBy === "name" ? a.vendorName.localeCompare(b.vendorName) : (a.trade ?? a.vendorCategory).localeCompare(b.trade ?? b.vendorCategory)
+  );
 
   return (
     <>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search subcontractors…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[160px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Name (A-Z)</SelectItem>
+            <SelectItem value="trade">Trade (A-Z)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{sorted.length} of {subs.length}</span>
+      </div>
+
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">
           <thead>

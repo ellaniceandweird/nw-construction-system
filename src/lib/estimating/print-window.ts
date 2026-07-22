@@ -29,6 +29,9 @@ export function openPrintWindow(title: string, bodyHtml: string) {
             color: #111827;
             padding: 32px;
             margin: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
           }
           h1 { font-size: 18px; margin: 0 0 4px; }
           h2 { font-size: 15px; margin: 20px 0 8px; }
@@ -43,6 +46,7 @@ export function openPrintWindow(title: string, bodyHtml: string) {
           .header { border-bottom: 1px solid #111827; padding-bottom: 12px; margin-bottom: 16px; }
           @media print {
             body { padding: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           }
         </style>
       </head>

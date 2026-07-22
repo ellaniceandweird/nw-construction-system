@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { DriveUploadButton } from "@/components/shared/drive-upload-button";
 import { useProperties } from "@/hooks/use-properties";
+import { getPropertyForProject } from "@/lib/properties/property-relations";
 import { createPhotos } from "@/lib/documents/photo-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
@@ -41,6 +42,12 @@ export function AddPhotosDialog({ open, onOpenChange }: Props) {
     if (value === MANUAL_ENTRY) { setProjectId(MANUAL_ENTRY); setProjectName(""); return; }
     setProjectId(value);
     setProjectName("");
+    const proj = MOCK_PROJECTS.find((p) => p.id === value);
+    const property = proj ? getPropertyForProject(proj, properties) : undefined;
+    if (property) {
+      setPropertyId(property.id);
+      setPropertyName(property.name);
+    }
   }
 
   function addOnePhoto(file: DrivePickedFile) {

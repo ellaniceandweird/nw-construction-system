@@ -1,10 +1,18 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus, ExternalLink, ChevronRight } from "lucide-react";
+import { Pencil, Plus, ExternalLink, ChevronRight, Search, ArrowUpDown } from "lucide-react";
 import { useDrawings } from "@/hooks/use-drawings";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DrawingEditDialog } from "@/components/documents/drawing-edit-dialog";
 import type { Drawing } from "@/types/documents";
 
@@ -18,11 +26,33 @@ export function DrawingsTable() {
   const [editing, setEditing] = React.useState<Drawing | null>(null);
   const [creating, setCreating] = React.useState(false);
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"number" | "date">("number");
 
-  const sorted = [...drawings].sort((a, b) => a.drawingNumber.localeCompare(b.drawingNumber));
+  const filtered = drawings.filter((d) => {
+    if (!search) return true;
+    return `${d.drawingNumber} ${d.drawingTitle}`.toLowerCase().includes(search.toLowerCase());
+  });
+  const sorted = [...filtered].sort((a, b) =>
+    sortBy === "number" ? a.drawingNumber.localeCompare(b.drawingNumber) : b.issueDate.localeCompare(a.issueDate)
+  );
 
   return (
     <>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search drawing # or title…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[170px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="number">Drawing # (A-Z)</SelectItem>
+            <SelectItem value="date">Issue Date (Newest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{sorted.length} of {drawings.length}</span>
+      </div>
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           Drawing register by property — each revision change archives the previous link,

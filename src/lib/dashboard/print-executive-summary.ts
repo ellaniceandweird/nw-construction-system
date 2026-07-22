@@ -70,8 +70,14 @@ export function printExecutiveSummary(input: ExecutiveSummaryInput) {
             background: white;
             padding: 40px;
             margin: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
           }
-          @media print { body { padding: 0; } }
+          @media print {
+            body { padding: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          }
         </style>
       </head>
       <body>

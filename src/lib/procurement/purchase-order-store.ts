@@ -45,7 +45,6 @@ export interface PurchaseOrderEditInput {
   billingEntityId: string;
   orderDate: string;
   expectedDelivery?: string;
-  buyer?: string;
   terms?: string;
   poStatus: PurchaseOrderStatus;
   tax?: number;

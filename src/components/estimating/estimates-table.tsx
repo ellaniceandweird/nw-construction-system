@@ -1,13 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Plus, ChevronRight, Upload, Sparkles, Printer } from "lucide-react";
+import { Pencil, Plus, ChevronRight, Upload, Sparkles, Printer, ArrowUpDown } from "lucide-react";
 
 import { useEstimates } from "@/hooks/use-estimates";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { EstimateEditDialog } from "@/components/estimating/estimate-edit-dialog";
 import { EstimateBudgetSheet } from "@/components/estimating/estimate-budget-sheet";
 import { ImportEstimateDialog } from "@/components/estimating/import-estimate-dialog";
@@ -43,8 +50,15 @@ export function EstimatesTable() {
   const [importing, setImporting] = React.useState(false);
   const [generatingFromDrawing, setGeneratingFromDrawing] = React.useState(false);
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState<"date_desc" | "date_asc">("date_desc");
 
-  const sorted = [...estimates].sort((a, b) => new Date(b.estimateDate).getTime() - new Date(a.estimateDate).getTime());
+  const filtered = estimates.filter((e) => statusFilter === "all" || e.estimateStatus === statusFilter);
+  const sorted = [...filtered].sort((a, b) =>
+    sortBy === "date_desc"
+      ? new Date(b.estimateDate).getTime() - new Date(a.estimateDate).getTime()
+      : new Date(a.estimateDate).getTime() - new Date(b.estimateDate).getTime()
+  );
 
   function handlePrintList() {
     openPrintWindow("Estimates", buildEstimatesListHtml(sorted, projectName));
@@ -68,6 +82,30 @@ export function EstimatesTable() {
         <Button size="sm" onClick={() => setCreating(true)}>
           <Plus className="size-3.5" /> New Estimate
         </Button>
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[170px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="internal_review">Internal Review</SelectItem>
+            <SelectItem value="owner_review">Owner Review</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="superseded">Superseded</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[160px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date_desc">Date (Newest)</SelectItem>
+            <SelectItem value="date_asc">Date (Oldest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{sorted.length} of {estimates.length}</span>
       </div>
 
       <Card className="overflow-x-auto py-0">

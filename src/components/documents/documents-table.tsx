@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus, ExternalLink, Search, Trash2 } from "lucide-react";
+import { Pencil, Plus, ExternalLink, Search, Trash2, ArrowUpDown } from "lucide-react";
 import { useDocuments } from "@/hooks/use-documents";
 import { useRowSelection } from "@/hooks/use-row-selection";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
@@ -38,6 +38,7 @@ export function DocumentsTable() {
   const [search, setSearch] = React.useState("");
   const [projectFilter, setProjectFilter] = React.useState(ALL);
   const [tagFilter, setTagFilter] = React.useState(ALL);
+  const [sortBy, setSortBy] = React.useState<"recent" | "title">("recent");
 
   const projectsWithDocs = React.useMemo(
     () => MOCK_PROJECTS.filter((p) => documents.some((d) => d.projectId === p.id)),
@@ -58,7 +59,10 @@ export function DocumentsTable() {
     }
     return true;
   });
-  const sorted = [...filtered].sort((a, b) => new Date(b.lastModifiedDate).getTime() - new Date(a.lastModifiedDate).getTime());
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "title") return a.title.localeCompare(b.title);
+    return new Date(b.lastModifiedDate).getTime() - new Date(a.lastModifiedDate).getTime();
+  });
 
   const hasActiveFilters = search || projectFilter !== ALL || tagFilter !== ALL;
   const { selected, toggle, toggleAll, clear, allSelected, count } = useRowSelection(sorted.map((d) => d.id));
@@ -107,6 +111,13 @@ export function DocumentsTable() {
           <SelectContent>
             <SelectItem value={ALL}>All Tags</SelectItem>
             {allTags.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-40"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">Most Recent</SelectItem>
+            <SelectItem value="title">Title (A-Z)</SelectItem>
           </SelectContent>
         </Select>
         {hasActiveFilters && (

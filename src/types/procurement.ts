@@ -191,7 +191,6 @@ export interface PurchaseOrder extends BaseEntity {
   shippingAddress?: string;
   orderDate: string;
   expectedDelivery?: string;
-  buyer?: string;
   poStatus: PurchaseOrderStatus;
   terms?: string;
   currency: string;

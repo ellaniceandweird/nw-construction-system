@@ -58,7 +58,6 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
   const [billingEntityId, setBillingEntityId] = React.useState("");
   const [orderDate, setOrderDate] = React.useState(() => new Date().toISOString().slice(0, 10));
   const [expectedDelivery, setExpectedDelivery] = React.useState("");
-  const [buyer, setBuyer] = React.useState("");
   const [terms, setTerms] = React.useState("");
   const [poStatus, setPoStatus] = React.useState<PurchaseOrderStatus>("approved");
   const [tax, setTax] = React.useState("");
@@ -73,7 +72,6 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
       setBillingEntityId(order.billingEntityId);
       setOrderDate(order.orderDate);
       setExpectedDelivery(order.expectedDelivery ?? "");
-      setBuyer(order.buyer ?? "");
       setTerms(order.terms ?? "");
       setPoStatus(order.poStatus);
       setTax(order.tax != null ? String(order.tax) : "");
@@ -86,7 +84,6 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
       setBillingEntityId("");
       setOrderDate(new Date().toISOString().slice(0, 10));
       setExpectedDelivery("");
-      setBuyer("");
       setTerms("");
       setPoStatus("approved");
       setTax("");
@@ -129,7 +126,6 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
       billingEntityId,
       orderDate,
       expectedDelivery: expectedDelivery || undefined,
-      buyer: buyer || undefined,
       terms: terms || undefined,
       poStatus,
       tax: tax ? parseFloat(tax) : undefined,
@@ -240,21 +236,15 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="buyer">Buyer</Label>
-              <Input id="buyer" className="mt-1.5" value={buyer} onChange={(e) => setBuyer(e.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor="terms">Terms</Label>
-              <Input
-                id="terms"
-                className="mt-1.5"
-                placeholder="e.g. Net 30"
-                value={terms}
-                onChange={(e) => setTerms(e.target.value)}
-              />
-            </div>
+          <div>
+            <Label htmlFor="terms">Terms</Label>
+            <Input
+              id="terms"
+              className="mt-1.5"
+              placeholder="e.g. Net 30"
+              value={terms}
+              onChange={(e) => setTerms(e.target.value)}
+            />
           </div>
 
           <div>

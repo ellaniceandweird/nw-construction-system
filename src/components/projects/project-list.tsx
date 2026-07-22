@@ -69,7 +69,7 @@ function statusLabel(status: ProjectCalculatedStatus) {
 export function ProjectList() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<ProjectCalculatedStatus | "all">("all");
-  const [sortBy, setSortBy] = React.useState<SortOption | "none">("none");
+  const [sortBy, setSortBy] = React.useState<SortOption | "none">("status");
 
   const filtered = MOCK_PROJECTS.filter((p) => {
     const matchesSearch = p.projectName.toLowerCase().includes(search.toLowerCase()) ||

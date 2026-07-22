@@ -76,6 +76,14 @@ export const MANUAL_ENTRY = "__manual__";
  * working today" — Ella just adjusts project/activity/hours instead of
  * re-picking the same people every morning.
  */
+/** Returns the most recent daily log strictly before the given date, if any. */
+export function getMostRecentLog(beforeDate: string): DailyLog | undefined {
+  const priorLogs = logs
+    .filter((l) => l.date < beforeDate)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  return priorLogs[0];
+}
+
 export function getMostRecentCrew(beforeDate: string): DailyTimeEntry[] {
   const priorLogs = logs
     .filter((l) => l.date < beforeDate)

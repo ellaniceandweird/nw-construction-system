@@ -1,5 +1,8 @@
 "use client";
 
+import * as React from "react";
+import { ArrowUpDown } from "lucide-react";
+
 import { useEstimates } from "@/hooks/use-estimates";
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
 import { useChangeOrders } from "@/hooks/use-change-orders";
@@ -7,6 +10,13 @@ import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { computePortfolioTotals } from "@/lib/estimating/portfolio-rollup";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -30,9 +40,15 @@ export function PortfolioRollupTable() {
   const estimates = useEstimates();
   const purchaseOrders = usePurchaseOrders();
   const changeOrders = useChangeOrders();
+  const [sortBy, setSortBy] = React.useState<"project" | "budget_desc" | "variance_asc">("project");
 
   const totals = computePortfolioTotals(estimates, purchaseOrders, changeOrders);
   const anyActuals = totals.rows.some((r) => r.hasActuals);
+  const sortedRows = [...totals.rows].sort((a, b) => {
+    if (sortBy === "budget_desc") return b.revisedBudget - a.revisedBudget;
+    if (sortBy === "variance_asc") return a.variance - b.variance;
+    return projectName(a.projectId).localeCompare(projectName(b.projectId));
+  });
 
   return (
     <>
@@ -56,6 +72,17 @@ export function PortfolioRollupTable() {
         />
       </div>
 
+      <div className="mb-3 flex items-center gap-3">
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[180px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="project">Property (A-Z)</SelectItem>
+            <SelectItem value="budget_desc">Revised Budget (Highest)</SelectItem>
+            <SelectItem value="variance_asc">Variance (Worst First)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">
           <thead>
@@ -70,7 +97,7 @@ export function PortfolioRollupTable() {
             </tr>
           </thead>
           <tbody>
-            {totals.rows.map((r) => (
+            {sortedRows.map((r) => (
               <tr key={r.estimateId} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                 <td className="px-4 py-3 font-medium text-foreground">{projectName(r.projectId)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{r.estimateNumber}</td>

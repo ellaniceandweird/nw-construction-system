@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { getPropertyForProject } from "@/lib/properties/property-relations";
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
@@ -33,6 +34,7 @@ import {
   dailyLogFormSchema,
   type DailyLogFormValues,
 } from "@/lib/validation/daily-log-schema";
+import { PreviousDayLogEditor } from "@/components/field-operations/previous-day-log-editor";
 
 function fieldError(message?: string) {
   if (!message) return null;
@@ -105,18 +107,22 @@ export function DailyLogForm() {
   React.useEffect(() => {
     if (mainProjectId && !seededRef.current) {
       seededRef.current = true;
+      const project = MOCK_PROJECTS.find((p) => p.id === mainProjectId);
+      const property = project ? getPropertyForProject(project, properties) : undefined;
+      const propertyFields = property ? { propertyId: property.id, propertyName: property.name } : {};
       const recentCrew = getMostRecentCrew(watchedDate || new Date().toISOString().slice(0, 10));
       if (recentCrew.length > 0) {
         recentCrew.forEach((entry) => {
           timeEntryFields.append({
             ...emptyTimeEntry(mainProjectId),
+            ...propertyFields,
             employeeId: entry.employeeId,
             employeeName: entry.employeeName,
             trade: entry.trade,
           });
         });
       } else {
-        timeEntryFields.append(emptyTimeEntry(mainProjectId));
+        timeEntryFields.append({ ...emptyTimeEntry(mainProjectId), ...propertyFields });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -162,6 +168,16 @@ export function DailyLogForm() {
     }
     setValue(`timeEntries.${index}.projectId`, projectId, { shouldValidate: true });
     setValue(`timeEntries.${index}.projectName`, "");
+
+    const project = MOCK_PROJECTS.find((p) => p.id === projectId);
+    const property = project ? getPropertyForProject(project, properties) : undefined;
+    if (property) {
+      setValue(`timeEntries.${index}.propertyId`, property.id);
+      setValue(`timeEntries.${index}.propertyName`, property.name);
+    } else {
+      setValue(`timeEntries.${index}.propertyId`, "");
+      setValue(`timeEntries.${index}.propertyName`, "");
+    }
   }
 
   function handleActivityChange(index: number, projectId: string, activityId: string) {
@@ -251,7 +267,14 @@ export function DailyLogForm() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => timeEntryFields.append(emptyTimeEntry(mainProjectId ?? ""))}
+            onClick={() => {
+              const project = MOCK_PROJECTS.find((p) => p.id === mainProjectId);
+              const property = project ? getPropertyForProject(project, properties) : undefined;
+              timeEntryFields.append({
+                ...emptyTimeEntry(mainProjectId ?? ""),
+                ...(property ? { propertyId: property.id, propertyName: property.name } : {}),
+              });
+            }}
           >
             <Plus /> Add Row
           </Button>
@@ -395,6 +418,8 @@ export function DailyLogForm() {
           {fieldError(errors.timeEntries?.message)}
         </CardContent>
       </Card>
+
+      <PreviousDayLogEditor currentDate={watchedDate} />
 
       <Card>
         <CardHeader>

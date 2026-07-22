@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContactEditDialog } from "@/components/contacts/contact-edit-dialog";
+import { CopyableText } from "@/components/shared/copyable-text";
 import { deleteContact, restoreContact } from "@/lib/contacts/contact-store";
 import { showUndoToast } from "@/lib/toast/toast-store";
 import type { Contact, ContactCategory } from "@/types/contacts";
@@ -44,6 +45,7 @@ export function ContactsTable() {
   const [creating, setCreating] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState<string>(ALL);
+  const [sortBy, setSortBy] = React.useState<"name" | "company">("name");
 
   const filtered = contacts.filter((c) => {
     if (categoryFilter !== ALL && c.category !== categoryFilter) return false;
@@ -53,7 +55,9 @@ export function ContactsTable() {
     }
     return true;
   });
-  const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+  const sorted = [...filtered].sort((a, b) =>
+    sortBy === "name" ? a.name.localeCompare(b.name) : (a.company ?? "").localeCompare(b.company ?? "")
+  );
   const hasActiveFilters = search || categoryFilter !== ALL;
   const { selected, toggle, toggleAll, clear, allSelected, count } = useRowSelection(sorted.map((c) => c.id));
   const [confirmingBulkDelete, setConfirmingBulkDelete] = React.useState(false);
@@ -96,6 +100,13 @@ export function ContactsTable() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Name (A-Z)</SelectItem>
+            <SelectItem value="company">Company (A-Z)</SelectItem>
+          </SelectContent>
+        </Select>
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setCategoryFilter(ALL); }}>Clear</Button>
         )}
@@ -128,7 +139,8 @@ export function ContactsTable() {
               <th className="px-4 py-3 font-medium">Company</th>
               <th className="px-4 py-3 font-medium">Category</th>
               <th className="px-4 py-3 font-medium">Role</th>
-              <th className="px-4 py-3 font-medium">Contact Info</th>
+              <th className="px-4 py-3 font-medium">Email Address</th>
+              <th className="px-4 py-3 font-medium">Contact Number</th>
               <th className="px-4 py-3 font-medium">Property</th>
               <th className="px-4 py-3 font-medium">Edit</th>
             </tr>
@@ -146,11 +158,14 @@ export function ContactsTable() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{c.role ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    <div className="flex flex-col gap-0.5">
-                      {c.email && <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1 hover:text-primary hover:underline"><Mail className="size-3" /> {c.email}</a>}
-                      {c.phone && <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 hover:text-primary hover:underline"><Phone className="size-3" /> {c.phone}</a>}
-                      {!c.email && !c.phone && "—"}
-                    </div>
+                    {c.email ? (
+                      <CopyableText value={c.email} href={`mailto:${c.email}`} icon={<Mail className="size-3" />} />
+                    ) : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {c.phone ? (
+                      <CopyableText value={c.phone} href={`tel:${c.phone}`} icon={<Phone className="size-3" />} />
+                    ) : "—"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{propName ?? "—"}</td>
                   <td className="px-4 py-3">
@@ -161,7 +176,7 @@ export function ContactsTable() {
             })}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
+                <td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">
                   {hasActiveFilters ? "No contacts match your filters." : "No contacts yet — add one above."}
                 </td>
               </tr>

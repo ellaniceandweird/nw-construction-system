@@ -1,8 +1,16 @@
 "use client";
 import * as React from "react";
-import { Sparkles, ChevronRight, Trash2, Download, Printer } from "lucide-react";
+import { Sparkles, ChevronRight, Trash2, Download, Printer, Search, ArrowUpDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useFieldWorkerInvoices } from "@/hooks/use-field-worker-invoices";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { deleteFieldWorkerInvoice } from "@/lib/field-operations/field-worker-invoice-store";
@@ -22,12 +30,28 @@ function projectName(id: string) {
 }
 
 export function FieldWorkerInvoicesTable() {
-  const invoices = useFieldWorkerInvoices();
+  const allInvoices = useFieldWorkerInvoices();
   const billingEntities = useBillingEntities();
   const [generating, setGenerating] = React.useState(false);
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"period_desc" | "period_asc" | "amount_desc" | "amount_asc">("period_desc");
 
-  const sorted = [...invoices].sort((a, b) => b.payPeriodEnd.localeCompare(a.payPeriodEnd));
+  const filtered = allInvoices.filter((inv) =>
+    !search || inv.employeeName.toLowerCase().includes(search.toLowerCase())
+  );
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case "period_asc":
+        return a.payPeriodEnd.localeCompare(b.payPeriodEnd);
+      case "amount_desc":
+        return b.totalAmount - a.totalAmount;
+      case "amount_asc":
+        return a.totalAmount - b.totalAmount;
+      default:
+        return b.payPeriodEnd.localeCompare(a.payPeriodEnd);
+    }
+  });
 
   function billingEntityName(id?: string) {
     if (!id) return "—";
@@ -108,6 +132,23 @@ export function FieldWorkerInvoicesTable() {
           <Button size="sm" variant="outline" onClick={handleExport}><Download className="size-3.5" /> Export to Excel</Button>
           <Button size="sm" onClick={() => setGenerating(true)}><Sparkles className="size-3.5" /> Generate Invoices</Button>
         </div>
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search employee…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[190px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="period_desc">Pay Period (Newest)</SelectItem>
+            <SelectItem value="period_asc">Pay Period (Oldest)</SelectItem>
+            <SelectItem value="amount_desc">Amount (Highest)</SelectItem>
+            <SelectItem value="amount_asc">Amount (Lowest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{sorted.length} of {allInvoices.length}</span>
       </div>
 
       <Card className="overflow-x-auto py-0">

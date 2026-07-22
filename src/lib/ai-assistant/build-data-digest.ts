@@ -34,7 +34,7 @@ export function buildDataDigest(
   documents: ProjectDocument[]
 ): string {
   const portfolio = computePortfolioTotals(estimates, purchaseOrders, changeOrders);
-  const financial = computeFinancialRollup(budgets, transactions, invoices);
+  const financial = computeFinancialRollup(budgets, transactions);
 
   const projectLines = MOCK_PROJECTS.map((p) => {
     const estimate = estimates.find((e) => e.projectId === p.id);
@@ -69,7 +69,6 @@ FINANCIAL TRACKING TOTALS
 Total budget (Financial module budgets): ${currency(financial.totalBudget)}
 Actual spent (Cost Ledger): ${currency(financial.totalActualSpent)}
 Remaining: ${currency(financial.totalRemaining)}
-Outstanding vendor invoices: ${currency(financial.totalOutstandingInvoices)}
 
 PROJECTS (${MOCK_PROJECTS.length})
 ${projectLines}

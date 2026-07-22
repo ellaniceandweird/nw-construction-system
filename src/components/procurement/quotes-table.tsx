@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, ArrowUpDown } from "lucide-react";
 
 import { useRFQs } from "@/hooks/use-rfqs";
 import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
@@ -10,6 +10,13 @@ import { getRequiredApprovers } from "@/lib/procurement/quote-approval";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { QuoteResponseDialog } from "@/components/procurement/quote-response-dialog";
 import type { RequestForQuotation, VendorQuoteResponse } from "@/types/procurement";
 
@@ -42,10 +49,28 @@ export function QuotesTable() {
   const rfqs = useRFQs();
   const [editing, setEditing] = React.useState<{ rfqId: string; vendorId: string } | null>(null);
   const [adding, setAdding] = React.useState(false);
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState<"date_desc" | "date_asc" | "price_desc" | "price_asc">("date_desc");
 
-  const rows = rfqs
-    .flatMap((rfq) => rfq.responses.map((resp) => ({ rfq, resp })))
-    .sort((a, b) => (b.resp.submittedDate ?? "").localeCompare(a.resp.submittedDate ?? ""));
+  const allRows = rfqs.flatMap((rfq) => rfq.responses.map((resp) => ({ rfq, resp })));
+  const filtered = allRows.filter(({ rfq, resp }) => {
+    if (statusFilter === "all") return true;
+    const isAwarded = rfq.awardedVendorId === resp.vendorId;
+    const status = isAwarded ? "awarded" : resp.quoteStatus ?? "pending_approval";
+    return status === statusFilter;
+  });
+  const rows = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case "date_asc":
+        return (a.resp.submittedDate ?? "").localeCompare(b.resp.submittedDate ?? "");
+      case "price_desc":
+        return b.resp.quotedPrice - a.resp.quotedPrice;
+      case "price_asc":
+        return a.resp.quotedPrice - b.resp.quotedPrice;
+      default:
+        return (b.resp.submittedDate ?? "").localeCompare(a.resp.submittedDate ?? "");
+    }
+  });
 
   return (
     <>
@@ -58,6 +83,28 @@ export function QuotesTable() {
         <Button size="sm" onClick={() => setAdding(true)} className="shrink-0">
           <Plus className="size-3.5" /> Add Quote
         </Button>
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="pending_approval">Pending Approval</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="awarded">Awarded</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[170px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date_desc">Received (Newest)</SelectItem>
+            <SelectItem value="date_asc">Received (Oldest)</SelectItem>
+            <SelectItem value="price_desc">Price (Highest)</SelectItem>
+            <SelectItem value="price_asc">Price (Lowest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{rows.length} of {allRows.length}</span>
       </div>
 
       <Card className="overflow-x-auto py-0">
@@ -73,6 +120,7 @@ export function QuotesTable() {
               <th className="px-4 py-3 font-medium">Lead Time</th>
               <th className="px-4 py-3 font-medium">Warranty</th>
               <th className="px-4 py-3 font-medium">Received</th>
+              <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Approval</th>
               <th className="px-4 py-3 font-medium">Edit</th>
@@ -98,6 +146,7 @@ export function QuotesTable() {
                   <td className="px-4 py-3 text-muted-foreground">{resp.leadTimeDays}d</td>
                   <td className="px-4 py-3 text-muted-foreground max-w-[10rem]">{resp.warranty ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(resp.submittedDate)}</td>
+                  <td className="px-4 py-3 text-muted-foreground max-w-[12rem] truncate" title={resp.notes}>{resp.notes ?? "—"}</td>
                   <td className="px-4 py-3">
                     <Badge className={`${STATUS_CLASS[status]} border-transparent`}>{STATUS_LABEL[status]}</Badge>
                   </td>
@@ -116,7 +165,7 @@ export function QuotesTable() {
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={12} className="px-4 py-6 text-center text-muted-foreground">
+                <td colSpan={13} className="px-4 py-6 text-center text-muted-foreground">
                   No quotes logged yet — add one from the RFQs tab, or use &quot;Add Quote&quot; above.
                 </td>
               </tr>

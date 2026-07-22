@@ -13,6 +13,7 @@ import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { DriveUploadButton } from "@/components/shared/drive-upload-button";
 import { detectFileType } from "@/lib/documents/detect-file-type";
 import { useProperties } from "@/hooks/use-properties";
+import { getPropertyForProject } from "@/lib/properties/property-relations";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import type { ProjectDocument, DocumentCategory, DocumentStatus } from "@/types/documents";
@@ -130,6 +131,12 @@ export function DocumentEditDialog({ document, open, onOpenChange }: Props) {
     }
     setProjectId(value);
     setProjectName("");
+    const proj = MOCK_PROJECTS.find((p) => p.id === value);
+    const property = proj ? getPropertyForProject(proj, properties) : undefined;
+    if (property) {
+      setPropertyId(property.id);
+      setPropertyName(property.name);
+    }
   }
 
   function handleSave() {

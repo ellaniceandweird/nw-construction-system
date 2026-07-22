@@ -1,15 +1,22 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, ArrowUpDown } from "lucide-react";
 import { useChangeOrders } from "@/hooks/use-change-orders";
 import { useEstimates } from "@/hooks/use-estimates";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ChangeOrderEditDialog } from "@/components/estimating/change-order-edit-dialog";
 import { requiresOwnerApproval, getOwnerApprovalThreshold } from "@/lib/estimating/change-order-approval";
-import type { ChangeOrder } from "@/types/change-orders";
+import type { ChangeOrder, ChangeOrderStatus } from "@/types/change-orders";
 
 const STATUS_CLASS: Record<string, string> = {
   pending: "bg-warning-soft text-warning-foreground",
@@ -33,8 +40,22 @@ export function ChangeOrdersTable() {
   const estimates = useEstimates();
   const [editing, setEditing] = React.useState<ChangeOrder | null>(null);
   const [creating, setCreating] = React.useState(false);
+  const [statusFilter, setStatusFilter] = React.useState<ChangeOrderStatus | "all">("all");
+  const [sortBy, setSortBy] = React.useState<"date_desc" | "date_asc" | "cost_desc" | "cost_asc">("date_desc");
 
-  const sorted = [...changeOrders].sort((a, b) => new Date(b.requestedDate).getTime() - new Date(a.requestedDate).getTime());
+  const filtered = changeOrders.filter((c) => statusFilter === "all" || c.changeOrderStatus === statusFilter);
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case "date_asc":
+        return new Date(a.requestedDate).getTime() - new Date(b.requestedDate).getTime();
+      case "cost_desc":
+        return b.costImpact - a.costImpact;
+      case "cost_asc":
+        return a.costImpact - b.costImpact;
+      default:
+        return new Date(b.requestedDate).getTime() - new Date(a.requestedDate).getTime();
+    }
+  });
 
   return (
     <>
@@ -47,6 +68,28 @@ export function ChangeOrdersTable() {
         <Button size="sm" onClick={() => setCreating(true)} className="shrink-0">
           <Plus className="size-3.5" /> New Change Order
         </Button>
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[170px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date_desc">Requested (Newest)</SelectItem>
+            <SelectItem value="date_asc">Requested (Oldest)</SelectItem>
+            <SelectItem value="cost_desc">Cost Impact (Highest)</SelectItem>
+            <SelectItem value="cost_asc">Cost Impact (Lowest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{sorted.length} of {changeOrders.length}</span>
       </div>
 
       <Card className="overflow-x-auto py-0">

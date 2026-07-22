@@ -1,9 +1,17 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus, Upload } from "lucide-react";
+import { Pencil, Plus, Upload, Search, ArrowUpDown } from "lucide-react";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FieldWorkerRateEditDialog } from "@/components/references/field-worker-rate-edit-dialog";
 import { ImportFieldWorkerRatesDialog } from "@/components/references/import-field-worker-rates-dialog";
 import type { FieldWorkerRate } from "@/types/references";
@@ -18,7 +26,17 @@ export function FieldWorkerRatesTable() {
   const [editing, setEditing] = React.useState<FieldWorkerRate | null>(null);
   const [creating, setCreating] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
-  const sorted = [...rates].sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"name" | "trade" | "rate_desc">("name");
+
+  const filtered = rates.filter((r) =>
+    !search || `${r.employeeName} ${r.trade}`.toLowerCase().includes(search.toLowerCase())
+  );
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "trade") return a.trade.localeCompare(b.trade);
+    if (sortBy === "rate_desc") return (b.hourlyRate ?? 0) - (a.hourlyRate ?? 0);
+    return a.employeeName.localeCompare(b.employeeName);
+  });
 
   return (
     <>
@@ -31,6 +49,21 @@ export function FieldWorkerRatesTable() {
           <Button size="sm" variant="outline" onClick={() => setImporting(true)}><Upload className="size-3.5" /> Import</Button>
           <Button size="sm" onClick={() => setCreating(true)}><Plus className="size-3.5" /> New Rate</Button>
         </div>
+      </div>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search employee or trade…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[160px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Name (A-Z)</SelectItem>
+            <SelectItem value="trade">Trade (A-Z)</SelectItem>
+            <SelectItem value="rate_desc">Rate (Highest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{sorted.length} of {rates.length}</span>
       </div>
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">

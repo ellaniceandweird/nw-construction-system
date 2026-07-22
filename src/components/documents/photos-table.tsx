@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Plus, Trash2, ImageOff } from "lucide-react";
+import { Plus, Trash2, ImageOff, Search } from "lucide-react";
 import { useFieldPhotos } from "@/hooks/use-field-photos";
 import { deletePhoto, restorePhoto } from "@/lib/documents/photo-store";
 import { showUndoToast } from "@/lib/toast/toast-store";
@@ -8,6 +8,14 @@ import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AddPhotosDialog } from "@/components/documents/add-photos-dialog";
 import type { FieldPhoto } from "@/types/field-operations";
 
@@ -34,8 +42,17 @@ function PhotoThumbnail({ photo }: { photo: FieldPhoto }) {
 }
 
 export function PhotosTable() {
-  const photos = useFieldPhotos();
+  const allPhotos = useFieldPhotos();
   const [adding, setAdding] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const [categoryFilter, setCategoryFilter] = React.useState("all");
+
+  const photos = allPhotos.filter((p) => {
+    if (categoryFilter !== "all" && p.category !== categoryFilter) return false;
+    if (search && !(p.caption ?? "").toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+  const allCategories = [...new Set(allPhotos.map((p) => p.category))];
 
   const byProject = new Map<string, FieldPhoto[]>();
   for (const p of photos) {
@@ -58,8 +75,23 @@ export function PhotosTable() {
         <Button size="sm" onClick={() => setAdding(true)} className="shrink-0"><Plus className="size-3.5" /> Add Photos</Button>
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search caption…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-[170px]"><SelectValue placeholder="All Categories" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {allCategories.map((c) => (<SelectItem key={c} value={c}>{c.replace(/_/g, " ")}</SelectItem>))}
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{photos.length} of {allPhotos.length}</span>
+      </div>
+
       {projectKeys.length === 0 && (
-        <Card className="p-6 text-center text-sm text-muted-foreground">No photos yet — add some above.</Card>
+        <Card className="p-6 text-center text-sm text-muted-foreground">No photos match your filters.</Card>
       )}
 
       <div className="flex flex-col gap-6">

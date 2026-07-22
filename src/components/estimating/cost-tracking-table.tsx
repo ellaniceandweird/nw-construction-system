@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 
 import { useEstimates } from "@/hooks/use-estimates";
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
@@ -45,11 +45,19 @@ export function CostTrackingTable() {
   const changeOrders = useChangeOrders();
   const notes = useCostTrackingNotes();
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [search, setSearch] = React.useState("");
 
-  const sorted = [...estimates].sort((a, b) => projectName(a.projectId).localeCompare(projectName(b.projectId)));
+  const filtered = search
+    ? estimates.filter((e) => projectName(e.projectId).toLowerCase().includes(search.toLowerCase()))
+    : estimates;
+  const sorted = [...filtered].sort((a, b) => projectName(a.projectId).localeCompare(projectName(b.projectId)));
 
   return (
     <>
+      <div className="mb-3 relative max-w-xs">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input className="pl-8" placeholder="Search project…" value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
       <p className="mb-3 text-xs text-muted-foreground">
         Compares each estimate&apos;s revised budget (original estimate + approved change
         orders) against real Purchase Orders already logged in Procurement. Projects with

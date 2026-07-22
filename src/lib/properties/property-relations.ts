@@ -61,6 +61,16 @@ export function getPropertyForBillingEntity(billingEntityId: string | undefined,
  * Worker Invoices from the project alone, since a property's billing
  * entity is the closest thing to a canonical "who gets billed" answer.
  */
+/**
+ * Given a construction Project, finds its matching Property directly —
+ * used to auto-populate the Property field the moment a Project is
+ * picked, across Daily Logs, Documents, Drawings, and Photos, so nobody
+ * has to pick both by hand.
+ */
+export function getPropertyForProject(project: Project, properties: Property[]): Property | undefined {
+  return properties.find((property) => getRelatedProjects(property, [project]).length > 0);
+}
+
 export function getBillingEntityIdForProject(project: Project, properties: Property[]): string | undefined {
   for (const property of properties) {
     if (getRelatedProjects(property, [project]).length > 0 && property.billingEntityId) {

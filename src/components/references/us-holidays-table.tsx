@@ -1,9 +1,16 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus, Upload } from "lucide-react";
+import { Pencil, Plus, Upload, ArrowUpDown } from "lucide-react";
 import { useUSHolidays } from "@/hooks/use-us-holidays";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { USHolidayEditDialog } from "@/components/references/us-holiday-edit-dialog";
 import { ImportHolidaysDialog } from "@/components/references/import-holidays-dialog";
 import type { USHoliday } from "@/types/references";
@@ -17,7 +24,8 @@ export function USHolidaysTable() {
   const [editing, setEditing] = React.useState<USHoliday | null>(null);
   const [creating, setCreating] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
-  const sorted = [...holidays].sort((a, b) => a.date.localeCompare(b.date));
+  const [sortBy, setSortBy] = React.useState<"date" | "name">("date");
+  const sorted = [...holidays].sort((a, b) => (sortBy === "date" ? a.date.localeCompare(b.date) : a.name.localeCompare(b.name)));
 
   return (
     <>
@@ -29,6 +37,15 @@ export function USHolidaysTable() {
           <Button size="sm" variant="outline" onClick={() => setImporting(true)}><Upload className="size-3.5" /> Import</Button>
           <Button size="sm" onClick={() => setCreating(true)}><Plus className="size-3.5" /> New Holiday</Button>
         </div>
+      </div>
+      <div className="mb-3 flex items-center gap-3">
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[150px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date">Date</SelectItem>
+            <SelectItem value="name">Name (A-Z)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">

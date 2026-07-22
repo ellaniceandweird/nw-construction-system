@@ -1,9 +1,17 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Search, ArrowUpDown } from "lucide-react";
 import { useCostDatabase } from "@/hooks/use-cost-database";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CostDatabaseEditDialog } from "@/components/estimating/cost-database-edit-dialog";
 import type { CostDatabaseItem } from "@/types/estimating";
 
@@ -18,7 +26,18 @@ export function CostDatabaseTable() {
   const rates = useCostDatabase();
   const [editing, setEditing] = React.useState<CostDatabaseItem | null>(null);
   const [creating, setCreating] = React.useState(false);
-  const sorted = [...rates].sort((a, b) => a.costCode.localeCompare(b.costCode));
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"code" | "total_desc" | "total_asc">("code");
+
+  const filtered = rates.filter((r) => {
+    if (!search) return true;
+    return `${r.costCode} ${r.description}`.toLowerCase().includes(search.toLowerCase());
+  });
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "total_desc") return totalPerUnit(b) - totalPerUnit(a);
+    if (sortBy === "total_asc") return totalPerUnit(a) - totalPerUnit(b);
+    return a.costCode.localeCompare(b.costCode);
+  });
 
   return (
     <>
@@ -30,6 +49,21 @@ export function CostDatabaseTable() {
         <Button size="sm" onClick={() => setCreating(true)} className="shrink-0">
           <Plus className="size-3.5" /> New Rate
         </Button>
+      </div>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search cost code or description…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[170px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="code">Cost Code (A-Z)</SelectItem>
+            <SelectItem value="total_desc">Total/Unit (Highest)</SelectItem>
+            <SelectItem value="total_asc">Total/Unit (Lowest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{sorted.length} of {rates.length}</span>
       </div>
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">
