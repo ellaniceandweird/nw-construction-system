@@ -129,8 +129,12 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
 
   function handleDelete() {
     if (!existingProject) return;
-    deleteProject(existingProject.id);
+    const id = existingProject.id;
+    // Navigate away first, then delete — otherwise this page notices the
+    // project vanish from underneath it and shows "not found" before the
+    // redirect finishes.
     router.push("/projects");
+    setTimeout(() => deleteProject(id), 300);
   }
 
   return (
