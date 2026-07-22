@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Trophy } from "lucide-react";
+import { Trophy, ArrowUpDown } from "lucide-react";
 
 import { useRFQs } from "@/hooks/use-rfqs";
 import { awardRFQ } from "@/lib/procurement/rfq-store";
@@ -31,6 +31,7 @@ export function QuoteComparison() {
   const rfqs = useRFQs();
   const withQuotes = rfqs.filter((r) => r.responses.length > 0);
   const [selectedId, setSelectedId] = React.useState<string>(withQuotes[0]?.id ?? "");
+  const [sortBy, setSortBy] = React.useState<"score_desc" | "price_asc" | "lead_asc">("score_desc");
 
   React.useEffect(() => {
     if (!selectedId && withQuotes.length > 0) setSelectedId(withQuotes[0].id);
@@ -47,7 +48,11 @@ export function QuoteComparison() {
     );
   }
 
-  const responses = rfq?.responses ?? [];
+  const responses = [...(rfq?.responses ?? [])].sort((a, b) => {
+    if (sortBy === "price_asc") return a.quotedPrice - b.quotedPrice;
+    if (sortBy === "lead_asc") return a.leadTimeDays - b.leadTimeDays;
+    return (b.overallScore ?? 0) - (a.overallScore ?? 0);
+  });
   const lowestPrice = responses.length ? Math.min(...responses.map((r) => r.quotedPrice)) : undefined;
   const shortestLead = responses.length ? Math.min(...responses.map((r) => r.leadTimeDays)) : undefined;
   const bestScore = responses.length
@@ -73,6 +78,16 @@ export function QuoteComparison() {
           <Badge className="bg-success-soft text-success border-transparent">
             Awarded to {vendorName(rfq.awardedVendorId)}
           </Badge>
+        )}
+        {responses.length > 1 && (
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+            <SelectTrigger className="w-[170px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="score_desc">Best Score First</SelectItem>
+              <SelectItem value="price_asc">Lowest Price First</SelectItem>
+              <SelectItem value="lead_asc">Fastest Lead Time First</SelectItem>
+            </SelectContent>
+          </Select>
         )}
       </div>
 

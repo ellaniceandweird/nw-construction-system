@@ -1,6 +1,8 @@
 "use client";
 import * as React from "react";
+import { Search, ArrowUpDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ROLES, ROLE_LABELS, type Role } from "@/types/roles";
@@ -25,6 +27,17 @@ function formatDate(d: string) {
 export function UsersTable({ profiles }: { profiles: Profile[] }) {
   const [pendingId, setPendingId] = React.useState<string | null>(null);
   const [rows, setRows] = React.useState(profiles);
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"name" | "recent">("name");
+
+  const filtered = rows.filter((p) =>
+    !search || `${p.full_name ?? ""} ${p.email ?? ""}`.toLowerCase().includes(search.toLowerCase())
+  );
+  const sorted = [...filtered].sort((a, b) =>
+    sortBy === "name"
+      ? (a.full_name ?? a.email ?? "").localeCompare(b.full_name ?? b.email ?? "")
+      : b.created_at.localeCompare(a.created_at)
+  );
 
   async function handleRoleChange(userId: string, role: Role) {
     setPendingId(userId);
@@ -44,6 +57,20 @@ export function UsersTable({ profiles }: { profiles: Profile[] }) {
         nothing to add manually. Change someone&apos;s role and it takes effect
         immediately.
       </p>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search name or email…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-40"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Name (A-Z)</SelectItem>
+            <SelectItem value="recent">Newest Member</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{sorted.length} of {rows.length}</span>
+      </div>
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">
           <thead>
@@ -55,7 +82,7 @@ export function UsersTable({ profiles }: { profiles: Profile[] }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((p) => (
+            {sorted.map((p) => (
               <tr key={p.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2.5">
@@ -82,7 +109,7 @@ export function UsersTable({ profiles }: { profiles: Profile[] }) {
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(p.created_at)}</td>
               </tr>
             ))}
-            {rows.length === 0 && (
+            {sorted.length === 0 && (
               <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">No one has signed in yet.</td></tr>
             )}
           </tbody>

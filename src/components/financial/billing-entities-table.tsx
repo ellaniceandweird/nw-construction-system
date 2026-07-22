@@ -1,18 +1,35 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus, Upload } from "lucide-react";
+import { Pencil, Plus, Upload, Search, ArrowUpDown } from "lucide-react";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { BillingEntityEditDialog } from "@/components/financial/billing-entity-edit-dialog";
 import { ImportBillingEntitiesDialog } from "@/components/financial/import-billing-entities-dialog";
 import type { BillingEntity } from "@/types/financial";
 
 export function BillingEntitiesTable() {
-  const entities = useBillingEntities();
+  const allEntities = useBillingEntities();
   const [editing, setEditing] = React.useState<BillingEntity | null>(null);
   const [creating, setCreating] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<"name" | "legal">("name");
+
+  const filtered = allEntities.filter((e) =>
+    !search || `${e.companyName} ${e.legalName ?? ""}`.toLowerCase().includes(search.toLowerCase())
+  );
+  const entities = [...filtered].sort((a, b) =>
+    sortBy === "name" ? a.companyName.localeCompare(b.companyName) : (a.legalName ?? "").localeCompare(b.legalName ?? "")
+  );
 
   return (
     <>
@@ -25,6 +42,20 @@ export function BillingEntitiesTable() {
           <Button size="sm" variant="outline" onClick={() => setImporting(true)}><Upload className="size-3.5" /> Import</Button>
           <Button size="sm" onClick={() => setCreating(true)}><Plus className="size-3.5" /> New Entity</Button>
         </div>
+      </div>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[12rem]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search company or legal name…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-[160px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Company (A-Z)</SelectItem>
+            <SelectItem value="legal">Legal Name (A-Z)</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{entities.length} of {allEntities.length}</span>
       </div>
       <Card className="overflow-x-auto py-0">
         <table className="w-full text-sm">
