@@ -20,6 +20,9 @@ import { UpcomingDeadlinesWidget } from "@/components/dashboard/widgets/upcoming
 import { NotesFromManagementWidget } from "@/components/dashboard/widgets/notes-from-management-widget";
 import { StatusLegend } from "@/components/dashboard/widgets/status-legend";
 import { printExecutiveSummary } from "@/lib/dashboard/print-executive-summary";
+import { useProjects } from "@/hooks/use-projects";
+import { useActivities } from "@/hooks/use-activities";
+import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import {
   getProjectsBehindSchedule,
   getProjectsOverBudget,
@@ -32,15 +35,19 @@ import {
 } from "@/lib/dashboard/metrics";
 
 export default function DashboardPage() {
-  const behindSchedule = getProjectsBehindSchedule();
-  const overBudget = getProjectsOverBudget();
-  const pendingApprovals = getPendingApprovals();
-  const overdueMaintenance = getOverdueMaintenance();
-  const dueThisWeek = getMaintenanceDueThisWeek();
-  const procurementAttention = getProcurementRequiringAttention();
+  const projects = useProjects();
+  const activities = useActivities();
+  const maintenanceTasks = useMaintenanceTasks();
+
+  const behindSchedule = getProjectsBehindSchedule(projects);
+  const overBudget = getProjectsOverBudget(projects);
+  const pendingApprovals = getPendingApprovals(maintenanceTasks);
+  const overdueMaintenance = getOverdueMaintenance(maintenanceTasks);
+  const dueThisWeek = getMaintenanceDueThisWeek(maintenanceTasks);
+  const procurementAttention = getProcurementRequiringAttention(activities);
 
   function handlePrintExecutiveSummary() {
-    const { totalBudget, actualCost, remaining, percentUsed } = getBudgetOverview();
+    const { totalBudget, actualCost, remaining, percentUsed } = getBudgetOverview(projects);
     printExecutiveSummary({
       totalBudget,
       actualCost,
@@ -49,7 +56,7 @@ export default function DashboardPage() {
       behindSchedule,
       overBudget,
       pendingApprovalsCount: pendingApprovals.length,
-      upcomingWork: getUpcomingWorkNext2Weeks(),
+      upcomingWork: getUpcomingWorkNext2Weeks(activities, projects),
     });
   }
 

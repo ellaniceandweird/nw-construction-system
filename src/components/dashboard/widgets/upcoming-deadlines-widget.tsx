@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { getUpcomingDeadlines } from "@/lib/dashboard/metrics";
+import { useActivities } from "@/hooks/use-activities";
+import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
+import { useProjects } from "@/hooks/use-projects";
 
 function formatDate(d: Date) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -33,7 +36,10 @@ function deadlineHref(type: "Activity" | "Maintenance", id: string): string {
 }
 
 export function UpcomingDeadlinesWidget() {
-  const deadlines = getUpcomingDeadlines(6);
+  const activities = useActivities();
+  const maintenanceTasks = useMaintenanceTasks();
+  const projects = useProjects();
+  const deadlines = getUpcomingDeadlines(activities, maintenanceTasks, projects, 6);
 
   return (
     <Card className="lg:col-span-2">

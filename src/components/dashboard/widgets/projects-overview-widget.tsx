@@ -10,7 +10,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { getProjectHealthBreakdown } from "@/lib/dashboard/metrics";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 
 const COLORS: Record<string, string> = {
   "On Track": "var(--color-success)",
@@ -20,8 +20,9 @@ const COLORS: Record<string, string> = {
 };
 
 export function ProjectsOverviewWidget() {
-  const breakdown = getProjectHealthBreakdown();
-  const total = MOCK_PROJECTS.length;
+  const projects = useProjects();
+  const breakdown = getProjectHealthBreakdown(projects);
+  const total = projects.length;
 
   return (
     <Card>

@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { ClipboardList, Wrench, FolderKanban } from "lucide-react";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { getRecentActivityFeed } from "@/lib/dashboard/metrics";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
+import { useProjects } from "@/hooks/use-projects";
 import { cn } from "@/lib/utils";
 
 const ICONS = { log: ClipboardList, maintenance: Wrench, project: FolderKanban };
@@ -21,7 +26,10 @@ function timeAgo(date: Date, now: Date) {
 }
 
 export function RecentActivityWidget() {
-  const items = getRecentActivityFeed(6);
+  const dailyLogs = useDailyLogs();
+  const maintenanceTasks = useMaintenanceTasks();
+  const projects = useProjects();
+  const items = getRecentActivityFeed(dailyLogs, maintenanceTasks, projects, 6);
   const now = new Date("2026-07-10");
 
   return (

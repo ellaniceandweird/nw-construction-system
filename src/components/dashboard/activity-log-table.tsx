@@ -11,6 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getRecentActivityFeed } from "@/lib/dashboard/metrics";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
+import { useProjects } from "@/hooks/use-projects";
 import { cn } from "@/lib/utils";
 
 const ICONS = { log: ClipboardList, maintenance: Wrench, project: FolderKanban };
@@ -25,7 +28,10 @@ function formatDate(d: Date) {
 }
 
 export function ActivityLogTable() {
-  const allItems = getRecentActivityFeed(200);
+  const dailyLogs = useDailyLogs();
+  const maintenanceTasks = useMaintenanceTasks();
+  const projects = useProjects();
+  const allItems = getRecentActivityFeed(dailyLogs, maintenanceTasks, projects, 200);
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<"newest" | "oldest">("newest");

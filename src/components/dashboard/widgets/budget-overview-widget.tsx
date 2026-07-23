@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useProjects } from "@/hooks/use-projects";
 import { getBudgetOverview } from "@/lib/dashboard/metrics";
 
 function formatCurrency(n: number) {
@@ -13,7 +16,8 @@ function formatCurrency(n: number) {
 }
 
 export function BudgetOverviewWidget() {
-  const { totalBudget, actualCost, remaining, percentUsed } = getBudgetOverview();
+  const projects = useProjects();
+  const { totalBudget, actualCost, remaining, percentUsed } = getBudgetOverview(projects);
 
   return (
     <Card>

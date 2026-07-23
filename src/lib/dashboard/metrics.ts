@@ -1,15 +1,17 @@
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { MOCK_ACTIVITIES } from "@/lib/data/mock/activities";
-import { MOCK_MAINTENANCE_TASKS } from "@/lib/data/mock/maintenance-tasks";
-import { MOCK_DAILY_LOGS } from "@/lib/data/mock/daily-logs";
+import type { Project } from "@/types/project";
+import type { Activity } from "@/types/scheduling";
+import type { MaintenanceTask } from "@/types/maintenance";
+import type { DailyLog } from "@/types/field-operations";
 
 /**
- * All dashboard KPIs are computed here from the real mock data arrays —
- * nothing on the Dashboard page is a hardcoded number. Where the source
- * workbook doesn't yet contain a directly-matching field (e.g. there's no
- * real Purchase Order data yet — that arrives with the Procurement module),
- * the calculation is a clearly-commented, defensible proxy built from real
- * Activity/Maintenance records rather than an invented figure.
+ * All dashboard KPIs are computed here from live data passed in by the
+ * caller (via useProjects/useActivities/useMaintenanceTasks/useDailyLogs)
+ * rather than static mock arrays, so the Dashboard reflects real,
+ * currently-synced data. Where the source workbook doesn't yet contain a
+ * directly-matching field (e.g. there's no real Purchase Order data yet
+ * — that arrives with the Procurement module), the calculation is a
+ * clearly-commented, defensible proxy built from real Activity/
+ * Maintenance records rather than an invented figure.
  */
 
 const TODAY = new Date("2026-07-10");
@@ -19,15 +21,15 @@ function daysBetween(a: Date, b: Date) {
   return (a.getTime() - b.getTime()) / (24 * 60 * 60 * 1000);
 }
 
-export function getProjectsBehindSchedule() {
-  return MOCK_PROJECTS.filter((p) => {
+export function getProjectsBehindSchedule(projects: Project[]) {
+  return projects.filter((p) => {
     if (p.completionPercent >= 100) return false;
     return new Date(p.plannedCompletionDate) < TODAY;
   });
 }
 
-export function getProjectsOverBudget() {
-  return MOCK_PROJECTS.filter(
+export function getProjectsOverBudget(projects: Project[]) {
+  return projects.filter(
     (p) =>
       typeof p.actualCostToDate === "number" &&
       p.actualCostToDate > p.approvedBudget &&
@@ -36,19 +38,19 @@ export function getProjectsOverBudget() {
 }
 
 /** Proxy: maintenance tasks logged but not yet started = awaiting action. */
-export function getPendingApprovals() {
-  return MOCK_MAINTENANCE_TASKS.filter((t) => t.taskStatus === "not_started");
+export function getPendingApprovals(maintenanceTasks: MaintenanceTask[]) {
+  return maintenanceTasks.filter((t) => t.taskStatus === "not_started");
 }
 
-export function getOverdueMaintenance() {
-  return MOCK_MAINTENANCE_TASKS.filter((t) => {
+export function getOverdueMaintenance(maintenanceTasks: MaintenanceTask[]) {
+  return maintenanceTasks.filter((t) => {
     if (t.taskStatus === "complete" || !t.plannedCompletionDate) return false;
     return new Date(t.plannedCompletionDate) < TODAY;
   });
 }
 
-export function getMaintenanceDueThisWeek() {
-  return MOCK_MAINTENANCE_TASKS.filter((t) => {
+export function getMaintenanceDueThisWeek(maintenanceTasks: MaintenanceTask[]) {
+  return maintenanceTasks.filter((t) => {
     if (t.taskStatus === "complete" || !t.plannedCompletionDate) return false;
     const due = new Date(t.plannedCompletionDate);
     const diff = due.getTime() - TODAY.getTime();
@@ -63,8 +65,8 @@ export function getMaintenanceDueThisWeek() {
  * materials/equipment and are currently delayed or blocked — a real,
  * defensible signal of procurement risk from data we actually have.
  */
-export function getProcurementRequiringAttention() {
-  return MOCK_ACTIVITIES.filter(
+export function getProcurementRequiringAttention(activities: Activity[]) {
+  return activities.filter(
     (a) =>
       (a.status === "delayed" || a.status === "blocked") &&
       ((a.requiredMaterials?.length ?? 0) > 0 ||
@@ -77,13 +79,13 @@ export interface ProjectHealthBucket {
   count: number;
 }
 
-export function getProjectHealthBreakdown(): ProjectHealthBucket[] {
+export function getProjectHealthBreakdown(projects: Project[]): ProjectHealthBucket[] {
   let onTrack = 0,
     atRisk = 0,
     behind = 0,
     completed = 0;
 
-  for (const p of MOCK_PROJECTS) {
+  for (const p of projects) {
     if (p.calculatedStatus === "closed") completed++;
     else if (p.calculatedStatus === "on_hold" || p.healthScore < 50) behind++;
     else if (p.healthScore < 75) atRisk++;
@@ -98,9 +100,9 @@ export function getProjectHealthBreakdown(): ProjectHealthBucket[] {
   ];
 }
 
-export function getBudgetOverview() {
-  const totalBudget = MOCK_PROJECTS.reduce((s, p) => s + (p.approvedBudget || 0), 0);
-  const actualCost = MOCK_PROJECTS.reduce(
+export function getBudgetOverview(projects: Project[]) {
+  const totalBudget = projects.reduce((s, p) => s + (p.approvedBudget || 0), 0);
+  const actualCost = projects.reduce(
     (s, p) => s + (p.actualCostToDate || 0),
     0
   );
@@ -113,14 +115,14 @@ export interface ScheduleBucket {
   count: number;
 }
 
-export function getScheduleOverview(): ScheduleBucket[] {
+export function getScheduleOverview(activities: Activity[]): ScheduleBucket[] {
   let onSchedule = 0,
     atRisk = 0,
     behind = 0,
     notStarted = 0,
     completed = 0;
 
-  for (const a of MOCK_ACTIVITIES) {
+  for (const a of activities) {
     if (a.status === "completed") completed++;
     else if (a.status === "delayed" || a.status === "blocked") behind++;
     else if (a.status === "not_started") notStarted++;
@@ -145,11 +147,16 @@ export interface ActivityFeedItem {
   date: Date;
 }
 
-export function getRecentActivityFeed(limit = 6): ActivityFeedItem[] {
+export function getRecentActivityFeed(
+  dailyLogs: DailyLog[],
+  maintenanceTasks: MaintenanceTask[],
+  projects: Project[],
+  limit = 6
+): ActivityFeedItem[] {
   const items: ActivityFeedItem[] = [];
 
-  for (const log of MOCK_DAILY_LOGS) {
-    const project = MOCK_PROJECTS.find((p) => p.id === log.projectId);
+  for (const log of dailyLogs) {
+    const project = projects.find((p) => p.id === log.projectId);
     items.push({
       id: log.id,
       icon: "log",
@@ -159,7 +166,7 @@ export function getRecentActivityFeed(limit = 6): ActivityFeedItem[] {
     });
   }
 
-  for (const t of MOCK_MAINTENANCE_TASKS) {
+  for (const t of maintenanceTasks) {
     if (t.taskStatus === "complete" && t.dateCompleted) {
       items.push({
         id: `${t.id}-complete`,
@@ -197,9 +204,9 @@ export interface UpcomingWorkItem {
  * days, grouped by project — used for the Print Executive Summary's
  * "what's coming up" snapshot.
  */
-export function getUpcomingWorkNext2Weeks(): UpcomingWorkItem[] {
+export function getUpcomingWorkNext2Weeks(activities: Activity[], projects: Project[]): UpcomingWorkItem[] {
   const twoWeeksOut = new Date(TODAY.getTime() + 14 * 24 * 60 * 60 * 1000);
-  return MOCK_ACTIVITIES.filter((a) => {
+  return activities.filter((a) => {
     if (a.status === "completed" || a.status === "cancelled") return false;
     const start = new Date(a.plannedStart);
     const finish = new Date(a.plannedFinish);
@@ -208,7 +215,7 @@ export function getUpcomingWorkNext2Weeks(): UpcomingWorkItem[] {
     return start <= twoWeeksOut && finish >= TODAY;
   })
     .map((a) => {
-      const project = MOCK_PROJECTS.find((p) => p.id === a.projectId);
+      const project = projects.find((p) => p.id === a.projectId);
       return {
         projectId: a.projectId,
         projectName: project?.projectName ?? "—",
@@ -221,12 +228,17 @@ export function getUpcomingWorkNext2Weeks(): UpcomingWorkItem[] {
     .sort((a, b) => a.plannedStart.localeCompare(b.plannedStart));
 }
 
-export function getUpcomingDeadlines(limit = 6): UpcomingDeadline[] {
+export function getUpcomingDeadlines(
+  activities: Activity[],
+  maintenanceTasks: MaintenanceTask[],
+  projects: Project[],
+  limit = 6
+): UpcomingDeadline[] {
   const items: UpcomingDeadline[] = [];
 
-  for (const a of MOCK_ACTIVITIES) {
+  for (const a of activities) {
     if (a.status === "completed") continue;
-    const project = MOCK_PROJECTS.find((p) => p.id === a.projectId);
+    const project = projects.find((p) => p.id === a.projectId);
     const due = new Date(a.plannedFinish);
     const diffDays = daysBetween(due, TODAY); // negative = due date already passed
     items.push({
@@ -239,7 +251,7 @@ export function getUpcomingDeadlines(limit = 6): UpcomingDeadline[] {
     });
   }
 
-  for (const t of MOCK_MAINTENANCE_TASKS) {
+  for (const t of maintenanceTasks) {
     if (t.taskStatus === "complete" || !t.plannedCompletionDate) continue;
     const due = new Date(t.plannedCompletionDate);
     const diffDays = daysBetween(due, TODAY); // negative = due date already passed
