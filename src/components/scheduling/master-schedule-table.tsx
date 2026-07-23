@@ -267,18 +267,25 @@ export function MasterScheduleTable() {
       <SchedulePrintTable
         title="Master Schedule — All Activities"
         extraLabel="Duration"
-        rows={activities.map((a) => {
-          const project = projects.find((p) => p.id === a.projectId);
-          return {
-            key: a.id,
-            project: project?.projectName ?? "—",
-            activity: a.name,
-            start: formatDate(a.plannedStart),
-            finish: formatDate(a.plannedFinish),
-            extra: `${a.originalDurationDays}d`,
-            status: a.status.replace("_", " "),
-          };
-        })}
+        groups={projects
+          .map((project) => {
+            const projectActivities = activities
+              .filter((a) => a.projectId === project.id)
+              .sort((a, b) => new Date(a.plannedStart).getTime() - new Date(b.plannedStart).getTime());
+            return {
+              projectId: project.id,
+              projectName: project.projectName,
+              rows: projectActivities.map((a) => ({
+                key: a.id,
+                activity: a.name,
+                start: formatDate(a.plannedStart),
+                finish: formatDate(a.plannedFinish),
+                extra: `${a.originalDurationDays}d`,
+                status: a.status.replace("_", " "),
+                isSubActivity: !!a.parentActivityId,
+              })),
+            };
+          })}
       />
 
       <ActivityFormDialog

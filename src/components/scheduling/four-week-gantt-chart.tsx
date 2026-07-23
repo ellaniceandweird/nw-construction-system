@@ -3,7 +3,7 @@
 import { useActivities } from "@/hooks/use-activities";
 import { useProjects } from "@/hooks/use-projects";
 import { generateLookahead4 } from "@/lib/scheduling/generate";
-import { SchedulePrintTable } from "@/components/scheduling/print/schedule-print-table";
+import { PrintGanttChart } from "@/components/scheduling/print/print-gantt-chart";
 import { cn } from "@/lib/utils";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -119,22 +119,38 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
       </div>
     </div>
 
-    <SchedulePrintTable
+    <PrintGanttChart
       title="4-Week Lookahead"
-      extraLabel="Progress"
-      rows={items.map((item) => {
-        const activity = activities.find((a) => a.id === item.activityId);
-        const project = projects.find((p) => p.id === activity?.projectId);
-        return {
-          key: item.activityId,
-          project: project?.projectName ?? "—",
-          activity: item.description,
-          start: formatShort(parseDate(item.plannedStart)),
-          finish: formatShort(parseDate(item.plannedFinish)),
-          extra: `${activity?.percentComplete ?? 0}%`,
-          status: activity?.status.replace("_", " ") ?? "",
-        };
-      })}
+      weekMarkers={weekMarkers}
+      groups={projects
+        .filter((p) => items.some((item) => activities.find((a) => a.id === item.activityId)?.projectId === p.id))
+        .map((project) => {
+          const projectItems = items.filter(
+            (item) => activities.find((a) => a.id === item.activityId)?.projectId === project.id
+          );
+          return {
+            projectId: project.id,
+            projectName: project.projectName,
+            items: projectItems.map((item) => {
+              const activity = activities.find((a) => a.id === item.activityId);
+              const start = parseDate(item.plannedStart);
+              const end = parseDate(item.plannedFinish);
+              const clampedStart = start < windowStart ? windowStart : start;
+              const clampedEnd = end > windowEnd ? windowEnd : end;
+              const leftPercent = ((clampedStart.getTime() - windowStart.getTime()) / DAY_MS / WINDOW_DAYS) * 100;
+              const widthPercent = ((clampedEnd.getTime() - clampedStart.getTime()) / DAY_MS / WINDOW_DAYS) * 100;
+              return {
+                key: item.activityId,
+                label: item.description,
+                sublabel: `${formatShort(start)} – ${formatShort(end)} (${activity?.percentComplete ?? 0}%)`,
+                leftPercent,
+                widthPercent,
+                colorClass: BAR_COLOR[activity?.status ?? "not_started"],
+                isSubActivity: !!activity?.parentActivityId,
+              };
+            }),
+          };
+        })}
     />
     </>
   );

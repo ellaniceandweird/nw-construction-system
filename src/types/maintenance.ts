@@ -87,3 +87,27 @@ export interface MaintenanceWorkLogEntry extends BaseEntity {
   workPerformed: string;
   notes?: string;
 }
+
+/** Paint colors used at each property/room, so a touch-up always matches exactly. */
+export interface PaintLogEntry extends BaseEntity {
+  propertyId?: string;
+  propertyName: string;
+  location: string; // e.g. "Kitchen", "Exterior Trim", "Master Bedroom"
+  brand?: string; // e.g. "Benjamin Moore"
+  colorName?: string; // e.g. "Simply White"
+  colorCode?: string; // e.g. "OC-117"
+  sheen?: string; // e.g. "Eggshell", "Semi-Gloss"
+  dateApplied?: string;
+  notes?: string;
+}
+
+/** Key/lock codes per property, so a lost key or new hire's access can be sorted quickly. */
+export interface KeyCodeEntry extends BaseEntity {
+  propertyId?: string;
+  propertyName: string;
+  location: string; // e.g. "Front Door", "Back Gate", "Mailbox"
+  keyType?: string; // e.g. "Physical Key", "Keypad Code", "Fob"
+  keyCode?: string;
+  heldBy?: string; // who currently has a copy, if relevant
+  notes?: string;
+}

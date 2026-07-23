@@ -10,6 +10,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MaintenanceTasksTable } from "@/components/maintenance/maintenance-tasks-table";
 import { EquipmentMaintenanceTable } from "@/components/maintenance/equipment-maintenance-table";
 import { MaintenanceLogView } from "@/components/maintenance/maintenance-log-view";
+import { PaintLogTable } from "@/components/maintenance/paint-log-table";
+import { KeyCodesTable } from "@/components/maintenance/key-codes-table";
+import { MaintenanceCalendarView } from "@/components/maintenance/maintenance-calendar-view";
 import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-update-dialog";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { generateVinnieDailyReminderText } from "@/lib/maintenance/vinnie-daily-reminder";
@@ -21,7 +24,7 @@ export function MaintenancePageClient() {
   const tasks = useMaintenanceTasks();
   const [reminderOpen, setReminderOpen] = React.useState(false);
 
-  const validTabs = ["general", "recurring", "log"];
+  const validTabs = ["general", "recurring", "paint", "keys", "calendar", "log"];
   const tabParam = searchParams.get("tab");
   const activeTab = validTabs.includes(tabParam ?? "") ? tabParam! : "general";
 
@@ -47,6 +50,9 @@ export function MaintenancePageClient() {
         <TabsList>
           <TabsTrigger value="general">General Maintenance</TabsTrigger>
           <TabsTrigger value="recurring">Recurring Maintenance</TabsTrigger>
+          <TabsTrigger value="paint">Paint Log</TabsTrigger>
+          <TabsTrigger value="keys">Key Codes</TabsTrigger>
+          <TabsTrigger value="calendar">Maintenance Calendar</TabsTrigger>
           <TabsTrigger value="log">Maintenance Log</TabsTrigger>
         </TabsList>
         <TabsContent value="general">
@@ -54,6 +60,15 @@ export function MaintenancePageClient() {
         </TabsContent>
         <TabsContent value="recurring">
           <EquipmentMaintenanceTable />
+        </TabsContent>
+        <TabsContent value="paint">
+          <PaintLogTable />
+        </TabsContent>
+        <TabsContent value="keys">
+          <KeyCodesTable />
+        </TabsContent>
+        <TabsContent value="calendar">
+          <MaintenanceCalendarView />
         </TabsContent>
         <TabsContent value="log">
           <MaintenanceLogView />

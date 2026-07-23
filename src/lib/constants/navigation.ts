@@ -85,6 +85,9 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: "General Maintenance", href: "/maintenance?tab=general" },
       { label: "Recurring Maintenance", href: "/maintenance?tab=recurring" },
+      { label: "Paint Log", href: "/maintenance?tab=paint" },
+      { label: "Key Codes", href: "/maintenance?tab=keys" },
+      { label: "Maintenance Calendar", href: "/maintenance?tab=calendar" },
       { label: "Maintenance Log", href: "/maintenance?tab=log" },
     ],
   },

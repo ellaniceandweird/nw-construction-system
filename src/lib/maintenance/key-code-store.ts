@@ -1,0 +1,80 @@
+"use client";
+
+import { createCollectionStore } from "@/lib/supabase/collection-store";
+import type { KeyCodeEntry } from "@/types/maintenance";
+
+function fromRow(row: Record<string, any>): KeyCodeEntry {
+  return {
+    id: row.id,
+    propertyId: row.property_id ?? undefined,
+    propertyName: row.property_name,
+    location: row.location,
+    keyType: row.key_type ?? undefined,
+    keyCode: row.key_code ?? undefined,
+    heldBy: row.held_by ?? undefined,
+    notes: row.notes ?? undefined,
+    createdBy: row.created_by ?? "system",
+    createdDate: row.created_date ?? new Date().toISOString(),
+    lastModifiedBy: row.last_modified_by ?? "system",
+    lastModifiedDate: row.last_modified_date ?? new Date().toISOString(),
+    revisionNumber: row.revision_number ?? 1,
+    module: "Maintenance",
+    status: row.status ?? "active",
+  };
+}
+
+function toRow(input: Record<string, any>): Record<string, any> {
+  const row: Record<string, any> = {};
+  if (input.id !== undefined) row.id = input.id;
+  if (input.propertyId !== undefined) row.property_id = input.propertyId;
+  if (input.propertyName !== undefined) row.property_name = input.propertyName;
+  if (input.location !== undefined) row.location = input.location;
+  if (input.keyType !== undefined) row.key_type = input.keyType;
+  if (input.keyCode !== undefined) row.key_code = input.keyCode;
+  if (input.heldBy !== undefined) row.held_by = input.heldBy;
+  if (input.notes !== undefined) row.notes = input.notes;
+  row.last_modified_date = new Date().toISOString();
+  return row;
+}
+
+const store = createCollectionStore<KeyCodeEntry>({
+  table: "key_codes",
+  seedData: [],
+  fromRow,
+  toRow,
+  orderBy: "property_name",
+});
+
+export const subscribeKeyCodes = store.subscribe;
+export const getKeyCodesSnapshot = store.getSnapshot;
+
+export interface KeyCodeInput {
+  propertyId?: string;
+  propertyName: string;
+  location: string;
+  keyType?: string;
+  keyCode?: string;
+  heldBy?: string;
+  notes?: string;
+}
+
+function nextId(): string {
+  const items = store.getSnapshot();
+  const maxNum = items.reduce((max, e) => {
+    const n = parseInt(e.id.replace("KEY-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  return `KEY-${String(maxNum + 1).padStart(6, "0")}`;
+}
+
+export function createKeyCodeEntry(input: KeyCodeInput) {
+  const id = nextId();
+  void store.create({ id, ...input });
+  return id;
+}
+export function updateKeyCodeEntry(id: string, input: KeyCodeInput) {
+  void store.update(id, input);
+}
+export function deleteKeyCodeEntry(id: string) {
+  void store.remove(id);
+}
