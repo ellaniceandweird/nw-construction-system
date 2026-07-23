@@ -1,44 +1,55 @@
 "use client";
 
+import { createCollectionStore } from "@/lib/supabase/collection-store";
 import { MOCK_EQUIPMENT_MAINTENANCE } from "@/lib/data/mock/maintenance-equipment";
 import { addMaintenanceLogEntry } from "@/lib/maintenance/maintenance-log-store";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
 
-const STORAGE_KEY = "project-nw:equipment-maintenance";
-
-type Listener = () => void;
-
-let records: EquipmentMaintenanceSchedule[] = loadInitial();
-const listeners = new Set<Listener>();
-
-function loadInitial(): EquipmentMaintenanceSchedule[] {
-  if (typeof window === "undefined") return MOCK_EQUIPMENT_MAINTENANCE;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return MOCK_EQUIPMENT_MAINTENANCE;
-    return JSON.parse(raw) as EquipmentMaintenanceSchedule[];
-  } catch {
-    return MOCK_EQUIPMENT_MAINTENANCE;
-  }
+function fromRow(row: Record<string, any>): EquipmentMaintenanceSchedule {
+  return {
+    id: row.id,
+    propertyId: row.property_id ?? undefined,
+    propertyName: row.property_name,
+    location: row.location,
+    systemType: row.system_type,
+    maintenanceNeeded: row.maintenance_needed ?? undefined,
+    frequency: row.frequency ?? undefined,
+    lastCompleted: row.last_completed ?? undefined,
+    notes: row.notes ?? undefined,
+    createdBy: row.created_by ?? "system",
+    createdDate: row.created_date ?? new Date().toISOString(),
+    lastModifiedBy: row.last_modified_by ?? "system",
+    lastModifiedDate: row.last_modified_date ?? new Date().toISOString(),
+    revisionNumber: row.revision_number ?? 1,
+    module: "Maintenance",
+    status: row.status ?? "active",
+  };
 }
 
-function persist() {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+function toRow(input: Record<string, any>): Record<string, any> {
+  const row: Record<string, any> = {};
+  if (input.id !== undefined) row.id = input.id;
+  if (input.propertyName !== undefined) row.property_name = input.propertyName;
+  if (input.location !== undefined) row.location = input.location;
+  if (input.systemType !== undefined) row.system_type = input.systemType;
+  if (input.maintenanceNeeded !== undefined) row.maintenance_needed = input.maintenanceNeeded;
+  if (input.frequency !== undefined) row.frequency = input.frequency;
+  if (input.lastCompleted !== undefined) row.last_completed = input.lastCompleted;
+  if (input.notes !== undefined) row.notes = input.notes;
+  row.last_modified_date = new Date().toISOString();
+  return row;
 }
 
-function emit() {
-  listeners.forEach((l) => l());
-}
+const store = createCollectionStore<EquipmentMaintenanceSchedule>({
+  table: "equipment_maintenance",
+  seedData: MOCK_EQUIPMENT_MAINTENANCE,
+  fromRow,
+  toRow,
+  orderBy: "property_name",
+});
 
-export function subscribeEquipmentMaintenance(listener: Listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-export function getEquipmentMaintenanceSnapshot(): EquipmentMaintenanceSchedule[] {
-  return records;
-}
+export const subscribeEquipmentMaintenance = store.subscribe;
+export const getEquipmentMaintenanceSnapshot = store.getSnapshot;
 
 export interface EquipmentMaintenanceEditInput {
   propertyName: string;
@@ -51,7 +62,8 @@ export interface EquipmentMaintenanceEditInput {
 }
 
 function nextId(): string {
-  const maxNum = records.reduce((max, r) => {
+  const items = store.getSnapshot();
+  const maxNum = items.reduce((max, r) => {
     const n = parseInt(r.id.replace("EQ-", ""), 10);
     return Number.isFinite(n) ? Math.max(max, n) : max;
   }, 0);
@@ -59,35 +71,14 @@ function nextId(): string {
 }
 
 export function createEquipmentMaintenance(input: EquipmentMaintenanceEditInput) {
-  const now = new Date().toISOString();
-  const newRecord: EquipmentMaintenanceSchedule = {
-    id: nextId(),
-    createdBy: "user",
-    createdDate: now,
-    lastModifiedBy: "user",
-    lastModifiedDate: now,
-    revisionNumber: 1,
-    module: "Maintenance",
-    status: "active",
-    ...input,
-  };
-  records = [...records, newRecord];
-  persist();
-  emit();
-  return newRecord;
+  const id = nextId();
+  void store.create({ id, ...input });
+  return id;
 }
 
 export function updateEquipmentMaintenance(id: string, input: EquipmentMaintenanceEditInput) {
-  const existing = records.find((r) => r.id === id);
-  records = records.map((r) =>
-    r.id === id
-      ? {
-          ...r,
-          ...input,
-          lastModifiedDate: new Date().toISOString(),
-        }
-      : r
-  );
+  const existing = store.getSnapshot().find((r) => r.id === id);
+  void store.update(id, input);
   if (existing && input.lastCompleted && input.lastCompleted !== existing.lastCompleted) {
     const formattedDate = new Date(input.lastCompleted).toLocaleDateString("en-US", {
       month: "short",
@@ -101,6 +92,4 @@ export function updateEquipmentMaintenance(id: string, input: EquipmentMaintenan
       detail: `Last completed date updated to ${formattedDate}`,
     });
   }
-  persist();
-  emit();
 }

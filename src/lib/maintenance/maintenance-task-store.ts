@@ -1,5 +1,6 @@
 "use client";
 
+import { createCollectionStore } from "@/lib/supabase/collection-store";
 import { MOCK_MAINTENANCE_TASKS } from "@/lib/data/mock/maintenance-tasks";
 import { addMaintenanceLogEntry } from "@/lib/maintenance/maintenance-log-store";
 import type {
@@ -8,44 +9,60 @@ import type {
   MaintenanceTaskStatus,
 } from "@/types/maintenance";
 
-const STORAGE_KEY = "project-nw:maintenance-tasks";
-
-type Listener = () => void;
-
-let tasks: MaintenanceTask[] = loadInitial();
-const listeners = new Set<Listener>();
-
-function loadInitial(): MaintenanceTask[] {
-  if (typeof window === "undefined") return MOCK_MAINTENANCE_TASKS;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return MOCK_MAINTENANCE_TASKS;
-    return JSON.parse(raw) as MaintenanceTask[];
-  } catch {
-    return MOCK_MAINTENANCE_TASKS;
-  }
+function fromRow(row: Record<string, any>): MaintenanceTask {
+  return {
+    id: row.id,
+    propertyId: row.property_id ?? undefined,
+    propertyName: row.property_name ?? undefined,
+    taskDescription: row.task_description,
+    priority: row.priority ?? undefined,
+    taskStatus: row.task_status,
+    dateEntered: row.date_entered,
+    plannedCompletionDate: row.planned_completion_date ?? undefined,
+    dateCompleted: row.date_completed ?? undefined,
+    responsibleParty: row.responsible_party ?? undefined,
+    updateNotes: row.update_notes ?? undefined,
+    comments: row.comments ?? undefined,
+    createdBy: row.created_by ?? "system",
+    createdDate: row.created_date ?? new Date().toISOString(),
+    lastModifiedBy: row.last_modified_by ?? "system",
+    lastModifiedDate: row.last_modified_date ?? new Date().toISOString(),
+    revisionNumber: row.revision_number ?? 1,
+    module: "Maintenance",
+    status: row.status ?? "active",
+  };
 }
 
-function persist() {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+function toRow(input: Record<string, any>): Record<string, any> {
+  const row: Record<string, any> = {};
+  if (input.id !== undefined) row.id = input.id;
+  if (input.propertyName !== undefined) row.property_name = input.propertyName;
+  if (input.taskDescription !== undefined) row.task_description = input.taskDescription;
+  if (input.priority !== undefined) row.priority = input.priority;
+  if (input.taskStatus !== undefined) row.task_status = input.taskStatus;
+  if (input.dateEntered !== undefined) row.date_entered = input.dateEntered;
+  if (input.plannedCompletionDate !== undefined) row.planned_completion_date = input.plannedCompletionDate;
+  if (input.dateCompleted !== undefined) row.date_completed = input.dateCompleted;
+  if (input.responsibleParty !== undefined) row.responsible_party = input.responsibleParty;
+  if (input.comments !== undefined) row.comments = input.comments;
+  row.last_modified_date = new Date().toISOString();
+  return row;
 }
 
-function emit() {
-  listeners.forEach((l) => l());
-}
+const store = createCollectionStore<MaintenanceTask>({
+  table: "maintenance_tasks",
+  seedData: MOCK_MAINTENANCE_TASKS,
+  fromRow,
+  toRow,
+  orderBy: "date_entered",
+});
 
-export function subscribeMaintenanceTasks(listener: Listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-export function getMaintenanceTasksSnapshot(): MaintenanceTask[] {
-  return tasks;
-}
+export const subscribeMaintenanceTasks = store.subscribe;
+export const getMaintenanceTasksSnapshot = store.getSnapshot;
 
 function nextTaskId(): string {
-  const nums = tasks
+  const items = store.getSnapshot();
+  const nums = items
     .map((t) => parseInt(t.id.replace("MT-", ""), 10))
     .filter((n) => !isNaN(n));
   const max = nums.length ? Math.max(...nums) : 0;
@@ -61,44 +78,24 @@ export interface MaintenanceTaskInput {
 }
 
 export function addMaintenanceTask(input: MaintenanceTaskInput) {
-  const now = new Date().toISOString();
   const id = nextTaskId();
-  const newTask: MaintenanceTask = {
+  void store.create({
     id,
-    createdBy: "current-user",
-    createdDate: now,
-    lastModifiedBy: "current-user",
-    lastModifiedDate: now,
-    revisionNumber: 1,
-    module: "Maintenance",
-    status: "active",
-    propertyName: input.propertyName,
-    taskDescription: input.taskDescription,
-    priority: input.priority,
     taskStatus: "not_started",
-    dateEntered: now.slice(0, 10),
-    plannedCompletionDate: input.plannedCompletionDate,
-    responsibleParty: input.responsibleParty,
-  };
-  tasks = [...tasks, newTask];
-  persist();
-  emit();
+    dateEntered: new Date().toISOString().slice(0, 10),
+    ...input,
+  });
   return id;
 }
 
 export function updateTaskStatus(taskId: string, taskStatus: MaintenanceTaskStatus) {
-  const existing = tasks.find((t) => t.id === taskId);
-  tasks = tasks.map((t) =>
-    t.id === taskId
-      ? {
-          ...t,
-          taskStatus,
-          dateCompleted: taskStatus === "complete" ? new Date().toISOString().slice(0, 10) : t.dateCompleted,
-          lastModifiedDate: new Date().toISOString(),
-        }
-      : t
-  );
-  if (existing && taskStatus === "complete" && existing.taskStatus !== "complete") {
+  const existing = store.getSnapshot().find((t) => t.id === taskId);
+  if (!existing) return;
+  void store.update(taskId, {
+    taskStatus,
+    dateCompleted: taskStatus === "complete" ? new Date().toISOString().slice(0, 10) : existing.dateCompleted,
+  });
+  if (taskStatus === "complete" && existing.taskStatus !== "complete") {
     addMaintenanceLogEntry({
       type: "task_completed",
       propertyName: existing.propertyName,
@@ -106,8 +103,6 @@ export function updateTaskStatus(taskId: string, taskStatus: MaintenanceTaskStat
       detail: "Marked complete",
     });
   }
-  persist();
-  emit();
 }
 
 export interface MaintenanceTaskEditInput {
@@ -121,23 +116,10 @@ export interface MaintenanceTaskEditInput {
 }
 
 export function updateTask(taskId: string, input: MaintenanceTaskEditInput) {
-  const existing = tasks.find((t) => t.id === taskId);
-  tasks = tasks.map((t) =>
-    t.id === taskId
-      ? {
-          ...t,
-          propertyName: input.propertyName,
-          taskDescription: input.taskDescription,
-          priority: input.priority,
-          taskStatus: input.taskStatus,
-          responsibleParty: input.responsibleParty,
-          plannedCompletionDate: input.plannedCompletionDate,
-          comments: input.comments,
-          lastModifiedDate: new Date().toISOString(),
-        }
-      : t
-  );
-  if (existing && input.taskStatus === "complete" && existing.taskStatus !== "complete") {
+  const existing = store.getSnapshot().find((t) => t.id === taskId);
+  if (!existing) return;
+  void store.update(taskId, input);
+  if (input.taskStatus === "complete" && existing.taskStatus !== "complete") {
     addMaintenanceLogEntry({
       type: "task_completed",
       propertyName: input.propertyName,
@@ -145,18 +127,12 @@ export function updateTask(taskId: string, input: MaintenanceTaskEditInput) {
       detail: "Marked complete",
     });
   }
-  persist();
-  emit();
 }
 
 export function deleteMaintenanceTask(taskId: string) {
-  tasks = tasks.filter((t) => t.id !== taskId);
-  persist();
-  emit();
+  void store.remove(taskId);
 }
 
 export function restoreMaintenanceTask(task: MaintenanceTask) {
-  tasks = [...tasks, task];
-  persist();
-  emit();
+  void store.create(task);
 }
