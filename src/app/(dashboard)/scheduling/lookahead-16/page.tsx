@@ -1,7 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { SchedulingTabs } from "@/components/scheduling/scheduling-tabs";
 import { SixteenWeekGanttChart } from "@/components/scheduling/sixteen-week-gantt-chart";
-import { PrintButton } from "@/components/shared/print-button";
 
 const TODAY = new Date("2026-07-10");
 
@@ -11,7 +10,6 @@ export default function Lookahead16Page() {
       <PageHeader
         title="16-Week Lookahead"
         description="Every activity planned to start or finish in the next 16 weeks — generated automatically from the Master Schedule, not edited here."
-        actions={<PrintButton />}
       />
       <SchedulingTabs />
       <SixteenWeekGanttChart referenceDate={TODAY} />

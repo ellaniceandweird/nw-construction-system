@@ -1,9 +1,13 @@
 "use client";
 
+import { Printer } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { useActivities } from "@/hooks/use-activities";
 import { useProjects } from "@/hooks/use-projects";
 import { generateLookahead4 } from "@/lib/scheduling/generate";
-import { PrintGanttChart } from "@/components/scheduling/print/print-gantt-chart";
+import { openPrintWindow } from "@/lib/estimating/print-window";
+import { buildLookaheadGanttHtml } from "@/lib/scheduling/print-lookahead-gantt";
 import { cn } from "@/lib/utils";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -41,8 +45,44 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
     return { label: formatShort(weekStart), leftPercent: (i * 7 * 100) / WINDOW_DAYS };
   });
 
+  function handlePrint() {
+    const groups = projects
+      .filter((p) => items.some((item) => activities.find((a) => a.id === item.activityId)?.projectId === p.id))
+      .map((project) => {
+        const projectItems = items.filter(
+          (item) => activities.find((a) => a.id === item.activityId)?.projectId === project.id
+        );
+        return {
+          projectName: project.projectName,
+          items: projectItems.map((item) => {
+            const activity = activities.find((a) => a.id === item.activityId);
+            const start = parseDate(item.plannedStart);
+            const end = parseDate(item.plannedFinish);
+            const clampedStart = start < windowStart ? windowStart : start;
+            const clampedEnd = end > windowEnd ? windowEnd : end;
+            const leftPercent = ((clampedStart.getTime() - windowStart.getTime()) / DAY_MS / WINDOW_DAYS) * 100;
+            const widthPercent = ((clampedEnd.getTime() - clampedStart.getTime()) / DAY_MS / WINDOW_DAYS) * 100;
+            return {
+              label: item.description,
+              sublabel: `${formatShort(start)} – ${formatShort(end)} (${activity?.percentComplete ?? 0}%)`,
+              leftPercent,
+              widthPercent,
+              status: activity?.status ?? "not_started",
+              isSubActivity: !!activity?.parentActivityId,
+            };
+          }),
+        };
+      });
+    openPrintWindow("4-Week Lookahead", buildLookaheadGanttHtml("4-Week Lookahead", weekMarkers, groups));
+  }
+
   return (
     <>
+    <div className="mb-3 flex justify-end print:hidden">
+      <Button variant="outline" onClick={handlePrint}>
+        <Printer className="size-3.5" /> Print
+      </Button>
+    </div>
     <div className="overflow-x-auto rounded-xl border border-border bg-card print:hidden">
       <div className="min-w-[900px]">
         {/* Header ruler */}
@@ -118,40 +158,6 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
         )}
       </div>
     </div>
-
-    <PrintGanttChart
-      title="4-Week Lookahead"
-      weekMarkers={weekMarkers}
-      groups={projects
-        .filter((p) => items.some((item) => activities.find((a) => a.id === item.activityId)?.projectId === p.id))
-        .map((project) => {
-          const projectItems = items.filter(
-            (item) => activities.find((a) => a.id === item.activityId)?.projectId === project.id
-          );
-          return {
-            projectId: project.id,
-            projectName: project.projectName,
-            items: projectItems.map((item) => {
-              const activity = activities.find((a) => a.id === item.activityId);
-              const start = parseDate(item.plannedStart);
-              const end = parseDate(item.plannedFinish);
-              const clampedStart = start < windowStart ? windowStart : start;
-              const clampedEnd = end > windowEnd ? windowEnd : end;
-              const leftPercent = ((clampedStart.getTime() - windowStart.getTime()) / DAY_MS / WINDOW_DAYS) * 100;
-              const widthPercent = ((clampedEnd.getTime() - clampedStart.getTime()) / DAY_MS / WINDOW_DAYS) * 100;
-              return {
-                key: item.activityId,
-                label: item.description,
-                sublabel: `${formatShort(start)} – ${formatShort(end)} (${activity?.percentComplete ?? 0}%)`,
-                leftPercent,
-                widthPercent,
-                colorClass: BAR_COLOR[activity?.status ?? "not_started"],
-                isSubActivity: !!activity?.parentActivityId,
-              };
-            }),
-          };
-        })}
-    />
     </>
   );
 }

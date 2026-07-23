@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { useActivities } from "@/hooks/use-activities";
 import { useProjects } from "@/hooks/use-projects";
 import { generateWeeklySchedule } from "@/lib/scheduling/generate";
+import { openPrintWindow } from "@/lib/estimating/print-window";
+import { buildWeeklyScheduleHtml } from "@/lib/scheduling/print-weekly-schedule";
 import type { WeeklyScheduleColor } from "@/types/scheduling";
 
 const TODAY = new Date("2026-07-10");
@@ -57,6 +59,22 @@ export function WeeklyScheduleGrid() {
 
   const entries = generateWeeklySchedule(activities, weekStart, TODAY);
 
+  function handlePrint() {
+    const weekLabel = `${formatDate(weekStart)} to ${formatDate(weekEnd)}, ${weekStart.getFullYear()}`;
+    const printEntries = entries.map((entry) => {
+      const activity = activities.find((a) => a.id === entry.activityId);
+      const project = projects.find((p) => p.id === activity?.projectId);
+      return {
+        activityId: entry.activityId,
+        projectName: project?.projectName ?? "—",
+        taskDescription: entry.taskDescription,
+        crew: entry.crew,
+        dailyAllocation: entry.dailyAllocation,
+      };
+    });
+    openPrintWindow("Weekly Schedule", buildWeeklyScheduleHtml(weekLabel, printEntries));
+  }
+
   return (
     <div className="flex flex-col gap-4 print:gap-0">
       <div className="flex items-center gap-3 print:hidden">
@@ -74,6 +92,9 @@ export function WeeklyScheduleGrid() {
             Back to current week
           </Button>
         )}
+        <Button variant="outline" size="sm" className="ml-auto" onClick={handlePrint}>
+          <Printer className="size-3.5" /> Print
+        </Button>
       </div>
 
       <Card className="overflow-x-auto py-0 print:hidden">
@@ -141,65 +162,6 @@ export function WeeklyScheduleGrid() {
           ))}
       </div>
 
-      <div className="hidden print:block">
-        <h2 className="mb-3 text-base font-semibold">
-          Weekly Schedule — {formatDate(weekStart)} to {formatDate(weekEnd)}, {weekStart.getFullYear()}
-        </h2>
-        <table className="w-full border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-black/40 text-left">
-              <th className="py-1.5 pr-3">Project</th>
-              <th className="py-1.5 pr-3">Task</th>
-              <th className="py-1.5 pr-3">Crew</th>
-              {DAY_LABELS.map((label) => (
-                <th key={label} className="py-1.5 pr-2 text-center">
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((entry) => {
-              const activity = activities.find((a) => a.id === entry.activityId);
-              const project = projects.find((p) => p.id === activity?.projectId);
-              return (
-                <tr key={entry.activityId} className="border-b border-black/15">
-                  <td className="py-1.5 pr-3 font-medium">{project?.projectName ?? "—"}</td>
-                  <td className="py-1.5 pr-3">{entry.taskDescription}</td>
-                  <td className="py-1.5 pr-3">{entry.crew ?? "—"}</td>
-                  {DAY_KEYS.map((key) => {
-                    const color = entry.dailyAllocation[key];
-                    return (
-                      <td key={key} className="py-1.5 pr-2 text-center">
-                        {color ? (
-                          <span
-                            className={cn(
-                              "mx-auto inline-block h-4 w-8 rounded",
-                              COLOR_CLASS[color]
-                            )}
-                          />
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        <p className="mt-2 flex flex-wrap gap-3 text-[10px] text-black/70">
-          {(Object.keys(COLOR_CLASS) as WeeklyScheduleColor[])
-            .filter((c) => c !== "not_started")
-            .map((c) => (
-              <span key={c} className="flex items-center gap-1">
-                <span className={cn("inline-block h-3 w-3 rounded", COLOR_CLASS[c])} />
-                {c.replace("_", " ")}
-              </span>
-            ))}
-        </p>
-      </div>
     </div>
   );
 }

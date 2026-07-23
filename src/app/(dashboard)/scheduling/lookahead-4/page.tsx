@@ -1,7 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { SchedulingTabs } from "@/components/scheduling/scheduling-tabs";
 import { FourWeekGanttChart } from "@/components/scheduling/four-week-gantt-chart";
-import { PrintButton } from "@/components/shared/print-button";
 
 const TODAY = new Date("2026-07-10");
 
@@ -11,7 +10,6 @@ export default function Lookahead4Page() {
       <PageHeader
         title="4-Week Lookahead"
         description="Everything starting in the next 4 weeks — generated from the Master Schedule."
-        actions={<PrintButton />}
       />
       <SchedulingTabs />
       <FourWeekGanttChart referenceDate={TODAY} />

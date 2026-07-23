@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, Users, HardHat, Briefcase, AlertTriangle, MessageSquare } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, HardHat, Briefcase, AlertTriangle, MessageSquare, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import { useProjects } from "@/hooks/use-projects";
 import { getCrewCapacityForDay, getWorkType, type WorkType } from "@/lib/scheduling/capacity";
 import { generateDailyFieldUpdateText } from "@/lib/scheduling/daily-field-update";
 import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-update-dialog";
+import { openPrintWindow } from "@/lib/estimating/print-window";
+import { buildDailyWorkPlanHtml } from "@/lib/scheduling/print-daily-work-plan";
 
 const TODAY = new Date("2026-07-10");
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -93,6 +95,34 @@ export function DailyWorkPlanView() {
 
   const fieldUpdateText = generateDailyFieldUpdateText(date, capacity.scheduled, projects);
 
+  function handlePrint() {
+    const rows = [
+      ...capacity.scheduled.map((s) => {
+        const project = projects.find((p) => p.id === s.activity.projectId);
+        return {
+          projectName: project?.projectName ?? "—",
+          taskName: s.activity.name,
+          crew: s.assignedCrew,
+          workType: getWorkType(s.activity),
+          statusLabel: "Scheduled",
+          statusTone: "scheduled" as const,
+        };
+      }),
+      ...capacity.deferred.map((d) => {
+        const project = projects.find((p) => p.id === d.activity.projectId);
+        return {
+          projectName: project?.projectName ?? "—",
+          taskName: d.activity.name,
+          crew: d.neededCrew,
+          workType: getWorkType(d.activity),
+          statusLabel: "Needs more crew",
+          statusTone: "needs_crew" as const,
+        };
+      }),
+    ];
+    openPrintWindow("Daily Work Plan", buildDailyWorkPlanHtml(formatDate(date), rows));
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-3 print:hidden">
@@ -108,6 +138,9 @@ export function DailyWorkPlanView() {
             Back to today
           </Button>
         )}
+        <Button variant="outline" size="sm" onClick={handlePrint}>
+          <Printer className="size-3.5" /> Print
+        </Button>
         <Button
           variant="outline"
           size="sm"
@@ -193,73 +226,6 @@ export function DailyWorkPlanView() {
         </div>
       )}
 
-      <div className="hidden print:block">
-        <table className="w-full border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-black/40 text-left">
-              <th className="py-1.5 pr-3">Project</th>
-              <th className="py-1.5 pr-3">Task</th>
-              <th className="py-1.5 pr-3">Workers</th>
-              <th className="py-1.5 pr-3">Type</th>
-              <th className="py-1.5">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {capacity.scheduled.map((s) => {
-              const project = projects.find((p) => p.id === s.activity.projectId);
-              return (
-                <tr key={s.activity.id} className="border-b border-black/15">
-                  <td className="py-1.5 pr-3 font-medium">{project?.projectName ?? "—"}</td>
-                  <td className="py-1.5 pr-3">{s.activity.name}</td>
-                  <td className="py-1.5 pr-3">{s.assignedCrew}</td>
-                  <td className="py-1.5 pr-3">
-                    <span
-                      className={
-                        getWorkType(s.activity) === "internal"
-                          ? "inline-block rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-800"
-                          : "inline-block rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-medium text-sky-800"
-                      }
-                    >
-                      {getWorkType(s.activity) === "internal" ? "Our Crew" : "Subcontractor"}
-                    </span>
-                  </td>
-                  <td className="py-1.5">
-                    <span className="inline-block rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-800">
-                      Scheduled
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-            {capacity.deferred.map((d) => {
-              const project = projects.find((p) => p.id === d.activity.projectId);
-              return (
-                <tr key={d.activity.id} className="border-b border-black/15">
-                  <td className="py-1.5 pr-3 font-medium">{project?.projectName ?? "—"}</td>
-                  <td className="py-1.5 pr-3">{d.activity.name}</td>
-                  <td className="py-1.5 pr-3">{d.neededCrew}</td>
-                  <td className="py-1.5 pr-3">
-                    <span
-                      className={
-                        getWorkType(d.activity) === "internal"
-                          ? "inline-block rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-800"
-                          : "inline-block rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-medium text-sky-800"
-                      }
-                    >
-                      {getWorkType(d.activity) === "internal" ? "Our Crew" : "Subcontractor"}
-                    </span>
-                  </td>
-                  <td className="py-1.5">
-                    <span className="inline-block rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800">
-                      Needs more crew
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
 
       <DailyFieldUpdateDialog
         open={updateDialogOpen}

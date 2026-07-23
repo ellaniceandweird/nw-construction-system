@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronRight, Search, Plus, Pencil, Trash2, Upload, Table2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Plus, Pencil, Trash2, Upload, Table2, Printer } from "lucide-react";
 
 import { useActivities } from "@/hooks/use-activities";
 import { useProjects } from "@/hooks/use-projects";
@@ -23,7 +23,8 @@ import { ActivityFormDialog } from "@/components/scheduling/activity-form-dialog
 import { ImportScheduleDialog } from "@/components/scheduling/import-schedule-dialog";
 import { BulkAddActivitiesDialog } from "@/components/scheduling/bulk-add-activities-dialog";
 import { computePlanVsActual } from "@/lib/scheduling/plan-vs-actual";
-import { SchedulePrintTable } from "@/components/scheduling/print/schedule-print-table";
+import { openPrintWindow } from "@/lib/estimating/print-window";
+import { buildMasterScheduleHtml } from "@/lib/scheduling/print-master-schedule";
 import type { Activity } from "@/types/scheduling";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -105,6 +106,10 @@ export function MasterScheduleTable() {
       .sort((a, b) => a.start.localeCompare(b.start));
   }, [filtered]);
 
+  function handlePrint() {
+    openPrintWindow("Master Schedule", buildMasterScheduleHtml(projects, activities));
+  }
+
   function handleAdd() {
     setEditingActivity(undefined);
     setDialogOpen(true);
@@ -154,6 +159,9 @@ export function MasterScheduleTable() {
         </Button>
         <Button onClick={handleAdd} className="print:hidden">
           <Plus /> Add Activity
+        </Button>
+        <Button variant="outline" onClick={handlePrint} className="print:hidden">
+          <Printer /> Print
         </Button>
         <span className="text-sm text-muted-foreground">
           {filtered.length} of {activities.length} activities
@@ -263,30 +271,6 @@ export function MasterScheduleTable() {
           </tbody>
         </table>
       </Card>
-
-      <SchedulePrintTable
-        title="Master Schedule — All Activities"
-        extraLabel="Duration"
-        groups={projects
-          .map((project) => {
-            const projectActivities = activities
-              .filter((a) => a.projectId === project.id)
-              .sort((a, b) => new Date(a.plannedStart).getTime() - new Date(b.plannedStart).getTime());
-            return {
-              projectId: project.id,
-              projectName: project.projectName,
-              rows: projectActivities.map((a) => ({
-                key: a.id,
-                activity: a.name,
-                start: formatDate(a.plannedStart),
-                finish: formatDate(a.plannedFinish),
-                extra: `${a.originalDurationDays}d`,
-                status: a.status.replace("_", " "),
-                isSubActivity: !!a.parentActivityId,
-              })),
-            };
-          })}
-      />
 
       <ActivityFormDialog
         open={dialogOpen}
