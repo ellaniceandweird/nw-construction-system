@@ -4,13 +4,13 @@ import type { WeeklyScheduleColor } from "@/types/scheduling";
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 
-const COLOR_HEX: Record<WeeklyScheduleColor, string> = {
-  complete: "#16a34a",
-  in_progress: "#2563eb",
-  upcoming: "#ca8a04",
-  delayed: "#dc2626",
-  not_started: "transparent",
-  blocked: "#7f1d1d",
+const COLOR_STYLE: Record<WeeklyScheduleColor, string> = {
+  complete: "background:#dcfce7;color:#166534",
+  in_progress: "background:#dbeafe;color:#1e40af",
+  upcoming: "background:#fef3c7;color:#92400e",
+  delayed: "background:#fee2e2;color:#991b1b",
+  not_started: "background:transparent",
+  blocked: "background:#fee2e2;color:#991b1b",
 };
 
 export interface WeeklyScheduleEntry {
@@ -37,7 +37,7 @@ export function buildWeeklyScheduleHtml(
           const dayCells = DAY_KEYS.map((key) => {
             const color = entry.dailyAllocation[key];
             if (!color || color === "not_started") return `<td style="text-align:center;">—</td>`;
-            return `<td style="text-align:center;"><span style="display:inline-block;width:28px;height:14px;border-radius:3px;background:${COLOR_HEX[color]};" title="${escapeHtml(color.replace("_", " "))}"></span></td>`;
+            return `<td style="text-align:center;"><span style="display:inline-block;width:32px;height:16px;border-radius:3px;${COLOR_STYLE[color]}" title="${escapeHtml(color.replace("_", " "))}"></span></td>`;
           }).join("");
           return `
             <tr>
@@ -50,11 +50,11 @@ export function buildWeeklyScheduleHtml(
         .join("")
     : `<tr><td colspan="10" style="color:#6b7280;">No scheduled work this week.</td></tr>`;
 
-  const legend = (Object.keys(COLOR_HEX) as WeeklyScheduleColor[])
+  const legend = (Object.keys(COLOR_STYLE) as WeeklyScheduleColor[])
     .filter((c) => c !== "not_started")
     .map(
       (c) =>
-        `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${COLOR_HEX[c]};"></span>${escapeHtml(c.replace("_", " "))}</span>`
+        `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;${COLOR_STYLE[c]}"></span>${escapeHtml(c.replace("_", " "))}</span>`
     )
     .join("");
 

@@ -107,7 +107,12 @@ export function MasterScheduleTable() {
   }, [filtered]);
 
   function handlePrint() {
-    openPrintWindow("Master Schedule", buildMasterScheduleHtml(projects, activities));
+    try {
+      openPrintWindow("Master Schedule", buildMasterScheduleHtml(projects, activities));
+    } catch (err) {
+      console.error("Master Schedule print failed:", err);
+      alert(`Print failed to generate: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   function handleAdd() {

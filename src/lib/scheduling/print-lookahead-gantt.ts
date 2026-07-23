@@ -84,6 +84,6 @@ export function buildLookaheadGanttHtml(
 
   return `
     <div class="header"><h1>${escapeHtml(title)}</h1></div>
-    ${sections || `<p>No data to print.</p>`}
+    ${sections || `<p>No activities fall within this window (${groups.length} projects checked). If this seems wrong, refresh the page and try again.</p>`}
   `;
 }

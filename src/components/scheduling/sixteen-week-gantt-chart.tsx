@@ -52,6 +52,7 @@ export function SixteenWeekGanttChart({ referenceDate }: { referenceDate: Date }
   });
 
   function handlePrint() {
+    try {
     const groups = projects
       .filter((p) => items.some((item) => activities.find((a) => a.id === item.activityId)?.projectId === p.id))
       .map((project) => {
@@ -81,6 +82,10 @@ export function SixteenWeekGanttChart({ referenceDate }: { referenceDate: Date }
         };
       });
     openPrintWindow("16-Week Lookahead", buildLookaheadGanttHtml("16-Week Lookahead", weekMarkers, groups));
+    } catch (err) {
+      console.error("16-Week Lookahead print failed:", err);
+      alert(`Print failed to generate: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   return (

@@ -68,7 +68,7 @@ export function buildMasterScheduleHtml(projects: Project[], activities: Activit
     .join("");
 
   return `
-    <div class="header"><h1>Master Schedule — All Activities</h1><p>${projects.length} projects</p></div>
-    ${sections || `<p>No projects to print.</p>`}
+    <div class="header"><h1>Master Schedule — All Activities</h1><p>${projects.length} projects, ${activities.length} activities loaded</p></div>
+    ${sections || `<p>No projects found (received ${projects.length} projects, ${activities.length} activities). If this seems wrong, refresh the page and try again.</p>`}
   `;
 }

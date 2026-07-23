@@ -46,6 +46,7 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
   });
 
   function handlePrint() {
+    try {
     const groups = projects
       .filter((p) => items.some((item) => activities.find((a) => a.id === item.activityId)?.projectId === p.id))
       .map((project) => {
@@ -74,6 +75,10 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
         };
       });
     openPrintWindow("4-Week Lookahead", buildLookaheadGanttHtml("4-Week Lookahead", weekMarkers, groups));
+    } catch (err) {
+      console.error("4-Week Lookahead print failed:", err);
+      alert(`Print failed to generate: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   return (
