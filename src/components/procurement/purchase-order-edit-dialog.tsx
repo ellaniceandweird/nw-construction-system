@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updatePurchaseOrder, createPurchaseOrder, computeTotal } from "@/lib/procurement/purchase-order-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import type { PurchaseOrder, PurchaseOrderLineItem, PurchaseOrderStatus } from "@/types/procurement";
@@ -52,6 +52,7 @@ function emptyLineItem(): PurchaseOrderLineItem {
 }
 
 export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode }: Props) {
+  const projects = useProjects();
   const billingEntities = useBillingEntities();
   const vendors = useVendors();
   const [projectId, setProjectId] = React.useState("");
@@ -160,7 +161,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_PROJECTS.map((p) => (
+                  {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.projectName}
                     </SelectItem>

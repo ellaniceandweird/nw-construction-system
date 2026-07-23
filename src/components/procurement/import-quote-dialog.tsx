@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useRFQs } from "@/hooks/use-rfqs";
 import { upsertQuoteResponse } from "@/lib/procurement/rfq-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { parseQuotePdfFile } from "@/lib/procurement/import/parse-quote-file";
 import type { ParsedQuoteFields } from "@/lib/procurement/import/shared";
@@ -40,6 +40,7 @@ interface Props {
 type Stage = "pick" | "parsing" | "review" | "done";
 
 export function ImportQuoteDialog({ open, onOpenChange, initialRfqId }: Props) {
+  const projects = useProjects();
   const rfqs = useRFQs();
   const vendors = useVendors();
   const [rfqId, setRfqId] = React.useState(initialRfqId ?? "");
@@ -164,7 +165,7 @@ export function ImportQuoteDialog({ open, onOpenChange, initialRfqId }: Props) {
                 <SelectContent>
                   {rfqs.map((r) => (
                     <SelectItem key={r.id} value={r.id}>
-                      {r.rfqNumber} — {MOCK_PROJECTS.find((p) => p.id === r.projectId)?.projectName}
+                      {r.rfqNumber} — {projects.find((p) => p.id === r.projectId)?.projectName}
                     </SelectItem>
                   ))}
                 </SelectContent>

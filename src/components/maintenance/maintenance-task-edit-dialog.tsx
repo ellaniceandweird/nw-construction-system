@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MOCK_PROPERTIES } from "@/lib/data/mock/properties";
+import { useProperties } from "@/hooks/use-properties";
 import { updateTask, deleteMaintenanceTask, restoreMaintenanceTask } from "@/lib/maintenance/maintenance-task-store";
 import { showUndoToast } from "@/lib/toast/toast-store";
 import type {
@@ -38,6 +38,7 @@ interface Props {
 }
 
 export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
+  const properties = useProperties();
   const [propertyName, setPropertyName] = React.useState("");
   const [taskDescription, setTaskDescription] = React.useState("");
   const [priority, setPriority] = React.useState<MaintenancePriority>("medium");
@@ -97,7 +98,7 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
                 <SelectValue placeholder="Select a property" />
               </SelectTrigger>
               <SelectContent>
-                {MOCK_PROPERTIES.map((p) => (
+                {properties.map((p) => (
                   <SelectItem key={p.id} value={p.name}>
                     {p.name}
                   </SelectItem>

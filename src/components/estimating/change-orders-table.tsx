@@ -3,7 +3,7 @@ import * as React from "react";
 import { Pencil, Plus, ArrowUpDown } from "lucide-react";
 import { useChangeOrders } from "@/hooks/use-change-orders";
 import { useEstimates } from "@/hooks/use-estimates";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 import { ChangeOrderEditDialog } from "@/components/estimating/change-order-edit-dialog";
 import { requiresOwnerApproval, getOwnerApprovalThreshold } from "@/lib/estimating/change-order-approval";
 import type { ChangeOrder, ChangeOrderStatus } from "@/types/change-orders";
+import type { Project } from "@/types/project";
 
 const STATUS_CLASS: Record<string, string> = {
   pending: "bg-warning-soft text-warning-foreground",
@@ -31,11 +32,12 @@ function currency(n: number) {
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
 }
 
 export function ChangeOrdersTable() {
+  const projects = useProjects();
   const changeOrders = useChangeOrders();
   const estimates = useEstimates();
   const [editing, setEditing] = React.useState<ChangeOrder | null>(null);
@@ -114,7 +116,7 @@ export function ChangeOrdersTable() {
                 <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                   <td className="px-4 py-3 font-medium text-foreground">{c.changeOrderNumber}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {estimate ? projectName(estimate.projectId) : projectName(c.projectId)}
+                    {estimate ? projectName(estimate.projectId, projects) : projectName(c.projectId, projects)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground max-w-md">{c.description}</td>
                   <td className="px-4 py-3 text-muted-foreground">{c.relatedItem ?? "—"}</td>

@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Pencil, Plus, ExternalLink, ChevronRight, Search, ArrowUpDown } from "lucide-react";
 import { useDrawings } from "@/hooks/use-drawings";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,13 +15,15 @@ import {
 } from "@/components/ui/select";
 import { DrawingEditDialog } from "@/components/documents/drawing-edit-dialog";
 import type { Drawing } from "@/types/documents";
+import type { Project } from "@/types/project";
 
-function resolvedProjectName(d: Drawing) {
-  const match = MOCK_PROJECTS.find((p) => p.id === d.projectId);
+function resolvedProjectName(d: Drawing, projects: Project[]) {
+  const match = projects.find((p) => p.id === d.projectId);
   return match?.projectName ?? d.projectName ?? "—";
 }
 
 export function DrawingsTable() {
+  const projects = useProjects();
   const drawings = useDrawings();
   const [editing, setEditing] = React.useState<Drawing | null>(null);
   const [creating, setCreating] = React.useState(false);
@@ -90,7 +92,7 @@ export function DrawingsTable() {
                     </td>
                     <td className="px-4 py-3 text-foreground max-w-xs">{d.drawingTitle}</td>
                     <td className="px-4 py-3 text-muted-foreground">{d.propertyName ?? "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{resolvedProjectName(d)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{resolvedProjectName(d, projects)}</td>
                     <td className="px-4 py-3 text-muted-foreground">{d.revision}</td>
                     <td className="px-4 py-3">
                       <a href={d.currentRevisionUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">

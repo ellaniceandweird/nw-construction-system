@@ -12,7 +12,7 @@ import { DriveUploadButton } from "@/components/shared/drive-upload-button";
 import { useProperties } from "@/hooks/use-properties";
 import { getPropertyForProject } from "@/lib/properties/property-relations";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import type { Drawing, DrawingDiscipline, DocumentStatus } from "@/types/documents";
 
 interface Props { drawing: Drawing | null; open: boolean; onOpenChange: (open: boolean) => void; }
@@ -30,6 +30,7 @@ const STATUS_OPTIONS: { value: DocumentStatus; label: string }[] = [
 ];
 
 export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
+  const projects = useProjects();
   const properties = useProperties();
   const [propertyId, setPropertyId] = React.useState("");
   const [propertyName, setPropertyName] = React.useState("");
@@ -88,7 +89,7 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
     if (value === MANUAL_ENTRY) { setProjectId(MANUAL_ENTRY); setProjectName(""); return; }
     setProjectId(value);
     setProjectName("");
-    const proj = MOCK_PROJECTS.find((p) => p.id === value);
+    const proj = projects.find((p) => p.id === value);
     const property = proj ? getPropertyForProject(proj, properties) : undefined;
     if (property) {
       setPropertyId(property.id);
@@ -137,7 +138,7 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
               <Select value={projectId} onValueChange={handleProjectChange}>
                 <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select project" /></SelectTrigger>
                 <SelectContent>
-                  {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+                  {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
                   <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
                 </SelectContent>
               </Select>

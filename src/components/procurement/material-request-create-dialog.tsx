@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createMaterialRequest } from "@/lib/procurement/material-request-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 
 interface Props {
   open: boolean;
@@ -29,6 +29,7 @@ interface Props {
 }
 
 export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
+  const projects = useProjects();
   const [projectId, setProjectId] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [quantity, setQuantity] = React.useState("1");
@@ -81,7 +82,7 @@ export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
             <Select value={projectId} onValueChange={setProjectId}>
               <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select a project" /></SelectTrigger>
               <SelectContent>
-                {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+                {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>

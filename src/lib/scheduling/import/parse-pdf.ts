@@ -1,5 +1,6 @@
 import { matchProjectName, parseDateFlexible } from "@/lib/scheduling/import/shared";
 import type { ParsedActivityRow } from "@/lib/scheduling/import/shared";
+import type { Project } from "@/types/project";
 
 // A date-like token: 7/10/2026, 07-10-2026, 2026-07-10, "Jul 10, 2026", etc.
 const DATE_PATTERN =
@@ -18,7 +19,7 @@ const DATE_PATTERN =
  * row. This is meaningfully less reliable than the Excel path and should
  * be treated as a rough starting point, not an authoritative import.
  */
-export async function parsePdfFile(file: File): Promise<ParsedActivityRow[]> {
+export async function parsePdfFile(file: File, projects: Project[]): Promise<ParsedActivityRow[]> {
   const pdfjsLib = await import("pdfjs-dist");
   pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -57,7 +58,7 @@ export async function parsePdfFile(file: File): Promise<ParsedActivityRow[]> {
       const description = line.replace(DATE_PATTERN, "").replace(/\s{2,}/g, " ").trim();
       if (!description) continue;
 
-      const matchedProjectId = lastSeenProjectLike ? matchProjectName(lastSeenProjectLike) : null;
+      const matchedProjectId = lastSeenProjectLike ? matchProjectName(lastSeenProjectLike, projects) : null;
 
       const warnings: string[] = [];
       if (!matchedProjectId) warnings.push("Couldn't detect a project from the PDF — please select one");

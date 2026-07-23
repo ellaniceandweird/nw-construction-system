@@ -24,9 +24,10 @@ import {
 import { createEstimate, withComputedLineItemTotals } from "@/lib/estimating/estimate-store";
 import { parseEstimateExcelFile } from "@/lib/estimating/import/parse-estimate-excel";
 import { parseEstimatePdfFile } from "@/lib/estimating/import/parse-estimate-pdf";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import type { ParsedEstimateFile } from "@/lib/estimating/import/shared";
 import type { EstimateLineItem } from "@/types/estimating";
+import type { Project } from "@/types/project";
 
 interface Props {
   open: boolean;
@@ -35,15 +36,16 @@ interface Props {
 
 type Stage = "pick" | "parsing" | "review" | "done";
 
-function guessProjectId(nameGuess: string): string {
+function guessProjectId(nameGuess: string, projects: Project[]): string {
   const normalized = nameGuess.toLowerCase();
-  const match = MOCK_PROJECTS.find(
+  const match = projects.find(
     (p) => normalized.includes(p.projectName.toLowerCase()) || p.projectName.toLowerCase().includes(normalized)
   );
   return match?.id ?? "";
 }
 
 export function ImportEstimateDialog({ open, onOpenChange }: Props) {
+  const projects = useProjects();
   const [stage, setStage] = React.useState<Stage>("pick");
   const [fileName, setFileName] = React.useState("");
   const [error, setError] = React.useState("");
@@ -88,7 +90,7 @@ export function ImportEstimateDialog({ open, onOpenChange }: Props) {
     try {
       const result = ext === "pdf" ? await parseEstimatePdfFile(file) : await parseEstimateExcelFile(file);
       setParsed(result);
-      setProjectId(guessProjectId(result.projectNameGuess));
+      setProjectId(guessProjectId(result.projectNameGuess, projects));
       setAddress(result.addressGuess);
       setLineItems(result.lineItems);
       setConstructionContingencyPercent(
@@ -207,7 +209,7 @@ export function ImportEstimateDialog({ open, onOpenChange }: Props) {
                     <SelectValue placeholder={parsed.projectNameGuess || "Select project"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {MOCK_PROJECTS.map((p) => (
+                    {projects.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
                     ))}
                   </SelectContent>

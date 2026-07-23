@@ -1,6 +1,8 @@
+"use client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MOCK_TEAM_ASSIGNMENTS } from "@/lib/data/mock/team-assignments";
+import { useTeamAssignments } from "@/hooks/use-team-assignments";
 
 function initials(name: string) {
   return name
@@ -12,7 +14,8 @@ function initials(name: string) {
 }
 
 export function ProjectTeam({ projectId }: { projectId: string }) {
-  const team = MOCK_TEAM_ASSIGNMENTS.filter((t) => t.projectId === projectId);
+  const allAssignments = useTeamAssignments();
+  const team = allAssignments.filter((t) => t.projectId === projectId);
 
   if (team.length === 0) {
     return (

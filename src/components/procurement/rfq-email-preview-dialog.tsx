@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { generateRfqEmailContent } from "@/lib/procurement/rfq-email";
 import { useVendors } from "@/hooks/use-vendors";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import type { RequestForQuotation } from "@/types/procurement";
 
 interface Props {
@@ -34,6 +34,7 @@ interface Props {
 }
 
 export function RfqEmailPreviewDialog({ rfq, open, onOpenChange }: Props) {
+  const projects = useProjects();
   const vendors = useVendors();
   const invitedVendors = rfq ? vendors.filter((v) => rfq.vendorIds.includes(v.id)) : [];
   const [vendorId, setVendorId] = React.useState("");
@@ -51,7 +52,7 @@ export function RfqEmailPreviewDialog({ rfq, open, onOpenChange }: Props) {
   React.useEffect(() => {
     if (!rfq || !vendorId) return;
     const vendor = vendors.find((v) => v.id === vendorId);
-    const project = MOCK_PROJECTS.find((p) => p.id === rfq.projectId);
+    const project = projects.find((p) => p.id === rfq.projectId);
     const { subject: subj, body: bd } = generateRfqEmailContent({
       vendorContactName: vendor?.primaryContact,
       projectName: project?.projectName ?? "the project",

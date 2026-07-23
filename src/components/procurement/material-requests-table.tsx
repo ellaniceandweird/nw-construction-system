@@ -4,7 +4,7 @@ import * as React from "react";
 import { Pencil, Paperclip, Plus, Search, ArrowUpDown } from "lucide-react";
 
 import { useMaterialRequests } from "@/hooks/use-material-requests";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ function formatDate(d: string) {
 }
 
 export function MaterialRequestsTable() {
+  const projects = useProjects();
   const requests = useMaterialRequests();
   const [editingRequest, setEditingRequest] = React.useState<MaterialRequest | null>(null);
   const [creating, setCreating] = React.useState(false);
@@ -59,7 +60,7 @@ export function MaterialRequestsTable() {
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Projects" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Projects</SelectItem>
-            {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+            {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
@@ -87,7 +88,7 @@ export function MaterialRequestsTable() {
           </thead>
           <tbody>
             {sorted.map((mr) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === mr.projectId);
+              const project = projects.find((p) => p.id === mr.projectId);
               return (
                 <tr key={mr.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                   <td className="px-4 py-3 font-medium text-foreground">{mr.mrNumber}</td>

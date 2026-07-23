@@ -1,5 +1,5 @@
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import type { ActivityStatus } from "@/types/scheduling";
+import type { Project } from "@/types/project";
 
 /**
  * A single row extracted from an uploaded Excel or PDF file, before the
@@ -23,17 +23,17 @@ export interface ParsedActivityRow {
 }
 
 /** Best-effort fuzzy match of a free-text project name against the real project list. */
-export function matchProjectName(raw: string): string | null {
+export function matchProjectName(raw: string, projects: Project[]): string | null {
   if (!raw) return null;
   const normalized = raw.trim().toLowerCase();
   if (!normalized) return null;
 
   // Exact match first
-  const exact = MOCK_PROJECTS.find((p) => p.projectName.toLowerCase() === normalized);
+  const exact = projects.find((p) => p.projectName.toLowerCase() === normalized);
   if (exact) return exact.id;
 
   // Substring match either direction
-  const partial = MOCK_PROJECTS.find(
+  const partial = projects.find(
     (p) =>
       p.projectName.toLowerCase().includes(normalized) ||
       normalized.includes(p.projectName.toLowerCase())
@@ -41,7 +41,7 @@ export function matchProjectName(raw: string): string | null {
   if (partial) return partial.id;
 
   // Match by street address, since sources often reference the property not the project name
-  const byAddress = MOCK_PROJECTS.find((p) =>
+  const byAddress = projects.find((p) =>
     normalized.includes(p.address.street.toLowerCase())
   );
   if (byAddress) return byAddress.id;

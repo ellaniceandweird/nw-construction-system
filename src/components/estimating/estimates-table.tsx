@@ -4,7 +4,7 @@ import * as React from "react";
 import { Pencil, Plus, ChevronRight, Upload, Sparkles, Printer, ArrowUpDown } from "lucide-react";
 
 import { useEstimates } from "@/hooks/use-estimates";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import { DrawingEstimateDialog } from "@/components/estimating/drawing-estimate-
 import { openPrintWindow } from "@/lib/estimating/print-window";
 import { buildEstimatesListHtml, buildEstimateDetailHtml } from "@/lib/estimating/print-content";
 import type { Estimate } from "@/types/estimating";
+import type { Project } from "@/types/project";
 
 const STATUS_CLASS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -39,11 +40,12 @@ function currency(n: number) {
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
 }
 
 export function EstimatesTable() {
+  const projects = useProjects();
   const estimates = useEstimates();
   const [editing, setEditing] = React.useState<Estimate | null>(null);
   const [creating, setCreating] = React.useState(false);
@@ -61,10 +63,10 @@ export function EstimatesTable() {
   );
 
   function handlePrintList() {
-    openPrintWindow("Estimates", buildEstimatesListHtml(sorted, projectName));
+    openPrintWindow("Estimates", buildEstimatesListHtml(sorted, (id) => projectName(id, projects)));
   }
   function handlePrintEstimate(e: Estimate) {
-    openPrintWindow(`Estimate ${e.estimateNumber}`, buildEstimateDetailHtml(e, projectName(e.projectId)));
+    openPrintWindow(`Estimate ${e.estimateNumber}`, buildEstimateDetailHtml(e, projectName(e.projectId, projects)));
   }
 
   return (
@@ -133,7 +135,7 @@ export function EstimatesTable() {
                         onClick={() => setExpandedId(isExpanded ? null : e.id)}
                       >
                         <ChevronRight className={`size-3.5 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                        {projectName(e.projectId)}
+                        {projectName(e.projectId, projects)}
                       </button>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{e.estimateNumber}</td>
@@ -159,7 +161,7 @@ export function EstimatesTable() {
                             <Printer className="size-3.5" /> Print Estimate
                           </Button>
                         </div>
-                        <EstimateBudgetSheet estimate={e} projectName={projectName(e.projectId)} />
+                        <EstimateBudgetSheet estimate={e} projectName={projectName(e.projectId, projects)} />
                       </td>
                     </tr>
                   )}

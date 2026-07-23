@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { addActivity } from "@/lib/scheduling/activity-store";
 import type { ActivityInput } from "@/lib/scheduling/activity-store";
 import type { ActivityStatus } from "@/types/scheduling";
@@ -35,6 +35,7 @@ function emptyRow(): ActivityInput {
 }
 
 export function BulkAddActivitiesDialog({ open, onOpenChange }: Props) {
+  const projects = useProjects();
   const [rows, setRows] = React.useState<ActivityInput[]>([emptyRow()]);
   const [saved, setSaved] = React.useState(0);
 
@@ -57,7 +58,7 @@ export function BulkAddActivitiesDialog({ open, onOpenChange }: Props) {
     let count = 0;
     for (const row of rows) {
       if (!row.projectId || !row.name || !row.plannedStart || !row.plannedFinish) continue;
-      const project = MOCK_PROJECTS.find((p) => p.id === row.projectId);
+      const project = projects.find((p) => p.id === row.projectId);
       addActivity(row, project?.projectName ?? "");
       count += 1;
     }
@@ -100,7 +101,7 @@ export function BulkAddActivitiesDialog({ open, onOpenChange }: Props) {
                     <Select value={row.projectId} onValueChange={(v) => updateRow(index, { projectId: v })}>
                       <SelectTrigger className="h-8 w-full border-0 shadow-none"><SelectValue placeholder="Select project" /></SelectTrigger>
                       <SelectContent>
-                        {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+                        {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </td>

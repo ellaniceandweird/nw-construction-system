@@ -6,7 +6,7 @@ import { Search, Plus, Pencil } from "lucide-react";
 
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { addMaintenanceTask, updateTaskStatus } from "@/lib/maintenance/maintenance-task-store";
-import { MOCK_PROPERTIES } from "@/lib/data/mock/properties";
+import { useProperties } from "@/hooks/use-properties";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -56,6 +56,7 @@ function formatDate(d?: string) {
 
 export function MaintenanceTasksTable() {
   const tasks = useMaintenanceTasks();
+  const properties = useProperties();
   const searchParams = useSearchParams();
   const highlightId = searchParams.get("highlight");
   const highlightRef = React.useRef<HTMLTableRowElement>(null);
@@ -155,7 +156,7 @@ export function MaintenanceTasksTable() {
                 <SelectValue placeholder="Property" />
               </SelectTrigger>
               <SelectContent>
-                {MOCK_PROPERTIES.map((p) => (
+                {properties.map((p) => (
                   <SelectItem key={p.id} value={p.name}>
                     {p.name}
                   </SelectItem>

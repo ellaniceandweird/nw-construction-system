@@ -7,7 +7,7 @@ import { Users, ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", {
@@ -19,6 +19,7 @@ function formatDate(d: string) {
 }
 
 export default function DailyRollupPage() {
+  const projects = useProjects();
   const params = useParams<{ date: string }>();
   const logs = useDailyLogs();
 
@@ -78,7 +79,7 @@ export default function DailyRollupPage() {
           <tbody>
             {logsForDay.flatMap((log) => {
               return log.timeEntries.map((entry, i) => {
-                const entryProject = MOCK_PROJECTS.find((p) => p.id === entry.projectId);
+                const entryProject = projects.find((p) => p.id === entry.projectId);
                 return (
                   <tr key={`${log.id}-${i}`} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                     <td className="px-4 py-3 font-medium text-foreground">{entry.employeeName}</td>

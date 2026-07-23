@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createCostTransaction } from "@/lib/financial/cost-transaction-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import type { CostTransaction } from "@/types/financial";
 
 interface Props { open: boolean; onOpenChange: (open: boolean) => void; }
@@ -19,6 +19,7 @@ const CATEGORY_OPTIONS: { value: CostTransaction["category"]; label: string }[] 
 ];
 
 export function AddCostTransactionDialog({ open, onOpenChange }: Props) {
+  const projects = useProjects();
   const [projectId, setProjectId] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [costCode, setCostCode] = React.useState("");
@@ -52,7 +53,7 @@ export function AddCostTransactionDialog({ open, onOpenChange }: Props) {
             <Label>Property</Label>
             <Select value={projectId} onValueChange={setProjectId}>
               <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select project" /></SelectTrigger>
-              <SelectContent>{MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}</SelectContent>
+              <SelectContent>{projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}</SelectContent>
             </Select>
           </div>
           <div><Label htmlFor="description">Description</Label><Input id="description" className="mt-1.5" value={description} onChange={(e) => setDescription(e.target.value)} /></div>

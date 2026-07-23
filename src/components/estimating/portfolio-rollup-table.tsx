@@ -6,10 +6,11 @@ import { ArrowUpDown } from "lucide-react";
 import { useEstimates } from "@/hooks/use-estimates";
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
 import { useChangeOrders } from "@/hooks/use-change-orders";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { computePortfolioTotals } from "@/lib/estimating/portfolio-rollup";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { Project } from "@/types/project";
 import {
   Select,
   SelectContent,
@@ -21,8 +22,8 @@ import {
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
 }
 
 function SummaryCard({ label, value, tone }: { label: string; value: string; tone?: "success" | "destructive" }) {
@@ -37,6 +38,7 @@ function SummaryCard({ label, value, tone }: { label: string; value: string; ton
 }
 
 export function PortfolioRollupTable() {
+  const projects = useProjects();
   const estimates = useEstimates();
   const purchaseOrders = usePurchaseOrders();
   const changeOrders = useChangeOrders();
@@ -47,7 +49,7 @@ export function PortfolioRollupTable() {
   const sortedRows = [...totals.rows].sort((a, b) => {
     if (sortBy === "budget_desc") return b.revisedBudget - a.revisedBudget;
     if (sortBy === "variance_asc") return a.variance - b.variance;
-    return projectName(a.projectId).localeCompare(projectName(b.projectId));
+    return projectName(a.projectId, projects).localeCompare(projectName(b.projectId, projects));
   });
 
   return (
@@ -99,7 +101,7 @@ export function PortfolioRollupTable() {
           <tbody>
             {sortedRows.map((r) => (
               <tr key={r.estimateId} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
-                <td className="px-4 py-3 font-medium text-foreground">{projectName(r.projectId)}</td>
+                <td className="px-4 py-3 font-medium text-foreground">{projectName(r.projectId, projects)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{r.estimateNumber}</td>
                 <td className="px-4 py-3 text-muted-foreground">{currency(r.originalEstimate)}</td>
                 <td className="px-4 py-3 text-muted-foreground">

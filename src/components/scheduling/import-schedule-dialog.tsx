@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { addActivity } from "@/lib/scheduling/activity-store";
 import { parseExcelFile } from "@/lib/scheduling/import/parse-excel";
 import { parsePdfFile } from "@/lib/scheduling/import/parse-pdf";
@@ -35,6 +35,7 @@ interface ImportScheduleDialogProps {
 type Stage = "pick" | "parsing" | "review" | "done";
 
 export function ImportScheduleDialog({ open, onOpenChange }: ImportScheduleDialogProps) {
+  const projects = useProjects();
   const [stage, setStage] = React.useState<Stage>("pick");
   const [fileName, setFileName] = React.useState("");
   const [fileKind, setFileKind] = React.useState<"excel" | "pdf" | null>(null);
@@ -65,10 +66,10 @@ export function ImportScheduleDialog({ open, onOpenChange }: ImportScheduleDialo
       let parsed: ParsedActivityRow[] = [];
       if (ext === "xlsx" || ext === "xls" || ext === "csv") {
         setFileKind("excel");
-        parsed = await parseExcelFile(file);
+        parsed = await parseExcelFile(file, projects);
       } else if (ext === "pdf") {
         setFileKind("pdf");
-        parsed = await parsePdfFile(file);
+        parsed = await parsePdfFile(file, projects);
       } else {
         setError("Please upload a .xlsx, .csv, or .pdf file.");
         setStage("pick");
@@ -101,7 +102,7 @@ export function ImportScheduleDialog({ open, onOpenChange }: ImportScheduleDialo
     );
 
     for (const row of toImport) {
-      const project = MOCK_PROJECTS.find((p) => p.id === row.matchedProjectId);
+      const project = projects.find((p) => p.id === row.matchedProjectId);
       addActivity(
         {
           projectId: row.matchedProjectId!,
@@ -234,7 +235,7 @@ export function ImportScheduleDialog({ open, onOpenChange }: ImportScheduleDialo
                             <SelectValue placeholder="Select…" />
                           </SelectTrigger>
                           <SelectContent>
-                            {MOCK_PROJECTS.map((p) => (
+                            {projects.map((p) => (
                               <SelectItem key={p.id} value={p.id}>
                                 {p.projectName}
                               </SelectItem>

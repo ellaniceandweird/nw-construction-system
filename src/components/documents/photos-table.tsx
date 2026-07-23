@@ -4,7 +4,7 @@ import { Plus, Trash2, ImageOff, Search } from "lucide-react";
 import { useFieldPhotos } from "@/hooks/use-field-photos";
 import { deletePhoto, restorePhoto } from "@/lib/documents/photo-store";
 import { showUndoToast } from "@/lib/toast/toast-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,10 @@ import {
 } from "@/components/ui/select";
 import { AddPhotosDialog } from "@/components/documents/add-photos-dialog";
 import type { FieldPhoto } from "@/types/field-operations";
+import type { Project } from "@/types/project";
 
-function resolvedProjectName(photo: FieldPhoto) {
-  const match = MOCK_PROJECTS.find((p) => p.id === photo.projectId);
+function resolvedProjectName(photo: FieldPhoto, projects: Project[]) {
+  const match = projects.find((p) => p.id === photo.projectId);
   return match?.projectName ?? photo.projectName ?? "Unspecified Project";
 }
 function formatDate(d: string) {
@@ -42,6 +43,7 @@ function PhotoThumbnail({ photo }: { photo: FieldPhoto }) {
 }
 
 export function PhotosTable() {
+  const projects = useProjects();
   const allPhotos = useFieldPhotos();
   const [adding, setAdding] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -61,7 +63,7 @@ export function PhotosTable() {
     byProject.get(key)!.push(p);
   }
   const projectKeys = [...byProject.keys()].sort((a, b) =>
-    resolvedProjectName(byProject.get(a)![0]).localeCompare(resolvedProjectName(byProject.get(b)![0]))
+    resolvedProjectName(byProject.get(a)![0], projects).localeCompare(resolvedProjectName(byProject.get(b)![0], projects))
   );
 
   return (
@@ -97,7 +99,7 @@ export function PhotosTable() {
       <div className="flex flex-col gap-6">
         {projectKeys.map((key) => (
           <div key={key}>
-            <h3 className="mb-2 text-sm font-semibold text-foreground">{resolvedProjectName(byProject.get(key)![0])}</h3>
+            <h3 className="mb-2 text-sm font-semibold text-foreground">{resolvedProjectName(byProject.get(key)![0], projects)}</h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
               {byProject.get(key)!.map((photo) => (
                 <Card key={photo.id} className="overflow-hidden p-2">

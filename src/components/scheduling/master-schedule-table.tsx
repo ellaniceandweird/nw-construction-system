@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight, Search, Plus, Pencil, Trash2, Upload, Table2 } from "lucide-react";
 
 import { useActivities } from "@/hooks/use-activities";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { deleteActivity } from "@/lib/scheduling/activity-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ function formatDate(d: string) {
 }
 
 export function MasterScheduleTable() {
+  const projects = useProjects();
   const activities = useActivities();
   const searchParams = useSearchParams();
   const highlightId = searchParams.get("highlight");
@@ -76,7 +77,7 @@ export function MasterScheduleTable() {
     });
   }
 
-  const projectsWithActivities = MOCK_PROJECTS.filter((p) =>
+  const projectsWithActivities = projects.filter((p) =>
     activities.some((a) => a.projectId === p.id)
   );
 
@@ -96,7 +97,7 @@ export function MasterScheduleTable() {
     }
     return [...groups.entries()]
       .map(([projectId, projectActivities]) => {
-        const project = MOCK_PROJECTS.find((p) => p.id === projectId);
+        const project = projects.find((p) => p.id === projectId);
         const start = projectActivities.reduce((min, a) => (a.plannedStart < min ? a.plannedStart : min), projectActivities[0].plannedStart);
         const finish = projectActivities.reduce((max, a) => (a.plannedFinish > max ? a.plannedFinish : max), projectActivities[0].plannedFinish);
         return { projectId, projectName: project?.projectName ?? "—", activities: projectActivities, start, finish };
@@ -267,7 +268,7 @@ export function MasterScheduleTable() {
         title="Master Schedule — All Activities"
         extraLabel="Duration"
         rows={activities.map((a) => {
-          const project = MOCK_PROJECTS.find((p) => p.id === a.projectId);
+          const project = projects.find((p) => p.id === a.projectId);
           return {
             key: a.id,
             project: project?.projectName ?? "—",

@@ -1,4 +1,4 @@
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import type { Project } from "@/types/project";
 import type { Property } from "@/types/maintenance";
 import type { Estimate } from "@/types/estimating";
 import type { ChangeOrder } from "@/types/change-orders";
@@ -22,6 +22,7 @@ function currency(n: number) {
  * instructed to say so when a question falls outside it.
  */
 export function buildDataDigest(
+  projects: Project[],
   properties: Property[],
   estimates: Estimate[],
   changeOrders: ChangeOrder[],
@@ -36,7 +37,7 @@ export function buildDataDigest(
   const portfolio = computePortfolioTotals(estimates, purchaseOrders, changeOrders);
   const financial = computeFinancialRollup(budgets, transactions);
 
-  const projectLines = MOCK_PROJECTS.map((p) => {
+  const projectLines = projects.map((p) => {
     const estimate = estimates.find((e) => e.projectId === p.id);
     return `- ${p.projectName} (${p.projectNumber}) — status: ${p.calculatedStatus}, health: ${p.healthScore}/100, ${p.completionPercent}% complete, approved budget ${currency(p.approvedBudget)}, actual cost to date ${currency(p.actualCostToDate ?? 0)}${estimate ? `, estimate ${estimate.estimateNumber} (${estimate.estimateStatus})` : ""}`;
   }).join("\n");
@@ -59,7 +60,7 @@ NICE & WEIRD GROUP — CURRENT BUSINESS SNAPSHOT
 
 PORTFOLIO TOTALS (Estimating)
 Total properties: ${properties.length}
-Total projects: ${MOCK_PROJECTS.length}
+Total projects: ${projects.length}
 Original estimated (all projects with an estimate): ${currency(portfolio.totalOriginalEstimated)}
 Approved changes: ${currency(portfolio.totalApprovedChanges)}
 Revised budget: ${currency(portfolio.totalRevisedBudget)}
@@ -70,7 +71,7 @@ Total budget (Financial module budgets): ${currency(financial.totalBudget)}
 Actual spent (Cost Ledger): ${currency(financial.totalActualSpent)}
 Remaining: ${currency(financial.totalRemaining)}
 
-PROJECTS (${MOCK_PROJECTS.length})
+PROJECTS (${projects.length})
 ${projectLines}
 
 PROPERTIES (${properties.length})

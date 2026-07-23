@@ -2,7 +2,7 @@ import type { DailyLog } from "@/types/field-operations";
 import type { FieldWorkerRate } from "@/types/references";
 import type { Property } from "@/types/maintenance";
 import type { FieldWorkerInvoice, FieldWorkerInvoiceLineItem } from "@/types/field-worker-invoices";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import type { Project } from "@/types/project";
 import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
 
 interface GenerateOptions {
@@ -26,6 +26,7 @@ export function generateFieldWorkerInvoices(
   dailyLogs: DailyLog[],
   rates: FieldWorkerRate[],
   properties: Property[],
+  projects: Project[],
   options: GenerateOptions
 ): Omit<FieldWorkerInvoice, "id" | "createdBy" | "createdDate" | "lastModifiedBy" | "lastModifiedDate" | "revisionNumber" | "module" | "status" | "invoiceNumber">[] {
   const byEmployee = new Map<string, { name: string; trade?: string; lineItems: FieldWorkerInvoiceLineItem[] }>();
@@ -38,7 +39,7 @@ export function generateFieldWorkerInvoices(
       const rate = rates.find((r) => r.employeeId === entry.employeeId);
       const regularRate = rate?.hourlyRate ?? 0;
       const overtimeRate = rate?.overtimeRate ?? regularRate * 1.5;
-      const project = MOCK_PROJECTS.find((p) => p.id === entry.projectId);
+      const project = projects.find((p) => p.id === entry.projectId);
       const billingEntityId = project ? getBillingEntityIdForProject(project, properties) : undefined;
 
       const lineItem: FieldWorkerInvoiceLineItem = {

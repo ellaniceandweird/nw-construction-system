@@ -1,5 +1,5 @@
 import type { Activity } from "@/types/scheduling";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import type { Project } from "@/types/project";
 
 function formatShortDate(d: Date) {
   return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
@@ -20,7 +20,8 @@ function formatCompletionDate(dateStr: string) {
  */
 export function generateDailyFieldUpdateText(
   date: Date,
-  scheduled: Array<{ activity: Activity; assignedCrew: number }>
+  scheduled: Array<{ activity: Activity; assignedCrew: number }>,
+  projects: Project[]
 ): string {
   const byProject = new Map<string, Array<{ activity: Activity; assignedCrew: number }>>();
   for (const s of scheduled) {
@@ -38,7 +39,7 @@ export function generateDailyFieldUpdateText(
   }
 
   for (const [projectId, items] of byProject) {
-    const project = MOCK_PROJECTS.find((p) => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
     lines.push(`${project?.projectName ?? "Project"} — due ${project ? formatCompletionDate(project.plannedCompletionDate) : "—"}`);
     for (const item of items.slice(0, 5)) {
       lines.push(`- ${item.activity.name} (${item.assignedCrew} ${item.assignedCrew === 1 ? "person" : "people"})`);

@@ -3,10 +3,11 @@ import * as React from "react";
 import { ArrowUpDown } from "lucide-react";
 import { useBudgets } from "@/hooks/use-budgets";
 import { useCostTransactions } from "@/hooks/use-cost-transactions";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { computeFinancialRollup } from "@/lib/financial/financial-rollup";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { Project } from "@/types/project";
 import {
   Select,
   SelectContent,
@@ -18,8 +19,8 @@ import {
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
 }
 
 function SummaryCard({ label, value, tone }: { label: string; value: string; tone?: "success" | "destructive" }) {
@@ -34,6 +35,7 @@ function SummaryCard({ label, value, tone }: { label: string; value: string; ton
 }
 
 export function FinancialRollupTable() {
+  const projects = useProjects();
   const budgets = useBudgets();
   const transactions = useCostTransactions();
   const [sortBy, setSortBy] = React.useState<"project" | "budget_desc" | "remaining_asc">("project");
@@ -42,7 +44,7 @@ export function FinancialRollupTable() {
   const sortedRows = [...totals.rows].sort((a, b) => {
     if (sortBy === "budget_desc") return b.currentBudget - a.currentBudget;
     if (sortBy === "remaining_asc") return a.remaining - b.remaining;
-    return projectName(a.projectId).localeCompare(projectName(b.projectId));
+    return projectName(a.projectId, projects).localeCompare(projectName(b.projectId, projects));
   });
 
   return (
@@ -86,7 +88,7 @@ export function FinancialRollupTable() {
           <tbody>
             {sortedRows.map((r) => (
               <tr key={r.budgetId} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
-                <td className="px-4 py-3 font-medium text-foreground">{projectName(r.projectId)}</td>
+                <td className="px-4 py-3 font-medium text-foreground">{projectName(r.projectId, projects)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{currency(r.currentBudget)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{currency(r.actualSpent)}</td>
                 <td className="px-4 py-3">

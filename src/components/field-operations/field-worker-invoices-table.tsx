@@ -16,8 +16,9 @@ import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { deleteFieldWorkerInvoice } from "@/lib/field-operations/field-worker-invoice-store";
 import { exportToExcel } from "@/lib/financial/export-excel";
 import { openPrintWindow } from "@/lib/estimating/print-window";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { GenerateInvoicesDialog } from "@/components/field-operations/generate-invoices-dialog";
+import type { Project } from "@/types/project";
 
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -25,11 +26,12 @@ function currency(n: number) {
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
 }
 
 export function FieldWorkerInvoicesTable() {
+  const projects = useProjects();
   const allInvoices = useFieldWorkerInvoices();
   const billingEntities = useBillingEntities();
   const [generating, setGenerating] = React.useState(false);
@@ -70,7 +72,7 @@ export function FieldWorkerInvoicesTable() {
           "Pay Period": `${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}`,
           Date: formatDate(li.date),
           "Billing Entity": billingEntityName(li.billingEntityId),
-          Project: projectName(li.projectId),
+          Project: projectName(li.projectId, projects),
           "Cost Code": li.costCode ?? "",
           "Work Performed": li.activity,
           "Regular Hours": li.regularHours,
@@ -91,7 +93,7 @@ export function FieldWorkerInvoicesTable() {
         <tr>
           <td>${formatDate(li.date)}</td>
           <td>${billingEntityName(li.billingEntityId)}</td>
-          <td>${projectName(li.projectId)}</td>
+          <td>${projectName(li.projectId, projects)}</td>
           <td>${li.costCode ?? "—"}</td>
           <td>${li.activity}</td>
           <td>${li.regularHours}</td>
@@ -206,7 +208,7 @@ export function FieldWorkerInvoicesTable() {
                                 <tr key={i} className="border-b border-border/60 last:border-0">
                                   <td className="px-4 py-2.5 text-muted-foreground">{formatDate(li.date)}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{billingEntityName(li.billingEntityId)}</td>
-                                  <td className="px-4 py-2.5 text-foreground">{projectName(li.projectId)}</td>
+                                  <td className="px-4 py-2.5 text-foreground">{projectName(li.projectId, projects)}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.costCode ?? "—"}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.activity}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.regularHours}</td>

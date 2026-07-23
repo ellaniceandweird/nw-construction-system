@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
+import { useProjects } from "@/hooks/use-projects";
 import { generateFieldWorkerInvoices } from "@/lib/field-operations/field-worker-invoice-generation";
 import { saveFieldWorkerInvoices } from "@/lib/field-operations/field-worker-invoice-store";
 import type { FieldWorkerInvoiceDraft } from "@/lib/field-operations/field-worker-invoice-store";
@@ -29,6 +30,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
   const dailyLogs = useDailyLogs();
   const rates = useFieldWorkerRates();
   const properties = useProperties();
+  const projects = useProjects();
 
   const [payPeriodStart, setPayPeriodStart] = React.useState("");
   const [payPeriodEnd, setPayPeriodEnd] = React.useState("");
@@ -44,7 +46,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
 
   function handlePreview() {
     if (!payPeriodStart || !payPeriodEnd) return;
-    const drafts = generateFieldWorkerInvoices(dailyLogs, rates, properties, {
+    const drafts = generateFieldWorkerInvoices(dailyLogs, rates, properties, projects, {
       payPeriodStart,
       payPeriodEnd,
     });

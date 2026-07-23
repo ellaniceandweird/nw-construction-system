@@ -9,17 +9,18 @@ import { useChangeOrders } from "@/hooks/use-change-orders";
 import { useCostTrackingNotes } from "@/hooks/use-cost-tracking-notes";
 import { setCostTrackingNote } from "@/lib/estimating/cost-tracking-notes-store";
 import { computeApprovedChangesTotal } from "@/lib/estimating/change-order-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { computeDivisionBudget, computeTotalActual } from "@/lib/estimating/budget-tracking";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import type { Project } from "@/types/project";
 
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
 }
 function percentVariance(variance: number, base: number) {
   if (base === 0) return 0;
@@ -40,6 +41,7 @@ function NotesCell({ estimateId, initialValue }: { estimateId: string; initialVa
 }
 
 export function CostTrackingTable() {
+  const projects = useProjects();
   const estimates = useEstimates();
   const purchaseOrders = usePurchaseOrders();
   const changeOrders = useChangeOrders();
@@ -48,9 +50,9 @@ export function CostTrackingTable() {
   const [search, setSearch] = React.useState("");
 
   const filtered = search
-    ? estimates.filter((e) => projectName(e.projectId).toLowerCase().includes(search.toLowerCase()))
+    ? estimates.filter((e) => projectName(e.projectId, projects).toLowerCase().includes(search.toLowerCase()))
     : estimates;
-  const sorted = [...filtered].sort((a, b) => projectName(a.projectId).localeCompare(projectName(b.projectId)));
+  const sorted = [...filtered].sort((a, b) => projectName(a.projectId, projects).localeCompare(projectName(b.projectId, projects)));
 
   return (
     <>
@@ -103,7 +105,7 @@ export function CostTrackingTable() {
                         onClick={() => setExpandedId(isExpanded ? null : e.id)}
                       >
                         <ChevronRight className={`size-3.5 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                        {projectName(e.projectId)}
+                        {projectName(e.projectId, projects)}
                       </button>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{e.estimateNumber}</td>

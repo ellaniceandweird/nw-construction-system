@@ -1,7 +1,7 @@
 "use client";
 
 import { useActivities } from "@/hooks/use-activities";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { generateLookahead16 } from "@/lib/scheduling/generate";
 import { SchedulePrintTable } from "@/components/scheduling/print/schedule-print-table";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ function formatShort(d: Date) {
 }
 
 export function SixteenWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
+  const projects = useProjects();
   const activities = useActivities();
   const windowStart = new Date(referenceDate);
   windowStart.setHours(0, 0, 0, 0);
@@ -71,7 +72,7 @@ export function SixteenWeekGanttChart({ referenceDate }: { referenceDate: Date }
         {/* Rows */}
         {items.map((item) => {
           const activity = activities.find((a) => a.id === item.activityId);
-          const project = MOCK_PROJECTS.find((p) => p.id === activity?.projectId);
+          const project = projects.find((p) => p.id === activity?.projectId);
 
           const start = parseDate(item.plannedStart);
           const end = parseDate(item.plannedFinish);
@@ -138,7 +139,7 @@ export function SixteenWeekGanttChart({ referenceDate }: { referenceDate: Date }
       extraLabel="Progress"
       rows={items.map((item) => {
         const activity = activities.find((a) => a.id === item.activityId);
-        const project = MOCK_PROJECTS.find((p) => p.id === activity?.projectId);
+        const project = projects.find((p) => p.id === activity?.projectId);
         return {
           key: item.activityId,
           project: project?.projectName ?? "—",

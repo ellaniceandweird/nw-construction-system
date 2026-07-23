@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import { useActivities } from "@/hooks/use-activities";
 import { useTakeoffItems } from "@/hooks/use-takeoff-items";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import {
   detectMaterialsForActivity,
   isOpenActivity,
@@ -83,6 +83,7 @@ function sumTakeoff(
 export function useForecast(): ForecastRow[] {
   const activities = useActivities();
   const takeoffItems = useTakeoffItems();
+  const projects = useProjects();
 
   return useMemo(() => {
     const openActivities = activities.filter(isOpenActivity);
@@ -113,7 +114,7 @@ export function useForecast(): ForecastRow[] {
 
     const rows: ForecastRow[] = [];
     for (const [key, g] of groups) {
-      const project = MOCK_PROJECTS.find((p) => p.id === g.projectId);
+      const project = projects.find((p) => p.id === g.projectId);
       const takeoff = sumTakeoff(takeoffItems, g.projectId, g.materialKey);
       const quantity = takeoff
         ? takeoff.quantity
@@ -137,5 +138,5 @@ export function useForecast(): ForecastRow[] {
     }
 
     return rows.sort((a, b) => new Date(a.neededBy).getTime() - new Date(b.neededBy).getTime());
-  }, [activities, takeoffItems]);
+  }, [activities, takeoffItems, projects]);
 }

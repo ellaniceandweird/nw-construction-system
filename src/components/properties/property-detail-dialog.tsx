@@ -22,7 +22,7 @@ import {
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { updateProperty } from "@/lib/properties/property-store";
 import { getRelatedProjects, getMaintenanceHistory, getPropertyPhotos } from "@/lib/properties/property-relations";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { useMaintenanceLog } from "@/hooks/use-maintenance-log";
@@ -72,6 +72,7 @@ function PropertyPhotoThumbnail({ url, alt }: { url?: string; alt: string }) {
 }
 
 export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
+  const projects = useProjects();
   const tasks = useMaintenanceTasks();
   const schedules = useEquipmentMaintenance();
   const logEntries = useMaintenanceLog();
@@ -92,7 +93,7 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
 
   if (!property) return null;
 
-  const relatedProjects = getRelatedProjects(property, MOCK_PROJECTS);
+  const relatedProjects = getRelatedProjects(property, projects);
   const history = getMaintenanceHistory(property, tasks, schedules, logEntries);
   const openTasks = history.tasks.filter((t) => t.taskStatus !== "complete");
   const closedTasks = history.tasks.filter((t) => t.taskStatus === "complete");

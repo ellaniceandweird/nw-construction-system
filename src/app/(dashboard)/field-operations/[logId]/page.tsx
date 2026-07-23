@@ -6,7 +6,7 @@ import { Cloud, Users, ClipboardList, Package } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { EditableTimeEntriesTable } from "@/components/field-operations/editable-time-entries-table";
 
 function formatDate(d: string) {
@@ -19,13 +19,14 @@ function formatDate(d: string) {
 }
 
 export default function DailyLogDetailPage() {
+  const projects = useProjects();
   const params = useParams<{ logId: string }>();
   const logs = useDailyLogs();
   const log = logs.find((l) => l.id === params.logId);
 
   if (!log) notFound();
 
-  const project = MOCK_PROJECTS.find((p) => p.id === log.projectId);
+  const project = projects.find((p) => p.id === log.projectId);
   const totalHours = log.timeEntries.reduce((s, e) => s + e.regularHours + e.overtimeHours, 0);
   const totalOvertime = log.timeEntries.reduce((s, e) => s + e.overtimeHours, 0);
   const crewCount = new Set(log.timeEntries.map((e) => e.employeeId)).size;

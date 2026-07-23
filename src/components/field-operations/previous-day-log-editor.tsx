@@ -4,7 +4,7 @@ import * as React from "react";
 import { History } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { getMostRecentLog } from "@/lib/field-operations/daily-log-store";
 import { EditableTimeEntriesTable } from "@/components/field-operations/editable-time-entries-table";
@@ -19,6 +19,7 @@ function formatDate(d: string) {
 }
 
 export function PreviousDayLogEditor({ currentDate }: Props) {
+  const projects = useProjects();
   const allLogs = useDailyLogs();
 
   const previousLog = React.useMemo(
@@ -28,7 +29,7 @@ export function PreviousDayLogEditor({ currentDate }: Props) {
 
   if (!currentDate || !previousLog) return null;
 
-  const project = MOCK_PROJECTS.find((p) => p.id === previousLog.projectId);
+  const project = projects.find((p) => p.id === previousLog.projectId);
 
   return (
     <Card>

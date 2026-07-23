@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useActivities } from "@/hooks/use-activities";
 import type { Activity } from "@/types/scheduling";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import type { Project } from "@/types/project";
+import { useProjects } from "@/hooks/use-projects";
 import { getCrewCapacityForDay, getWorkType, type WorkType } from "@/lib/scheduling/capacity";
 import { generateDailyFieldUpdateText } from "@/lib/scheduling/daily-field-update";
 import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-update-dialog";
@@ -27,12 +28,14 @@ function JobCard({
   number,
   activity,
   crewCount,
+  projects,
 }: {
   number: number;
   activity: Activity;
   crewCount: number;
+  projects: Project[];
 }) {
-  const project = MOCK_PROJECTS.find((p) => p.id === activity.projectId);
+  const project = projects.find((p) => p.id === activity.projectId);
   const workType = getWorkType(activity);
 
   return (
@@ -75,6 +78,7 @@ function JobCard({
 }
 
 export function DailyWorkPlanView() {
+  const projects = useProjects();
   const activities = useActivities();
   const [dayOffset, setDayOffset] = React.useState(0);
   const [workTypeFilter, setWorkTypeFilter] = React.useState<WorkType | "all">("all");
@@ -87,7 +91,7 @@ export function DailyWorkPlanView() {
     (s) => workTypeFilter === "all" || getWorkType(s.activity) === workTypeFilter
   );
 
-  const fieldUpdateText = generateDailyFieldUpdateText(date, capacity.scheduled);
+  const fieldUpdateText = generateDailyFieldUpdateText(date, capacity.scheduled, projects);
 
   return (
     <div className="flex flex-col gap-5">
@@ -159,7 +163,7 @@ export function DailyWorkPlanView() {
           </p>
         )}
         {filteredScheduled.map((s, i) => (
-          <JobCard key={s.activity.id} number={i + 1} activity={s.activity} crewCount={s.assignedCrew} />
+          <JobCard key={s.activity.id} number={i + 1} activity={s.activity} crewCount={s.assignedCrew} projects={projects} />
         ))}
       </div>
 
@@ -170,7 +174,7 @@ export function DailyWorkPlanView() {
             Needs More Crew — Reschedule or Add Help
           </h2>
           {capacity.deferred.map((d) => {
-            const project = MOCK_PROJECTS.find((p) => p.id === d.activity.projectId);
+            const project = projects.find((p) => p.id === d.activity.projectId);
             return (
               <div
                 key={d.activity.id}
@@ -202,7 +206,7 @@ export function DailyWorkPlanView() {
           </thead>
           <tbody>
             {capacity.scheduled.map((s) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === s.activity.projectId);
+              const project = projects.find((p) => p.id === s.activity.projectId);
               return (
                 <tr key={s.activity.id} className="border-b border-black/15">
                   <td className="py-1.5 pr-3 font-medium">{project?.projectName ?? "—"}</td>
@@ -228,7 +232,7 @@ export function DailyWorkPlanView() {
               );
             })}
             {capacity.deferred.map((d) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === d.activity.projectId);
+              const project = projects.find((p) => p.id === d.activity.projectId);
               return (
                 <tr key={d.activity.id} className="border-b border-black/15">
                   <td className="py-1.5 pr-3 font-medium">{project?.projectName ?? "—"}</td>

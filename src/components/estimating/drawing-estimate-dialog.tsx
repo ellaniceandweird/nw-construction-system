@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createEstimate, withComputedLineItemTotals } from "@/lib/estimating/estimate-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import type { EstimateLineItem } from "@/types/estimating";
 
 interface Props {
@@ -45,6 +45,7 @@ const CONFIDENCE_CLASS: Record<string, string> = {
 };
 
 export function DrawingEstimateDialog({ open, onOpenChange }: Props) {
+  const projects = useProjects();
   const [stage, setStage] = React.useState<Stage>("pick");
   const [fileName, setFileName] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -207,7 +208,7 @@ export function DrawingEstimateDialog({ open, onOpenChange }: Props) {
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_PROJECTS.map((p) => (
+                  {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
                   ))}
                 </SelectContent>

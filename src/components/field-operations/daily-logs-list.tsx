@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search, Cloud, CloudRain, Sun, Wind, Snowflake } from "lucide-react";
 
 import { useDailyLogs } from "@/hooks/use-daily-logs";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -32,16 +32,17 @@ function formatDate(d: string) {
 }
 
 export function DailyLogsList() {
+  const projects = useProjects();
   const logs = useDailyLogs();
   const [search, setSearch] = React.useState("");
   const [projectFilter, setProjectFilter] = React.useState("all");
 
-  const projectsWithLogs = MOCK_PROJECTS.filter((p) =>
+  const projectsWithLogs = projects.filter((p) =>
     logs.some((l) => l.projectId === p.id)
   );
 
   const filtered = logs.filter((log) => {
-    const project = MOCK_PROJECTS.find((p) => p.id === log.projectId);
+    const project = projects.find((p) => p.id === log.projectId);
     const matchesSearch = (project?.projectName ?? "").toLowerCase().includes(search.toLowerCase());
     const matchesProject = projectFilter === "all" || log.projectId === projectFilter;
     return matchesSearch && matchesProject;
@@ -90,7 +91,7 @@ export function DailyLogsList() {
           </thead>
           <tbody>
             {filtered.map((log) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === log.projectId);
+              const project = projects.find((p) => p.id === log.projectId);
               const totalHours = log.timeEntries.reduce((s, e) => s + e.regularHours + e.overtimeHours, 0);
               const crewCount = new Set(log.timeEntries.map((e) => e.employeeId)).size;
               const WeatherIcon = WEATHER_ICON[log.weatherCondition] ?? Sun;

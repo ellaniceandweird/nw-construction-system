@@ -26,7 +26,7 @@ import { upsertQuoteResponse, awardRFQ } from "@/lib/procurement/rfq-store";
 import { createPurchaseOrderFromQuote } from "@/lib/procurement/purchase-order-store";
 import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
 import { useVendors } from "@/hooks/use-vendors";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import type { VendorQuoteResponse } from "@/types/procurement";
 
 interface Props {
@@ -44,6 +44,7 @@ interface Props {
 }
 
 export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange }: Props) {
+  const projects = useProjects();
   const rfqs = useRFQs();
   const properties = useProperties();
   const vendors = useVendors();
@@ -109,7 +110,7 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
     upsertQuoteResponse(rfq.id, input);
     if (status === "awarded") {
       awardRFQ(rfq.id, selectedVendorId);
-      const project = MOCK_PROJECTS.find((p) => p.id === rfq.projectId);
+      const project = projects.find((p) => p.id === rfq.projectId);
       const billingEntityId = project ? getBillingEntityIdForProject(project, properties) : undefined;
       if (billingEntityId) {
         createPurchaseOrderFromQuote({
@@ -150,7 +151,7 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
             <Label>RFQ</Label>
             {rfqLocked ? (
               <p className="mt-1.5 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                {rfq?.rfqNumber} — {MOCK_PROJECTS.find((p) => p.id === rfq?.projectId)?.projectName}
+                {rfq?.rfqNumber} — {projects.find((p) => p.id === rfq?.projectId)?.projectName}
               </p>
             ) : (
               <Select value={selectedRfqId} onValueChange={setSelectedRfqId}>
@@ -160,7 +161,7 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
                 <SelectContent>
                   {rfqs.map((r) => (
                     <SelectItem key={r.id} value={r.id}>
-                      {r.rfqNumber} — {MOCK_PROJECTS.find((p) => p.id === r.projectId)?.projectName}
+                      {r.rfqNumber} — {projects.find((p) => p.id === r.projectId)?.projectName}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -6,7 +6,7 @@ import { Pencil, Plus, ArrowUpDown } from "lucide-react";
 import { useRFQs } from "@/hooks/use-rfqs";
 import { useVendors } from "@/hooks/use-vendors";
 import type { Vendor } from "@/types/procurement";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { getRequiredApprovers } from "@/lib/procurement/quote-approval";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +47,7 @@ function vendorName(id: string, vendors: Vendor[]) {
 }
 
 export function QuotesTable() {
+  const projects = useProjects();
   const rfqs = useRFQs();
   const vendors = useVendors();
   const [editing, setEditing] = React.useState<{ rfqId: string; vendorId: string } | null>(null);
@@ -130,7 +131,7 @@ export function QuotesTable() {
           </thead>
           <tbody>
             {rows.map(({ rfq, resp }: { rfq: RequestForQuotation; resp: VendorQuoteResponse }) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === rfq.projectId);
+              const project = projects.find((p) => p.id === rfq.projectId);
               const isAwarded = rfq.awardedVendorId === resp.vendorId;
               const status = isAwarded ? "awarded" : resp.quoteStatus ?? "pending_approval";
               const totalCost = resp.quotedPrice + (resp.freight ?? 0) + (resp.tax ?? 0);

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useProperties } from "@/hooks/use-properties";
+import { useProjects } from "@/hooks/use-projects";
 import { useEstimates } from "@/hooks/use-estimates";
 import { useChangeOrders } from "@/hooks/use-change-orders";
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
@@ -31,6 +32,7 @@ const STARTER_PROMPTS = [
 
 export function AiChat() {
   const properties = useProperties();
+  const projects = useProjects();
   const estimates = useEstimates();
   const changeOrders = useChangeOrders();
   const purchaseOrders = usePurchaseOrders();
@@ -62,7 +64,7 @@ export function AiChat() {
     setLoading(true);
 
     const dataDigest = buildDataDigest(
-      properties, estimates, changeOrders, purchaseOrders, budgets, transactions, invoices, maintenanceTasks, contacts, documents
+      projects, properties, estimates, changeOrders, purchaseOrders, budgets, transactions, invoices, maintenanceTasks, contacts, documents
     );
 
     try {

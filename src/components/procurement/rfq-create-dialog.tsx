@@ -25,7 +25,7 @@ import { createRFQ } from "@/lib/procurement/rfq-store";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 import { Trash2 } from "lucide-react";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { useMaterialRequests } from "@/hooks/use-material-requests";
 
@@ -45,6 +45,7 @@ export function RfqCreateDialog({
   initialProjectId,
   initialMaterialList,
 }: Props) {
+  const projects = useProjects();
   const vendors = useVendors();
   const materialRequests = useMaterialRequests();
 
@@ -129,7 +130,7 @@ export function RfqCreateDialog({
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_PROJECTS.map((p) => (
+                  {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.projectName}
                     </SelectItem>

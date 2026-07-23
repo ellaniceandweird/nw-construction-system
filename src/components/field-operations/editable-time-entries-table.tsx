@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
@@ -56,6 +56,7 @@ function emptyEntry(defaultProjectId: string): DailyTimeEntry {
  * so the two never drift out of sync feature-wise.
  */
 export function EditableTimeEntriesTable({ log }: Props) {
+  const projects = useProjects();
   const allActivities = useActivities();
   const workerRates = useFieldWorkerRates();
   const properties = useProperties();
@@ -92,7 +93,7 @@ export function EditableTimeEntriesTable({ log }: Props) {
       });
       return;
     }
-    const proj = MOCK_PROJECTS.find((p) => p.id === projectId);
+    const proj = projects.find((p) => p.id === projectId);
     const property = proj ? getPropertyForProject(proj, properties) : undefined;
     updateTimeEntry(log.id, index, {
       projectId,
@@ -174,7 +175,7 @@ export function EditableTimeEntriesTable({ log }: Props) {
                   <Select value={entry.projectId} onValueChange={(v) => handleProjectChange(index, v)}>
                     <SelectTrigger className="w-full"><SelectValue placeholder="Select project" /></SelectTrigger>
                     <SelectContent>
-                      {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+                      {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
                       <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
                     </SelectContent>
                   </Select>

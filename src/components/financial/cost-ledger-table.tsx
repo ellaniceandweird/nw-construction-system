@@ -5,7 +5,7 @@ import { useCostTransactions } from "@/hooks/use-cost-transactions";
 import { useCostLedgerNotes } from "@/hooks/use-cost-ledger-notes";
 import { setCostLedgerNote } from "@/lib/financial/cost-ledger-notes-store";
 import { exportToExcel } from "@/lib/financial/export-excel";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import type { Vendor } from "@/types/procurement";
 import { Card } from "@/components/ui/card";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowUpDown } from "lucide-react";
 import { AddCostTransactionDialog } from "@/components/financial/add-cost-transaction-dialog";
+import type { Project } from "@/types/project";
 
 const SOURCE_LABEL: Record<string, string> = {
   procurement: "Procurement",
@@ -35,8 +36,8 @@ function currency(n: number) {
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
 }
 function vendorName(id: string | undefined, vendors: Vendor[]) {
   if (!id) return "—";
@@ -57,6 +58,7 @@ function NotesCell({ transactionId, initialValue }: { transactionId: string; ini
 }
 
 export function CostLedgerTable() {
+  const projects = useProjects();
   const allTransactions = useCostTransactions();
   const vendors = useVendors();
   const notes = useCostLedgerNotes();
@@ -92,7 +94,7 @@ export function CostLedgerTable() {
       "Cost Ledger",
       transactions.map((t) => ({
         Date: formatDate(t.date),
-        Property: projectName(t.projectId),
+        Property: projectName(t.projectId, projects),
         Description: t.description,
         "Cost Code": t.costCode || "",
         Vendor: vendorName(t.vendorId, vendors),
@@ -110,7 +112,7 @@ export function CostLedgerTable() {
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Projects" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Projects</SelectItem>
-            {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+            {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
           </SelectContent>
         </Select>
         <Select value={sourceFilter} onValueChange={setSourceFilter}>
@@ -169,7 +171,7 @@ export function CostLedgerTable() {
             {transactions.map((t) => (
               <tr key={t.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(t.date)}</td>
-                <td className="px-4 py-3 text-foreground">{projectName(t.projectId)}</td>
+                <td className="px-4 py-3 text-foreground">{projectName(t.projectId, projects)}</td>
                 <td className="px-4 py-3 text-muted-foreground max-w-sm">{t.description}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.costCode || "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{vendorName(t.vendorId, vendors)}</td>

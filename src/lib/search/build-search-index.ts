@@ -1,4 +1,4 @@
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import type { Project } from "@/types/project";
 import type { Property } from "@/types/maintenance";
 import type { ProjectDocument, Drawing } from "@/types/documents";
 import type { Contact } from "@/types/contacts";
@@ -19,6 +19,7 @@ export interface SearchResultItem {
  * anything just added, not a stale snapshot.
  */
 export function buildSearchIndex(
+  projects: Project[],
   properties: Property[],
   documents: ProjectDocument[],
   drawings: Drawing[],
@@ -27,7 +28,7 @@ export function buildSearchIndex(
 ): SearchResultItem[] {
   const items: SearchResultItem[] = [];
 
-  for (const p of MOCK_PROJECTS) {
+  for (const p of projects) {
     items.push({
       id: p.id,
       title: p.projectName,
@@ -77,7 +78,7 @@ export function buildSearchIndex(
   }
 
   for (const e of estimates) {
-    const project = MOCK_PROJECTS.find((p) => p.id === e.projectId);
+    const project = projects.find((p) => p.id === e.projectId);
     items.push({
       id: e.id,
       title: `${e.estimateNumber} — ${project?.projectName ?? ""}`,

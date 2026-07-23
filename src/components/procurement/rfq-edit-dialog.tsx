@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateRFQ, getRFQStatus } from "@/lib/procurement/rfq-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { useMaterialRequests } from "@/hooks/use-material-requests";
 import type { RequestForQuotation } from "@/types/procurement";
@@ -36,6 +36,7 @@ interface Props {
 const NONE = "none";
 
 export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
+  const projects = useProjects();
   const materialRequests = useMaterialRequests();
   const vendors = useVendors();
 
@@ -104,7 +105,7 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_PROJECTS.map((p) => (
+                  {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.projectName}
                     </SelectItem>

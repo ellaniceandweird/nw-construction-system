@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createChangeOrder, updateChangeOrder, deleteChangeOrder } from "@/lib/estimating/change-order-store";
 import { useEstimates } from "@/hooks/use-estimates";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import type { ChangeOrder, ChangeOrderStatus } from "@/types/change-orders";
+import type { Project } from "@/types/project";
 
 interface Props { changeOrder: ChangeOrder | null; open: boolean; onOpenChange: (open: boolean) => void; }
 
@@ -22,11 +23,12 @@ const STATUS_OPTIONS: { value: ChangeOrderStatus; label: string }[] = [
 
 const MANUAL_ENTRY = "__manual__";
 
-function projectName(id: string) {
-  return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
 }
 
 export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props) {
+  const projects = useProjects();
   const estimates = useEstimates();
   const [estimateId, setEstimateId] = React.useState("");
   const [relatedItem, setRelatedItem] = React.useState("");
@@ -108,7 +110,7 @@ export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props
               <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select estimate" /></SelectTrigger>
               <SelectContent>
                 {estimates.map((e) => (
-                  <SelectItem key={e.id} value={e.id}>{projectName(e.projectId)} — {e.estimateNumber}</SelectItem>
+                  <SelectItem key={e.id} value={e.id}>{projectName(e.projectId, projects)} — {e.estimateNumber}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

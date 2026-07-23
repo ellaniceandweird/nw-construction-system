@@ -7,7 +7,7 @@ import { useRFQs } from "@/hooks/use-rfqs";
 import { awardRFQ } from "@/lib/procurement/rfq-store";
 import { useVendors } from "@/hooks/use-vendors";
 import type { Vendor } from "@/types/procurement";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ function vendorName(id: string, vendors: Vendor[]) {
 }
 
 export function QuoteComparison() {
+  const projects = useProjects();
   const vendors = useVendors();
   const rfqs = useRFQs();
   const withQuotes = rfqs.filter((r) => r.responses.length > 0);
@@ -40,7 +41,7 @@ export function QuoteComparison() {
   }, [withQuotes, selectedId]);
 
   const rfq = rfqs.find((r) => r.id === selectedId);
-  const project = rfq ? MOCK_PROJECTS.find((p) => p.id === rfq.projectId) : undefined;
+  const project = rfq ? projects.find((p) => p.id === rfq.projectId) : undefined;
 
   if (withQuotes.length === 0) {
     return (
@@ -71,7 +72,7 @@ export function QuoteComparison() {
           <SelectContent>
             {withQuotes.map((r) => (
               <SelectItem key={r.id} value={r.id}>
-                {r.rfqNumber} — {MOCK_PROJECTS.find((p) => p.id === r.projectId)?.projectName}
+                {r.rfqNumber} — {projects.find((p) => p.id === r.projectId)?.projectName}
               </SelectItem>
             ))}
           </SelectContent>

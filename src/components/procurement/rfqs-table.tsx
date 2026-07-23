@@ -5,7 +5,7 @@ import { Pencil, Plus, FileText, Upload, Mail, ArrowUpDown } from "lucide-react"
 
 import { useRFQs } from "@/hooks/use-rfqs";
 import { getRFQStatus } from "@/lib/procurement/rfq-store";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import type { Vendor } from "@/types/procurement";
 import { Card } from "@/components/ui/card";
@@ -43,6 +43,7 @@ function vendorName(id: string, vendors: Vendor[]) {
 }
 
 export function RfqsTable() {
+  const projects = useProjects();
   const rfqs = useRFQs();
   const vendors = useVendors();
   const [creating, setCreating] = React.useState(false);
@@ -73,7 +74,7 @@ export function RfqsTable() {
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Projects" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Projects</SelectItem>
-            {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+            {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
@@ -102,7 +103,7 @@ export function RfqsTable() {
           </thead>
           <tbody>
             {sorted.map((r) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === r.projectId);
+              const project = projects.find((p) => p.id === r.projectId);
               const rfqStatus = getRFQStatus(r);
               return (
                 <tr key={r.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">

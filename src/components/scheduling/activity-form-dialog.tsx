@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import {
   activityFormSchema,
   type ActivityFormValues,
@@ -57,6 +57,7 @@ export function ActivityFormDialog({
   onOpenChange,
   existingActivity,
 }: ActivityFormDialogProps) {
+  const projects = useProjects();
   const {
     register,
     handleSubmit,
@@ -106,7 +107,7 @@ export function ActivityFormDialog({
   }, [open, existingActivity, reset]);
 
   function onSubmit(values: ActivityFormValues) {
-    const project = MOCK_PROJECTS.find((p) => p.id === values.projectId);
+    const project = projects.find((p) => p.id === values.projectId);
     if (existingActivity) {
       updateActivity(existingActivity.id, values);
     } else {
@@ -137,7 +138,7 @@ export function ActivityFormDialog({
                 <SelectValue placeholder="Select a project" />
               </SelectTrigger>
               <SelectContent>
-                {MOCK_PROJECTS.map((p) => (
+                {projects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.projectName}
                   </SelectItem>

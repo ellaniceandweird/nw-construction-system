@@ -1,7 +1,9 @@
+"use client";
+
 import { CheckCircle2, Circle } from "lucide-react";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { MOCK_MILESTONES } from "@/lib/data/mock/milestones";
+import { useMilestones } from "@/hooks/use-milestones";
 
 function formatDate(d?: string) {
   if (!d) return "—";
@@ -9,7 +11,8 @@ function formatDate(d?: string) {
 }
 
 export function ProjectMilestones({ projectId }: { projectId: string }) {
-  const milestones = MOCK_MILESTONES.filter((m) => m.projectId === projectId);
+  const allMilestones = useMilestones();
+  const milestones = allMilestones.filter((m) => m.projectId === projectId);
 
   if (milestones.length === 0) {
     return (

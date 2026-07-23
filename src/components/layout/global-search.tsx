@@ -6,6 +6,7 @@ import { Search, Clock, FolderKanban, Building2, FileText, PenTool, Users, Calcu
 
 import { Input } from "@/components/ui/input";
 import { useProperties } from "@/hooks/use-properties";
+import { useProjects } from "@/hooks/use-projects";
 import { useDocuments } from "@/hooks/use-documents";
 import { useDrawings } from "@/hooks/use-drawings";
 import { useContacts } from "@/hooks/use-contacts";
@@ -26,6 +27,7 @@ const CATEGORY_ICON: Record<SearchResultItem["category"], React.ElementType> = {
 export function GlobalSearch() {
   const router = useRouter();
   const properties = useProperties();
+  const projects = useProjects();
   const documents = useDocuments();
   const drawings = useDrawings();
   const contacts = useContacts();
@@ -37,8 +39,8 @@ export function GlobalSearch() {
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const index = React.useMemo(
-    () => buildSearchIndex(properties, documents, drawings, contacts, estimates),
-    [properties, documents, drawings, contacts, estimates]
+    () => buildSearchIndex(projects, properties, documents, drawings, contacts, estimates),
+    [projects, properties, documents, drawings, contacts, estimates]
   );
   const results = searchItems(index, query);
 

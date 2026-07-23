@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Input } from "@/components/ui/input";
 import { useProperties } from "@/hooks/use-properties";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { getRelatedProjects, getMaintenanceHistory } from "@/lib/properties/property-relations";
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { useMaintenanceLog } from "@/hooks/use-maintenance-log";
@@ -15,6 +15,7 @@ import { PropertyDetailDialog } from "@/components/properties/property-detail-di
 import { recordRecentlyViewed } from "@/lib/search/recently-viewed-store";
 
 export function PropertiesPageClient() {
+  const projects = useProjects();
   const properties = useProperties();
   const tasks = useMaintenanceTasks();
   const schedules = useEquipmentMaintenance();
@@ -52,7 +53,7 @@ export function PropertiesPageClient() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {sorted.map((property) => {
-          const projectCount = getRelatedProjects(property, MOCK_PROJECTS).length;
+          const projectCount = getRelatedProjects(property, projects).length;
           const history = getMaintenanceHistory(property, tasks, schedules, logEntries);
           const openTaskCount = history.tasks.filter((t) => t.taskStatus !== "complete").length;
           return (

@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 
 import { matchProjectName, parseDateFlexible } from "@/lib/scheduling/import/shared";
 import type { ParsedActivityRow } from "@/lib/scheduling/import/shared";
+import type { Project } from "@/types/project";
 
 function normalizeHeader(h: string) {
   return h.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -22,7 +23,7 @@ function findColumn(headers: string[], candidates: string[]): number {
  * against common names, so "Start Date", "Planned Start", and "start" all
  * work the same way.
  */
-export async function parseExcelFile(file: File): Promise<ParsedActivityRow[]> {
+export async function parseExcelFile(file: File, projects: Project[]): Promise<ParsedActivityRow[]> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -62,7 +63,7 @@ export async function parseExcelFile(file: File): Promise<ParsedActivityRow[]> {
     const statusRaw = statusCol !== -1 ? String(row[statusCol] ?? "").toLowerCase() : "";
 
     const warnings: string[] = [];
-    const matchedProjectId = matchProjectName(projectNameRaw);
+    const matchedProjectId = matchProjectName(projectNameRaw, projects);
     if (!matchedProjectId) warnings.push("Couldn't match a project — please select one");
     if (!plannedStart) warnings.push("Start date couldn't be read");
     if (!plannedFinish) warnings.push("Finish date couldn't be read");

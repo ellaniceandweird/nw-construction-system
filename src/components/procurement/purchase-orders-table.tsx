@@ -4,7 +4,7 @@ import * as React from "react";
 import { Pencil, Plus, ArrowUpDown } from "lucide-react";
 
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,7 @@ function formatDate(d?: string) {
 type SortOption = "date_desc" | "date_asc" | "total_desc" | "total_asc";
 
 export function PurchaseOrdersTable() {
+  const projects = useProjects();
   const orders = usePurchaseOrders();
   const vendors = useVendors();
   const [editingOrder, setEditingOrder] = React.useState<PurchaseOrder | null>(null);
@@ -84,7 +85,7 @@ export function PurchaseOrdersTable() {
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Projects" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Projects</SelectItem>
-            {MOCK_PROJECTS.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+            {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
@@ -125,7 +126,7 @@ export function PurchaseOrdersTable() {
           </thead>
           <tbody>
             {sorted.map((po) => {
-              const project = MOCK_PROJECTS.find((p) => p.id === po.projectId);
+              const project = projects.find((p) => p.id === po.projectId);
               const vendor = vendors.find((v) => v.id === po.vendorId);
               return (
                 <tr key={po.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">

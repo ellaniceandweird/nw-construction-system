@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 
 import { findColumn, parseNumber } from "@/lib/estimating/import/shared";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import type { Project } from "@/types/project";
 
 export interface ParsedTakeoffRow {
   projectId: string;
@@ -20,10 +20,10 @@ export interface ParsedTakeoffFile {
   warnings: string[];
 }
 
-function matchProjectId(nameGuess: string): string {
+function matchProjectId(nameGuess: string, projects: Project[]): string {
   if (!nameGuess) return "";
   const normalized = nameGuess.toLowerCase();
-  const match = MOCK_PROJECTS.find(
+  const match = projects.find(
     (p) => normalized.includes(p.projectName.toLowerCase()) || p.projectName.toLowerCase().includes(normalized)
   );
   return match?.id ?? "";
@@ -36,7 +36,7 @@ function matchProjectId(nameGuess: string): string {
  * left without a project — the review step lets you pick one project to
  * apply to the whole batch.
  */
-export async function parseTakeoffExcelFile(file: File): Promise<ParsedTakeoffFile> {
+export async function parseTakeoffExcelFile(file: File, projects: Project[]): Promise<ParsedTakeoffFile> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { cellDates: true });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -89,7 +89,7 @@ export async function parseTakeoffExcelFile(file: File): Promise<ParsedTakeoffFi
     const projectNameGuess = projectCol !== -1 ? String(row[projectCol] ?? "").trim() : "";
 
     parsedRows.push({
-      projectId: matchProjectId(projectNameGuess),
+      projectId: matchProjectId(projectNameGuess, projects),
       projectNameGuess,
       description,
       location: locationCol !== -1 ? String(row[locationCol] ?? "").trim() || undefined : undefined,

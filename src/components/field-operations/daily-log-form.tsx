@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { getPropertyForProject } from "@/lib/properties/property-relations";
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
@@ -74,6 +74,7 @@ function emptyTimeEntry(defaultProjectId: string) {
 }
 
 export function DailyLogForm() {
+  const projects = useProjects();
   const router = useRouter();
   const [submitted, setSubmitted] = React.useState(false);
   const allActivities = useActivities();
@@ -107,7 +108,7 @@ export function DailyLogForm() {
   React.useEffect(() => {
     if (mainProjectId && !seededRef.current) {
       seededRef.current = true;
-      const project = MOCK_PROJECTS.find((p) => p.id === mainProjectId);
+      const project = projects.find((p) => p.id === mainProjectId);
       const property = project ? getPropertyForProject(project, properties) : undefined;
       const propertyFields = property ? { propertyId: property.id, propertyName: property.name } : {};
       const recentCrew = getMostRecentCrew(watchedDate || new Date().toISOString().slice(0, 10));
@@ -169,7 +170,7 @@ export function DailyLogForm() {
     setValue(`timeEntries.${index}.projectId`, projectId, { shouldValidate: true });
     setValue(`timeEntries.${index}.projectName`, "");
 
-    const project = MOCK_PROJECTS.find((p) => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
     const property = project ? getPropertyForProject(project, properties) : undefined;
     if (property) {
       setValue(`timeEntries.${index}.propertyId`, property.id);
@@ -206,7 +207,7 @@ export function DailyLogForm() {
                 <SelectValue placeholder="Select a project" />
               </SelectTrigger>
               <SelectContent>
-                {MOCK_PROJECTS.map((p) => (
+                {projects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.projectName}
                   </SelectItem>
@@ -268,7 +269,7 @@ export function DailyLogForm() {
             variant="outline"
             size="sm"
             onClick={() => {
-              const project = MOCK_PROJECTS.find((p) => p.id === mainProjectId);
+              const project = projects.find((p) => p.id === mainProjectId);
               const property = project ? getPropertyForProject(project, properties) : undefined;
               timeEntryFields.append({
                 ...emptyTimeEntry(mainProjectId ?? ""),
@@ -346,7 +347,7 @@ export function DailyLogForm() {
                       <Select value={rowProjectId} onValueChange={(v) => handleProjectChange(index, v)}>
                         <SelectTrigger className="w-full"><SelectValue placeholder="Select project" /></SelectTrigger>
                         <SelectContent>
-                          {MOCK_PROJECTS.map((p) => (
+                          {projects.map((p) => (
                             <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
                           ))}
                           <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>

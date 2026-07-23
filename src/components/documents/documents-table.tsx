@@ -3,7 +3,7 @@ import * as React from "react";
 import { Pencil, Plus, ExternalLink, Search, Trash2, ArrowUpDown } from "lucide-react";
 import { useDocuments } from "@/hooks/use-documents";
 import { useRowSelection } from "@/hooks/use-row-selection";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,12 @@ import { DocumentEditDialog } from "@/components/documents/document-edit-dialog"
 import { deleteDocument, restoreDocument } from "@/lib/documents/document-store";
 import { showUndoToast } from "@/lib/toast/toast-store";
 import type { ProjectDocument } from "@/types/documents";
+import type { Project } from "@/types/project";
 
 const ALL = "all";
 
-function resolvedProjectName(d: ProjectDocument) {
-  const match = MOCK_PROJECTS.find((p) => p.id === d.projectId);
+function resolvedProjectName(d: ProjectDocument, projects: Project[]) {
+  const match = projects.find((p) => p.id === d.projectId);
   return match?.projectName ?? d.projectName ?? "—";
 }
 function categoryLabel(category: string) {
@@ -32,6 +33,7 @@ function categoryLabel(category: string) {
 }
 
 export function DocumentsTable() {
+  const projects = useProjects();
   const documents = useDocuments();
   const [editing, setEditing] = React.useState<ProjectDocument | null>(null);
   const [creating, setCreating] = React.useState(false);
@@ -41,7 +43,7 @@ export function DocumentsTable() {
   const [sortBy, setSortBy] = React.useState<"recent" | "title">("recent");
 
   const projectsWithDocs = React.useMemo(
-    () => MOCK_PROJECTS.filter((p) => documents.some((d) => d.projectId === p.id)),
+    () => projects.filter((p) => documents.some((d) => d.projectId === p.id)),
     [documents]
   );
   const allTags = React.useMemo(() => {
@@ -168,7 +170,7 @@ export function DocumentsTable() {
                 <td className="px-4 py-3 font-medium text-foreground">{d.documentNumber}</td>
                 <td className="px-4 py-3 text-foreground max-w-xs">{d.title}</td>
                 <td className="px-4 py-3 text-muted-foreground">{d.propertyName ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{resolvedProjectName(d)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{resolvedProjectName(d, projects)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{categoryLabel(d.category)}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">

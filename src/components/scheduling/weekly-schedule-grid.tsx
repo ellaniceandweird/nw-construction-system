@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useActivities } from "@/hooks/use-activities";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { generateWeeklySchedule } from "@/lib/scheduling/generate";
 import type { WeeklyScheduleColor } from "@/types/scheduling";
 
@@ -48,6 +48,7 @@ function formatDate(d: Date) {
 }
 
 export function WeeklyScheduleGrid() {
+  const projects = useProjects();
   const activities = useActivities();
   const [weekOffset, setWeekOffset] = React.useState(0);
 
@@ -92,7 +93,7 @@ export function WeeklyScheduleGrid() {
           <tbody>
             {entries.map((entry) => {
               const activity = activities.find((a) => a.id === entry.activityId);
-              const project = MOCK_PROJECTS.find((p) => p.id === activity?.projectId);
+              const project = projects.find((p) => p.id === activity?.projectId);
               return (
                 <tr key={entry.activityId} className="border-b border-border/60 last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{project?.projectName ?? "—"}</td>
@@ -160,7 +161,7 @@ export function WeeklyScheduleGrid() {
           <tbody>
             {entries.map((entry) => {
               const activity = activities.find((a) => a.id === entry.activityId);
-              const project = MOCK_PROJECTS.find((p) => p.id === activity?.projectId);
+              const project = projects.find((p) => p.id === activity?.projectId);
               return (
                 <tr key={entry.activityId} className="border-b border-black/15">
                   <td className="py-1.5 pr-3 font-medium">{project?.projectName ?? "—"}</td>

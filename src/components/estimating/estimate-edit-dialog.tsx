@@ -25,7 +25,7 @@ import { createEstimate, updateEstimate, deleteEstimate, withComputedLineItemTot
 import { findRateForCostCode } from "@/lib/estimating/cost-database-store";
 import { computeEstimateTotal, computeLineItemTotal } from "@/lib/estimating/estimate-calculations";
 import { useCostCodes } from "@/hooks/use-cost-codes";
-import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
+import { useProjects } from "@/hooks/use-projects";
 import type { Estimate, EstimateLineItem, EstimateStatus } from "@/types/estimating";
 
 interface Props {
@@ -81,6 +81,7 @@ const CONTINGENCY_FIELDS: { key: keyof Contingency; label: string }[] = [
 ];
 
 export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
+  const projects = useProjects();
   const costCodes = useCostCodes();
 
   const [projectId, setProjectId] = React.useState("");
@@ -179,7 +180,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_PROJECTS.map((p) => (
+                  {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
                   ))}
                 </SelectContent>
