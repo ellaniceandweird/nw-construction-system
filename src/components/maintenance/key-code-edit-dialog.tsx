@@ -31,10 +31,9 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
   const properties = useProperties();
   const [propertyId, setPropertyId] = React.useState("");
   const [propertyName, setPropertyName] = React.useState("");
-  const [location, setLocation] = React.useState("");
-  const [keyType, setKeyType] = React.useState("");
-  const [keyCode, setKeyCode] = React.useState("");
-  const [heldBy, setHeldBy] = React.useState("");
+  const [spaceName, setSpaceName] = React.useState("");
+  const [doorIdentifier, setDoorIdentifier] = React.useState("");
+  const [accessCode, setAccessCode] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
@@ -42,10 +41,9 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
     if (open) {
       setPropertyId(entry?.propertyId ?? "");
       setPropertyName(entry?.propertyName ?? "");
-      setLocation(entry?.location ?? "");
-      setKeyType(entry?.keyType ?? "");
-      setKeyCode(entry?.keyCode ?? "");
-      setHeldBy(entry?.heldBy ?? "");
+      setSpaceName(entry?.spaceName ?? "");
+      setDoorIdentifier(entry?.doorIdentifier ?? "");
+      setAccessCode(entry?.accessCode ?? "");
       setNotes(entry?.notes ?? "");
       setConfirmingDelete(false);
     }
@@ -66,10 +64,9 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
     const input = {
       propertyId: propertyId || undefined,
       propertyName,
-      location,
-      keyType: keyType || undefined,
-      keyCode: keyCode || undefined,
-      heldBy: heldBy || undefined,
+      spaceName: spaceName || undefined,
+      doorIdentifier,
+      accessCode: accessCode || undefined,
       notes: notes || undefined,
     };
     if (entry) {
@@ -86,7 +83,7 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
     onOpenChange(false);
   }
 
-  const canSave = propertyName.trim().length > 0 && location.trim().length > 0;
+  const canSave = propertyName.trim().length > 0 && doorIdentifier.trim().length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -114,22 +111,16 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
             )}
           </div>
           <div>
-            <Label htmlFor="location">Location / Door</Label>
-            <Input id="location" className="mt-1.5" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Front Door, Back Gate" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="keyType">Key Type</Label>
-              <Input id="keyType" className="mt-1.5" value={keyType} onChange={(e) => setKeyType(e.target.value)} placeholder="e.g. Physical Key, Keypad Code" />
-            </div>
-            <div>
-              <Label htmlFor="keyCode">Code / Key #</Label>
-              <Input id="keyCode" className="mt-1.5" value={keyCode} onChange={(e) => setKeyCode(e.target.value)} />
-            </div>
+            <Label htmlFor="spaceName">Space / Tenant Name (optional)</Label>
+            <Input id="spaceName" className="mt-1.5" value={spaceName} onChange={(e) => setSpaceName(e.target.value)} placeholder="e.g. Made X, Common, Office" />
           </div>
           <div>
-            <Label htmlFor="heldBy">Held By (optional)</Label>
-            <Input id="heldBy" className="mt-1.5" value={heldBy} onChange={(e) => setHeldBy(e.target.value)} placeholder="Who currently has a copy" />
+            <Label htmlFor="doorIdentifier">Door Identifier</Label>
+            <Input id="doorIdentifier" className="mt-1.5" value={doorIdentifier} onChange={(e) => setDoorIdentifier(e.target.value)} placeholder="e.g. Spiral Stairwell, Rear Exterior" />
+          </div>
+          <div>
+            <Label htmlFor="accessCode">Access Code</Label>
+            <Input id="accessCode" className="mt-1.5 font-mono" value={accessCode} onChange={(e) => setAccessCode(e.target.value)} placeholder="e.g. 6168, 2038" />
           </div>
           <div>
             <Label htmlFor="notes">Notes</Label>

@@ -88,26 +88,27 @@ export interface MaintenanceWorkLogEntry extends BaseEntity {
   notes?: string;
 }
 
-/** Paint colors used at each property/room, so a touch-up always matches exactly. */
+/** Paint colors used at each property/room, so a touch-up always matches exactly. Transcribed from the Master Paint Spreadsheet. */
 export interface PaintLogEntry extends BaseEntity {
   propertyId?: string;
   propertyName: string;
-  location: string; // e.g. "Kitchen", "Exterior Trim", "Master Bedroom"
+  propertyAddress?: string;
+  location: string; // e.g. "Kitchen", "Exterior Siding"
+  location2?: string; // e.g. "Wall & Ceiling", "1st Coat", "Final Coat"
   brand?: string; // e.g. "Benjamin Moore"
-  colorName?: string; // e.g. "Simply White"
-  colorCode?: string; // e.g. "OC-117"
-  sheen?: string; // e.g. "Eggshell", "Semi-Gloss"
-  dateApplied?: string;
-  notes?: string;
+  productType?: string; // e.g. "Regal Select", "Element Guard"
+  finish?: string; // e.g. "Eggshell", "Semi Gloss"
+  color?: string; // e.g. "Decorators White"
+  colorCode?: string; // custom mix formula/code, sometimes multi-line
+  comments?: string;
 }
 
-/** Key/lock codes per property, so a lost key or new hire's access can be sorted quickly. */
+/** Key/lock/alarm codes per property, so a lost key or new hire's access can be sorted quickly. Transcribed from the Door Codes document. */
 export interface KeyCodeEntry extends BaseEntity {
   propertyId?: string;
   propertyName: string;
-  location: string; // e.g. "Front Door", "Back Gate", "Mailbox"
-  keyType?: string; // e.g. "Physical Key", "Keypad Code", "Fob"
-  keyCode?: string;
-  heldBy?: string; // who currently has a copy, if relevant
+  spaceName?: string; // tenant/space, e.g. "Made X", "Common"
+  doorIdentifier: string; // e.g. "Spiral Stairwell", "Rear Exterior", "Alarm Passcode"
+  accessCode?: string; // can hold multiple codes, e.g. "6168, 2038"
   notes?: string;
 }

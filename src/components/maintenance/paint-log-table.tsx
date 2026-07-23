@@ -11,18 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PaintLogEditDialog } from "@/components/maintenance/paint-log-edit-dialog";
 import type { PaintLogEntry } from "@/types/maintenance";
 
-function formatDate(d?: string) {
-  if (!d) return "—";
-  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 export function PaintLogTable() {
   const entries = usePaintLog();
   const [editing, setEditing] = React.useState<PaintLogEntry | null>(null);
   const [creating, setCreating] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [propertyFilter, setPropertyFilter] = React.useState("all");
-  const [sortBy, setSortBy] = React.useState<"property" | "location" | "date_desc">("property");
+  const [sortBy, setSortBy] = React.useState<"property" | "location">("property");
 
   const propertyNames = Array.from(new Set(entries.map((e) => e.propertyName))).sort();
 
@@ -30,21 +25,20 @@ export function PaintLogTable() {
     const matchesProperty = propertyFilter === "all" || e.propertyName === propertyFilter;
     if (!matchesProperty) return false;
     if (!search) return true;
-    const haystack = `${e.propertyName} ${e.location} ${e.brand ?? ""} ${e.colorName ?? ""} ${e.colorCode ?? ""}`.toLowerCase();
+    const haystack = `${e.propertyName} ${e.location} ${e.location2 ?? ""} ${e.brand ?? ""} ${e.color ?? ""} ${e.productType ?? ""}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "location") return a.location.localeCompare(b.location);
-    if (sortBy === "date_desc") return (b.dateApplied ?? "").localeCompare(a.dateApplied ?? "");
-    return a.propertyName.localeCompare(b.propertyName);
-  });
+  const sorted = [...filtered].sort((a, b) =>
+    sortBy === "location" ? a.location.localeCompare(b.location) : a.propertyName.localeCompare(b.propertyName)
+  );
 
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Exact paint used per property/room, so a future touch-up matches without guessing.
+          Exact paint used per property/room — brand, product, finish, color, and any custom
+          mix formula — so a future touch-up matches without guessing.
         </p>
         <Button size="sm" onClick={() => setCreating(true)}>
           <Plus className="size-3.5" /> Add Entry
@@ -68,7 +62,6 @@ export function PaintLogTable() {
           <SelectContent>
             <SelectItem value="property">Property (A-Z)</SelectItem>
             <SelectItem value="location">Location (A-Z)</SelectItem>
-            <SelectItem value="date_desc">Date Applied (Newest)</SelectItem>
           </SelectContent>
         </Select>
         <span className="text-sm text-muted-foreground">{sorted.length} of {entries.length}</span>
@@ -80,11 +73,13 @@ export function PaintLogTable() {
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-4 py-3 font-medium">Property</th>
               <th className="px-4 py-3 font-medium">Location</th>
+              <th className="px-4 py-3 font-medium">Location 2</th>
               <th className="px-4 py-3 font-medium">Brand</th>
-              <th className="px-4 py-3 font-medium">Color Name</th>
-              <th className="px-4 py-3 font-medium">Color Code</th>
-              <th className="px-4 py-3 font-medium">Sheen</th>
-              <th className="px-4 py-3 font-medium">Date Applied</th>
+              <th className="px-4 py-3 font-medium">Product/Type</th>
+              <th className="px-4 py-3 font-medium">Finish</th>
+              <th className="px-4 py-3 font-medium">Color</th>
+              <th className="px-4 py-3 font-medium">Code</th>
+              <th className="px-4 py-3 font-medium">Comments</th>
               <th className="px-4 py-3 font-medium w-10"></th>
             </tr>
           </thead>
@@ -92,12 +87,14 @@ export function PaintLogTable() {
             {sorted.map((e) => (
               <tr key={e.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                 <td className="px-4 py-3 font-medium text-foreground">{e.propertyName}</td>
-                <td className="px-4 py-3 text-muted-foreground">{e.location}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate" title={e.location}>{e.location}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.location2 ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.brand ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{e.colorName ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{e.colorCode ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{e.sheen ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{formatDate(e.dateApplied)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.productType ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.finish ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.color ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[140px] truncate whitespace-pre-line font-mono text-xs" title={e.colorCode}>{e.colorCode ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[180px] truncate" title={e.comments}>{e.comments ?? "—"}</td>
                 <td className="px-4 py-3">
                   <Button variant="ghost" size="icon" onClick={() => setEditing(e)}>
                     <Pencil className="size-3.5" />
@@ -107,7 +104,7 @@ export function PaintLogTable() {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">
                   <PaintBucket className="mx-auto mb-2 size-6 opacity-40" />
                   {entries.length === 0 ? "No paint log entries yet — add the first one above." : "No entries match your filters."}
                 </td>

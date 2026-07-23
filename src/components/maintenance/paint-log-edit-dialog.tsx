@@ -31,26 +31,30 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
   const properties = useProperties();
   const [propertyId, setPropertyId] = React.useState("");
   const [propertyName, setPropertyName] = React.useState("");
+  const [propertyAddress, setPropertyAddress] = React.useState("");
   const [location, setLocation] = React.useState("");
+  const [location2, setLocation2] = React.useState("");
   const [brand, setBrand] = React.useState("");
-  const [colorName, setColorName] = React.useState("");
+  const [productType, setProductType] = React.useState("");
+  const [finish, setFinish] = React.useState("");
+  const [color, setColor] = React.useState("");
   const [colorCode, setColorCode] = React.useState("");
-  const [sheen, setSheen] = React.useState("");
-  const [dateApplied, setDateApplied] = React.useState("");
-  const [notes, setNotes] = React.useState("");
+  const [comments, setComments] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
       setPropertyId(entry?.propertyId ?? "");
       setPropertyName(entry?.propertyName ?? "");
+      setPropertyAddress(entry?.propertyAddress ?? "");
       setLocation(entry?.location ?? "");
+      setLocation2(entry?.location2 ?? "");
       setBrand(entry?.brand ?? "");
-      setColorName(entry?.colorName ?? "");
+      setProductType(entry?.productType ?? "");
+      setFinish(entry?.finish ?? "");
+      setColor(entry?.color ?? "");
       setColorCode(entry?.colorCode ?? "");
-      setSheen(entry?.sheen ?? "");
-      setDateApplied(entry?.dateApplied ?? "");
-      setNotes(entry?.notes ?? "");
+      setComments(entry?.comments ?? "");
       setConfirmingDelete(false);
     }
   }, [entry, open]);
@@ -64,19 +68,22 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
     const property = properties.find((p) => p.id === value);
     setPropertyId(value);
     setPropertyName(property?.name ?? "");
+    if (property?.address) setPropertyAddress(property.address);
   }
 
   function handleSave() {
     const input = {
       propertyId: propertyId || undefined,
       propertyName,
+      propertyAddress: propertyAddress || undefined,
       location,
+      location2: location2 || undefined,
       brand: brand || undefined,
-      colorName: colorName || undefined,
+      productType: productType || undefined,
+      finish: finish || undefined,
+      color: color || undefined,
       colorCode: colorCode || undefined,
-      sheen: sheen || undefined,
-      dateApplied: dateApplied || undefined,
-      notes: notes || undefined,
+      comments: comments || undefined,
     };
     if (entry) {
       updatePaintLogEntry(entry.id, input);
@@ -96,7 +103,7 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{entry ? "Edit Paint Log Entry" : "New Paint Log Entry"}</DialogTitle>
         </DialogHeader>
@@ -120,8 +127,18 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
             )}
           </div>
           <div>
-            <Label htmlFor="location">Location / Room</Label>
-            <Input id="location" className="mt-1.5" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Kitchen, Exterior Trim" />
+            <Label htmlFor="propertyAddress">Property Address (optional)</Label>
+            <Input id="propertyAddress" className="mt-1.5" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} placeholder="e.g. 60 South Front Street" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" className="mt-1.5" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Kitchen, Exterior Siding" />
+            </div>
+            <div>
+              <Label htmlFor="location2">Location 2 (optional)</Label>
+              <Input id="location2" className="mt-1.5" value={location2} onChange={(e) => setLocation2(e.target.value)} placeholder="e.g. Wall & Ceiling, 1st Coat" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -129,27 +146,27 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
               <Input id="brand" className="mt-1.5" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="e.g. Benjamin Moore" />
             </div>
             <div>
-              <Label htmlFor="sheen">Sheen / Finish</Label>
-              <Input id="sheen" className="mt-1.5" value={sheen} onChange={(e) => setSheen(e.target.value)} placeholder="e.g. Eggshell" />
+              <Label htmlFor="productType">Product / Type</Label>
+              <Input id="productType" className="mt-1.5" value={productType} onChange={(e) => setProductType(e.target.value)} placeholder="e.g. Regal Select" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="colorName">Color Name</Label>
-              <Input id="colorName" className="mt-1.5" value={colorName} onChange={(e) => setColorName(e.target.value)} placeholder="e.g. Simply White" />
+              <Label htmlFor="finish">Finish</Label>
+              <Input id="finish" className="mt-1.5" value={finish} onChange={(e) => setFinish(e.target.value)} placeholder="e.g. Eggshell, Semi Gloss" />
             </div>
             <div>
-              <Label htmlFor="colorCode">Color Code</Label>
-              <Input id="colorCode" className="mt-1.5" value={colorCode} onChange={(e) => setColorCode(e.target.value)} placeholder="e.g. OC-117" />
+              <Label htmlFor="color">Color</Label>
+              <Input id="color" className="mt-1.5" value={color} onChange={(e) => setColor(e.target.value)} placeholder="e.g. Decorators White" />
             </div>
           </div>
           <div>
-            <Label htmlFor="dateApplied">Date Applied</Label>
-            <Input id="dateApplied" type="date" className="mt-1.5" value={dateApplied} onChange={(e) => setDateApplied(e.target.value)} />
+            <Label htmlFor="colorCode">Custom Mix Code (optional)</Label>
+            <Textarea id="colorCode" className="mt-1.5 font-mono text-xs" value={colorCode} onChange={(e) => setColorCode(e.target.value)} placeholder="Custom mixing formula, if any" />
           </div>
           <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" className="mt-1.5" value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Label htmlFor="comments">Comments</Label>
+            <Textarea id="comments" className="mt-1.5" value={comments} onChange={(e) => setComments(e.target.value)} />
           </div>
         </div>
         <DialogFooter className="sm:justify-between">

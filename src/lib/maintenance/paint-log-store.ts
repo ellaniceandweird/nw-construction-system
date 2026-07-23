@@ -8,13 +8,15 @@ function fromRow(row: Record<string, any>): PaintLogEntry {
     id: row.id,
     propertyId: row.property_id ?? undefined,
     propertyName: row.property_name,
+    propertyAddress: row.property_address ?? undefined,
     location: row.location,
+    location2: row.location2 ?? undefined,
     brand: row.brand ?? undefined,
-    colorName: row.color_name ?? undefined,
+    productType: row.product_type ?? undefined,
+    finish: row.finish ?? undefined,
+    color: row.color ?? undefined,
     colorCode: row.color_code ?? undefined,
-    sheen: row.sheen ?? undefined,
-    dateApplied: row.date_applied ?? undefined,
-    notes: row.notes ?? undefined,
+    comments: row.comments ?? undefined,
     createdBy: row.created_by ?? "system",
     createdDate: row.created_date ?? new Date().toISOString(),
     lastModifiedBy: row.last_modified_by ?? "system",
@@ -30,13 +32,15 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.id !== undefined) row.id = input.id;
   if (input.propertyId !== undefined) row.property_id = input.propertyId;
   if (input.propertyName !== undefined) row.property_name = input.propertyName;
+  if (input.propertyAddress !== undefined) row.property_address = input.propertyAddress;
   if (input.location !== undefined) row.location = input.location;
+  if (input.location2 !== undefined) row.location2 = input.location2;
   if (input.brand !== undefined) row.brand = input.brand;
-  if (input.colorName !== undefined) row.color_name = input.colorName;
+  if (input.productType !== undefined) row.product_type = input.productType;
+  if (input.finish !== undefined) row.finish = input.finish;
+  if (input.color !== undefined) row.color = input.color;
   if (input.colorCode !== undefined) row.color_code = input.colorCode;
-  if (input.sheen !== undefined) row.sheen = input.sheen;
-  if (input.dateApplied !== undefined) row.date_applied = input.dateApplied;
-  if (input.notes !== undefined) row.notes = input.notes;
+  if (input.comments !== undefined) row.comments = input.comments;
   row.last_modified_date = new Date().toISOString();
   return row;
 }
@@ -55,13 +59,15 @@ export const getPaintLogSnapshot = store.getSnapshot;
 export interface PaintLogInput {
   propertyId?: string;
   propertyName: string;
+  propertyAddress?: string;
   location: string;
+  location2?: string;
   brand?: string;
-  colorName?: string;
+  productType?: string;
+  finish?: string;
+  color?: string;
   colorCode?: string;
-  sheen?: string;
-  dateApplied?: string;
-  notes?: string;
+  comments?: string;
 }
 
 function nextId(): string {

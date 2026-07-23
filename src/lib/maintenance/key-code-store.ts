@@ -8,10 +8,9 @@ function fromRow(row: Record<string, any>): KeyCodeEntry {
     id: row.id,
     propertyId: row.property_id ?? undefined,
     propertyName: row.property_name,
-    location: row.location,
-    keyType: row.key_type ?? undefined,
-    keyCode: row.key_code ?? undefined,
-    heldBy: row.held_by ?? undefined,
+    spaceName: row.space_name ?? undefined,
+    doorIdentifier: row.door_identifier,
+    accessCode: row.access_code ?? undefined,
     notes: row.notes ?? undefined,
     createdBy: row.created_by ?? "system",
     createdDate: row.created_date ?? new Date().toISOString(),
@@ -28,10 +27,9 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.id !== undefined) row.id = input.id;
   if (input.propertyId !== undefined) row.property_id = input.propertyId;
   if (input.propertyName !== undefined) row.property_name = input.propertyName;
-  if (input.location !== undefined) row.location = input.location;
-  if (input.keyType !== undefined) row.key_type = input.keyType;
-  if (input.keyCode !== undefined) row.key_code = input.keyCode;
-  if (input.heldBy !== undefined) row.held_by = input.heldBy;
+  if (input.spaceName !== undefined) row.space_name = input.spaceName;
+  if (input.doorIdentifier !== undefined) row.door_identifier = input.doorIdentifier;
+  if (input.accessCode !== undefined) row.access_code = input.accessCode;
   if (input.notes !== undefined) row.notes = input.notes;
   row.last_modified_date = new Date().toISOString();
   return row;
@@ -51,10 +49,9 @@ export const getKeyCodesSnapshot = store.getSnapshot;
 export interface KeyCodeInput {
   propertyId?: string;
   propertyName: string;
-  location: string;
-  keyType?: string;
-  keyCode?: string;
-  heldBy?: string;
+  spaceName?: string;
+  doorIdentifier: string;
+  accessCode?: string;
   notes?: string;
 }
 
