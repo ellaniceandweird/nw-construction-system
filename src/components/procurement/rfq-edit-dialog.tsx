@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { updateRFQ, getRFQStatus } from "@/lib/procurement/rfq-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
 import { useMaterialRequests } from "@/hooks/use-material-requests";
 import type { RequestForQuotation } from "@/types/procurement";
 
@@ -37,6 +37,7 @@ const NONE = "none";
 
 export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
   const materialRequests = useMaterialRequests();
+  const vendors = useVendors();
 
   const [projectId, setProjectId] = React.useState("");
   const [materialRequestId, setMaterialRequestId] = React.useState(NONE);
@@ -170,7 +171,7 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
           <div>
             <Label>Invited Vendors</Label>
             <div className="mt-1.5 flex max-h-40 flex-col gap-2 overflow-y-auto rounded-md border border-border p-3">
-              {MOCK_VENDORS.filter((v) => v.supplierType !== "subcontractor").map((v) => (
+              {vendors.filter((v) => v.supplierType !== "subcontractor").map((v) => (
                 <label key={v.id} className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={vendorIds.includes(v.id)}

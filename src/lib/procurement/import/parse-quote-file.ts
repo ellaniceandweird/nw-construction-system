@@ -1,5 +1,6 @@
 import { matchVendorName, parseDateFlexible } from "@/lib/procurement/import/shared";
 import type { ParsedQuoteFields } from "@/lib/procurement/import/shared";
+import type { Vendor } from "@/types/procurement";
 
 /**
  * Extracts likely quote fields from an uploaded PDF's raw text.
@@ -61,11 +62,11 @@ export async function extractPdfLines(file: File): Promise<string[]> {
 }
 
 /** Parses an uploaded quote PDF into best-guess VendorQuoteResponse fields. */
-export function parseQuoteLines(lines: string[], candidateVendorIds: string[]): ParsedQuoteFields {
+export function parseQuoteLines(lines: string[], candidateVendorIds: string[], vendors: Vendor[]): ParsedQuoteFields {
   const rawText = lines.join("\n");
   const warnings: string[] = [];
 
-  const vendorId = matchVendorName(rawText, candidateVendorIds);
+  const vendorId = matchVendorName(rawText, vendors, candidateVendorIds);
   if (!vendorId) warnings.push("Couldn't match a vendor from the invited list — please select one");
 
   // Total price: prefer a line that explicitly says total/amount due; else the largest $ figure.
@@ -152,8 +153,9 @@ export function parseQuoteLines(lines: string[], candidateVendorIds: string[]): 
 
 export async function parseQuotePdfFile(
   file: File,
-  candidateVendorIds: string[]
+  candidateVendorIds: string[],
+  vendors: Vendor[]
 ): Promise<ParsedQuoteFields> {
   const lines = await extractPdfLines(file);
-  return parseQuoteLines(lines, candidateVendorIds);
+  return parseQuoteLines(lines, candidateVendorIds, vendors);
 }

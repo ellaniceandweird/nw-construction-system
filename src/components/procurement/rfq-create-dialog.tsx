@@ -26,7 +26,7 @@ import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 import { Trash2 } from "lucide-react";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
 import { useMaterialRequests } from "@/hooks/use-material-requests";
 
 interface Props {
@@ -45,6 +45,7 @@ export function RfqCreateDialog({
   initialProjectId,
   initialMaterialList,
 }: Props) {
+  const vendors = useVendors();
   const materialRequests = useMaterialRequests();
 
   const [projectId, setProjectId] = React.useState(initialProjectId ?? "");
@@ -201,7 +202,7 @@ export function RfqCreateDialog({
           <div>
             <Label>Invite Vendors</Label>
             <div className="mt-1.5 flex max-h-40 flex-col gap-2 overflow-y-auto rounded-md border border-border p-3">
-              {MOCK_VENDORS.filter((v) => v.supplierType !== "subcontractor").map((v) => (
+              {vendors.filter((v) => v.supplierType !== "subcontractor").map((v) => (
                 <label key={v.id} className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={vendorIds.includes(v.id)}

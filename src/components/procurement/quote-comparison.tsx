@@ -5,7 +5,8 @@ import { Trophy, ArrowUpDown } from "lucide-react";
 
 import { useRFQs } from "@/hooks/use-rfqs";
 import { awardRFQ } from "@/lib/procurement/rfq-store";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
+import type { Vendor } from "@/types/procurement";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,11 +24,12 @@ function currency(n?: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-function vendorName(id: string) {
-  return MOCK_VENDORS.find((v) => v.id === id)?.vendorName ?? id;
+function vendorName(id: string, vendors: Vendor[]) {
+  return vendors.find((v) => v.id === id)?.vendorName ?? id;
 }
 
 export function QuoteComparison() {
+  const vendors = useVendors();
   const rfqs = useRFQs();
   const withQuotes = rfqs.filter((r) => r.responses.length > 0);
   const [selectedId, setSelectedId] = React.useState<string>(withQuotes[0]?.id ?? "");
@@ -76,7 +78,7 @@ export function QuoteComparison() {
         </Select>
         {rfq?.awardedVendorId && (
           <Badge className="bg-success-soft text-success border-transparent">
-            Awarded to {vendorName(rfq.awardedVendorId)}
+            Awarded to {vendorName(rfq.awardedVendorId, vendors)}
           </Badge>
         )}
         {responses.length > 1 && (
@@ -109,7 +111,7 @@ export function QuoteComparison() {
               return (
                 <Card key={resp.vendorId} className={`p-4 ${isAwarded ? "ring-2 ring-success" : ""}`}>
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="font-medium text-foreground">{vendorName(resp.vendorId)}</h3>
+                    <h3 className="font-medium text-foreground">{vendorName(resp.vendorId, vendors)}</h3>
                     {isBestScore && <Trophy className="size-4 text-success" />}
                   </div>
 

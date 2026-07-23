@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Trash2 } from "lucide-react";
 
 import {
   Dialog,
@@ -15,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
-import { createEquipmentMaintenance, updateEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
+import { createEquipmentMaintenance, updateEquipmentMaintenance, deleteEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
 
 interface Props {
@@ -33,6 +34,7 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
   const [frequency, setFrequency] = React.useState("");
   const [lastCompleted, setLastCompleted] = React.useState("");
   const [notes, setNotes] = React.useState("");
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -43,8 +45,15 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
       setFrequency(record?.frequency ?? "");
       setLastCompleted(record?.lastCompleted ?? "");
       setNotes(record?.notes ?? "");
+      setConfirmingDelete(false);
     }
   }, [record, open]);
+
+  function handleDelete() {
+    if (!record) return;
+    deleteEquipmentMaintenance(record.id);
+    onOpenChange(false);
+  }
 
   function handleSave() {
     const input = { propertyName, location, systemType, maintenanceNeeded, frequency, lastCompleted, notes };
@@ -141,11 +150,24 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!canSave}>Save Changes</Button>
+        <DialogFooter className="sm:justify-between">
+          {record ? (confirmingDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Delete this record?</span>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
+              <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+            </div>
+          ) : (
+            <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmingDelete(true)}>
+              <Trash2 className="size-3.5" /> Delete
+            </Button>
+          )) : <span />}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={!canSave}>Save Changes</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

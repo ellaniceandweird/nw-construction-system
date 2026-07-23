@@ -4,7 +4,8 @@ import * as React from "react";
 import { Pencil, Plus, ArrowUpDown } from "lucide-react";
 
 import { useRFQs } from "@/hooks/use-rfqs";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
+import type { Vendor } from "@/types/procurement";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import { getRequiredApprovers } from "@/lib/procurement/quote-approval";
 import { Card } from "@/components/ui/card";
@@ -41,12 +42,13 @@ function currency(n?: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-function vendorName(id: string) {
-  return MOCK_VENDORS.find((v) => v.id === id)?.vendorName ?? id;
+function vendorName(id: string, vendors: Vendor[]) {
+  return vendors.find((v) => v.id === id)?.vendorName ?? id;
 }
 
 export function QuotesTable() {
   const rfqs = useRFQs();
+  const vendors = useVendors();
   const [editing, setEditing] = React.useState<{ rfqId: string; vendorId: string } | null>(null);
   const [adding, setAdding] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState("all");
@@ -139,7 +141,7 @@ export function QuotesTable() {
                 >
                   <td className="px-4 py-3 font-medium text-foreground">{rfq.rfqNumber}</td>
                   <td className="px-4 py-3 text-muted-foreground">{project?.projectName ?? "—"}</td>
-                  <td className="px-4 py-3 text-foreground">{vendorName(resp.vendorId)}</td>
+                  <td className="px-4 py-3 text-foreground">{vendorName(resp.vendorId, vendors)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{currency(resp.quotedPrice)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{currency(resp.freight)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{currency(resp.tax)}</td>

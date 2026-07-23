@@ -5,7 +5,7 @@ import { Pencil, Plus, ArrowUpDown } from "lucide-react";
 
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,7 @@ type SortOption = "date_desc" | "date_asc" | "total_desc" | "total_asc";
 
 export function PurchaseOrdersTable() {
   const orders = usePurchaseOrders();
+  const vendors = useVendors();
   const [editingOrder, setEditingOrder] = React.useState<PurchaseOrder | null>(null);
   const [creating, setCreating] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState<PurchaseOrderStatus | "all">("all");
@@ -125,7 +126,7 @@ export function PurchaseOrdersTable() {
           <tbody>
             {sorted.map((po) => {
               const project = MOCK_PROJECTS.find((p) => p.id === po.projectId);
-              const vendor = MOCK_VENDORS.find((v) => v.id === po.vendorId);
+              const vendor = vendors.find((v) => v.id === po.vendorId);
               return (
                 <tr key={po.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                   <td className="px-4 py-3 font-medium text-foreground">{po.poNumber}</td>

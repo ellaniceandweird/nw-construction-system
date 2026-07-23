@@ -25,7 +25,7 @@ import { useProperties } from "@/hooks/use-properties";
 import { upsertQuoteResponse, awardRFQ } from "@/lib/procurement/rfq-store";
 import { createPurchaseOrderFromQuote } from "@/lib/procurement/purchase-order-store";
 import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import type { VendorQuoteResponse } from "@/types/procurement";
 
@@ -46,6 +46,7 @@ interface Props {
 export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange }: Props) {
   const rfqs = useRFQs();
   const properties = useProperties();
+  const vendors = useVendors();
   const [selectedRfqId, setSelectedRfqId] = React.useState("");
   const [selectedVendorId, setSelectedVendorId] = React.useState("");
   const [quotedPrice, setQuotedPrice] = React.useState("");
@@ -131,7 +132,7 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
   }
 
   const availableVendors = rfq
-    ? MOCK_VENDORS.filter((v) => rfq.vendorIds.includes(v.id))
+    ? vendors.filter((v) => rfq.vendorIds.includes(v.id))
     : [];
   const canSave = !!rfq && !!selectedVendorId && !!quotedPrice && !!leadTimeDays;
 

@@ -18,7 +18,15 @@ import { PrintButton } from "@/components/shared/print-button";
 import { EquipmentMaintenanceEditDialog } from "@/components/maintenance/equipment-maintenance-edit-dialog";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
 
-type SortOption = "default" | "next_due";
+type SortOption =
+  | "default"
+  | "property_az"
+  | "location_az"
+  | "system_az"
+  | "frequency_az"
+  | "last_completed_desc"
+  | "last_completed_asc"
+  | "next_due";
 
 function formatDate(d?: string) {
   if (!d) return "—";
@@ -56,11 +64,13 @@ export function EquipmentMaintenanceTable() {
   const records = useEquipmentMaintenance();
   const [search, setSearch] = React.useState("");
   const [propertyFilter, setPropertyFilter] = React.useState("all");
+  const [systemFilter, setSystemFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<SortOption>("default");
   const [editingRecord, setEditingRecord] = React.useState<EquipmentMaintenanceSchedule | null>(null);
   const [creating, setCreating] = React.useState(false);
 
   const propertyNames = Array.from(new Set(records.map((e) => e.propertyName)));
+  const systemTypes = Array.from(new Set(records.map((e) => e.systemType))).sort();
 
   let filtered = records.filter((e) => {
     const matchesSearch =
@@ -68,17 +78,38 @@ export function EquipmentMaintenanceTable() {
       e.location.toLowerCase().includes(search.toLowerCase()) ||
       e.systemType.toLowerCase().includes(search.toLowerCase());
     const matchesProperty = propertyFilter === "all" || e.propertyName === propertyFilter;
-    return matchesSearch && matchesProperty;
+    const matchesSystem = systemFilter === "all" || e.systemType === systemFilter;
+    return matchesSearch && matchesProperty && matchesSystem;
   });
 
-  if (sortBy === "next_due") {
-    filtered = [...filtered].sort((a, b) => {
-      const dateA = computeNextDueDate(a.lastCompleted, a.frequency);
-      const dateB = computeNextDueDate(b.lastCompleted, b.frequency);
-      if (!dateA) return 1;
-      if (!dateB) return -1;
-      return dateA.getTime() - dateB.getTime();
-    });
+  switch (sortBy) {
+    case "property_az":
+      filtered = [...filtered].sort((a, b) => a.propertyName.localeCompare(b.propertyName));
+      break;
+    case "location_az":
+      filtered = [...filtered].sort((a, b) => a.location.localeCompare(b.location));
+      break;
+    case "system_az":
+      filtered = [...filtered].sort((a, b) => a.systemType.localeCompare(b.systemType));
+      break;
+    case "frequency_az":
+      filtered = [...filtered].sort((a, b) => (a.frequency ?? "").localeCompare(b.frequency ?? ""));
+      break;
+    case "last_completed_desc":
+      filtered = [...filtered].sort((a, b) => (b.lastCompleted ?? "").localeCompare(a.lastCompleted ?? ""));
+      break;
+    case "last_completed_asc":
+      filtered = [...filtered].sort((a, b) => (a.lastCompleted ?? "").localeCompare(b.lastCompleted ?? ""));
+      break;
+    case "next_due":
+      filtered = [...filtered].sort((a, b) => {
+        const dateA = computeNextDueDate(a.lastCompleted, a.frequency);
+        const dateB = computeNextDueDate(b.lastCompleted, b.frequency);
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        return dateA.getTime() - dateB.getTime();
+      });
+      break;
   }
 
   return (
@@ -106,12 +137,31 @@ export function EquipmentMaintenanceTable() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={systemFilter} onValueChange={setSystemFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="All Systems" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Systems</SelectItem>
+            {systemTypes.map((sys) => (
+              <SelectItem key={sys} value={sys}>
+                {sys}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
           <SelectTrigger>
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="default">Default Order</SelectItem>
+            <SelectItem value="property_az">Property (A-Z)</SelectItem>
+            <SelectItem value="location_az">Location (A-Z)</SelectItem>
+            <SelectItem value="system_az">System (A-Z)</SelectItem>
+            <SelectItem value="frequency_az">Frequency (A-Z)</SelectItem>
+            <SelectItem value="last_completed_desc">Last Completed (Newest)</SelectItem>
+            <SelectItem value="last_completed_asc">Last Completed (Oldest)</SelectItem>
             <SelectItem value="next_due">Next Due (Earliest → Latest)</SelectItem>
           </SelectContent>
         </Select>

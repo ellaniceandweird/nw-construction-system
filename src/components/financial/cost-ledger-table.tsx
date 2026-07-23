@@ -6,7 +6,8 @@ import { useCostLedgerNotes } from "@/hooks/use-cost-ledger-notes";
 import { setCostLedgerNote } from "@/lib/financial/cost-ledger-notes-store";
 import { exportToExcel } from "@/lib/financial/export-excel";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
+import type { Vendor } from "@/types/procurement";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,9 +38,9 @@ function formatDate(d: string) {
 function projectName(id: string) {
   return MOCK_PROJECTS.find((p) => p.id === id)?.projectName ?? id;
 }
-function vendorName(id?: string) {
+function vendorName(id: string | undefined, vendors: Vendor[]) {
   if (!id) return "—";
-  return MOCK_VENDORS.find((v) => v.id === id)?.vendorName ?? id;
+  return vendors.find((v) => v.id === id)?.vendorName ?? id;
 }
 
 function NotesCell({ transactionId, initialValue }: { transactionId: string; initialValue: string }) {
@@ -57,6 +58,7 @@ function NotesCell({ transactionId, initialValue }: { transactionId: string; ini
 
 export function CostLedgerTable() {
   const allTransactions = useCostTransactions();
+  const vendors = useVendors();
   const notes = useCostLedgerNotes();
   const [adding, setAdding] = React.useState(false);
   const [projectFilter, setProjectFilter] = React.useState("all");
@@ -93,7 +95,7 @@ export function CostLedgerTable() {
         Property: projectName(t.projectId),
         Description: t.description,
         "Cost Code": t.costCode || "",
-        Vendor: vendorName(t.vendorId),
+        Vendor: vendorName(t.vendorId, vendors),
         Source: SOURCE_LABEL[t.sourceModule],
         Amount: t.amount,
         Notes: notes[t.id] ?? "",
@@ -170,7 +172,7 @@ export function CostLedgerTable() {
                 <td className="px-4 py-3 text-foreground">{projectName(t.projectId)}</td>
                 <td className="px-4 py-3 text-muted-foreground max-w-sm">{t.description}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.costCode || "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{vendorName(t.vendorId)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{vendorName(t.vendorId, vendors)}</td>
                 <td className="px-4 py-3">
                   <Badge className="bg-muted text-muted-foreground border-transparent">{SOURCE_LABEL[t.sourceModule]}</Badge>
                 </td>

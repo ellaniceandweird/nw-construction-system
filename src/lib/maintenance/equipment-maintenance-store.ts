@@ -93,3 +93,7 @@ export function updateEquipmentMaintenance(id: string, input: EquipmentMaintenan
     });
   }
 }
+
+export function deleteEquipmentMaintenance(id: string) {
+  void store.remove(id);
+}

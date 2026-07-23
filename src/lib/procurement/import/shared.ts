@@ -1,4 +1,4 @@
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import type { Vendor } from "@/types/procurement";
 
 /**
  * A quote extracted from an uploaded file, before the person has
@@ -23,10 +23,10 @@ export interface ParsedQuoteFields {
 }
 
 /** Best-effort fuzzy match of free text against the known vendor list. */
-export function matchVendorName(text: string, candidateIds?: string[]): string | null {
+export function matchVendorName(text: string, vendors: Vendor[], candidateIds?: string[]): string | null {
   const pool = candidateIds
-    ? MOCK_VENDORS.filter((v) => candidateIds.includes(v.id))
-    : MOCK_VENDORS;
+    ? vendors.filter((v) => candidateIds.includes(v.id))
+    : vendors;
   const normalized = text.toLowerCase();
 
   const exact = pool.find((v) => normalized.includes(v.vendorName.toLowerCase()));

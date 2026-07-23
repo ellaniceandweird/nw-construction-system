@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { generateRfqEmailContent } from "@/lib/procurement/rfq-email";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import type { RequestForQuotation } from "@/types/procurement";
 
@@ -34,7 +34,8 @@ interface Props {
 }
 
 export function RfqEmailPreviewDialog({ rfq, open, onOpenChange }: Props) {
-  const invitedVendors = rfq ? MOCK_VENDORS.filter((v) => rfq.vendorIds.includes(v.id)) : [];
+  const vendors = useVendors();
+  const invitedVendors = rfq ? vendors.filter((v) => rfq.vendorIds.includes(v.id)) : [];
   const [vendorId, setVendorId] = React.useState("");
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
@@ -49,7 +50,7 @@ export function RfqEmailPreviewDialog({ rfq, open, onOpenChange }: Props) {
 
   React.useEffect(() => {
     if (!rfq || !vendorId) return;
-    const vendor = MOCK_VENDORS.find((v) => v.id === vendorId);
+    const vendor = vendors.find((v) => v.id === vendorId);
     const project = MOCK_PROJECTS.find((p) => p.id === rfq.projectId);
     const { subject: subj, body: bd } = generateRfqEmailContent({
       vendorContactName: vendor?.primaryContact,
@@ -62,7 +63,7 @@ export function RfqEmailPreviewDialog({ rfq, open, onOpenChange }: Props) {
     setBody(bd);
   }, [rfq, vendorId]);
 
-  const vendor = MOCK_VENDORS.find((v) => v.id === vendorId);
+  const vendor = vendors.find((v) => v.id === vendorId);
 
   function handleOpenInMail() {
     if (!vendor?.email) return;

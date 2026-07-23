@@ -6,7 +6,8 @@ import { Pencil, Plus, FileText, Upload, Mail, ArrowUpDown } from "lucide-react"
 import { useRFQs } from "@/hooks/use-rfqs";
 import { getRFQStatus } from "@/lib/procurement/rfq-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
+import type { Vendor } from "@/types/procurement";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,12 +38,13 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function vendorName(id: string) {
-  return MOCK_VENDORS.find((v) => v.id === id)?.vendorName ?? id;
+function vendorName(id: string, vendors: Vendor[]) {
+  return vendors.find((v) => v.id === id)?.vendorName ?? id;
 }
 
 export function RfqsTable() {
   const rfqs = useRFQs();
+  const vendors = useVendors();
   const [creating, setCreating] = React.useState(false);
   const [editingRfq, setEditingRfq] = React.useState<RequestForQuotation | null>(null);
   const [quotingRfq, setQuotingRfq] = React.useState<RequestForQuotation | null>(null);
@@ -108,13 +110,13 @@ export function RfqsTable() {
                   <td className="px-4 py-3 text-muted-foreground">{project?.projectName ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground max-w-xs">{r.materialList}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {r.vendorIds.map((id) => vendorName(id)).join(", ")}
+                    {r.vendorIds.map((id) => vendorName(id, vendors)).join(", ")}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(r.dueDate)}</td>
                   <td className="px-4 py-3">
                     <Badge className={`${STATUS_CLASS[rfqStatus]} border-transparent`}>
                       {rfqStatus === "awarded"
-                        ? `Awarded — ${vendorName(r.awardedVendorId!)}`
+                        ? `Awarded — ${vendorName(r.awardedVendorId!, vendors)}`
                         : rfqStatus === "cancelled" || rfqStatus === "closed"
                           ? rfqStatus.charAt(0).toUpperCase() + rfqStatus.slice(1)
                           : `${r.responses.length}/${r.vendorIds.length} ${rfqStatus}`}

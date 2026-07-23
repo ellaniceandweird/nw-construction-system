@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { updatePurchaseOrder, createPurchaseOrder, computeTotal } from "@/lib/procurement/purchase-order-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import type { PurchaseOrder, PurchaseOrderLineItem, PurchaseOrderStatus } from "@/types/procurement";
 
@@ -53,6 +53,7 @@ function emptyLineItem(): PurchaseOrderLineItem {
 
 export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode }: Props) {
   const billingEntities = useBillingEntities();
+  const vendors = useVendors();
   const [projectId, setProjectId] = React.useState("");
   const [vendorId, setVendorId] = React.useState("");
   const [billingEntityId, setBillingEntityId] = React.useState("");
@@ -174,7 +175,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
                   <SelectValue placeholder="Select vendor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_VENDORS.filter((v) => v.supplierType !== "subcontractor").map((v) => (
+                  {vendors.filter((v) => v.supplierType !== "subcontractor").map((v) => (
                     <SelectItem key={v.id} value={v.id}>
                       {v.vendorName}
                     </SelectItem>

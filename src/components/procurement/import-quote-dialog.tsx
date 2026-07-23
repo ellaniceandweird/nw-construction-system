@@ -25,7 +25,7 @@ import {
 import { useRFQs } from "@/hooks/use-rfqs";
 import { upsertQuoteResponse } from "@/lib/procurement/rfq-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
-import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
+import { useVendors } from "@/hooks/use-vendors";
 import { parseQuotePdfFile } from "@/lib/procurement/import/parse-quote-file";
 import type { ParsedQuoteFields } from "@/lib/procurement/import/shared";
 import type { VendorQuoteResponse } from "@/types/procurement";
@@ -41,6 +41,7 @@ type Stage = "pick" | "parsing" | "review" | "done";
 
 export function ImportQuoteDialog({ open, onOpenChange, initialRfqId }: Props) {
   const rfqs = useRFQs();
+  const vendors = useVendors();
   const [rfqId, setRfqId] = React.useState(initialRfqId ?? "");
   const [stage, setStage] = React.useState<Stage>("pick");
   const [fileName, setFileName] = React.useState("");
@@ -81,7 +82,7 @@ export function ImportQuoteDialog({ open, onOpenChange, initialRfqId }: Props) {
   }
 
   const rfq = rfqs.find((r) => r.id === rfqId);
-  const invitedVendors = rfq ? MOCK_VENDORS.filter((v) => rfq.vendorIds.includes(v.id)) : [];
+  const invitedVendors = rfq ? vendors.filter((v) => rfq.vendorIds.includes(v.id)) : [];
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -98,7 +99,7 @@ export function ImportQuoteDialog({ open, onOpenChange, initialRfqId }: Props) {
     setStage("parsing");
 
     try {
-      const result = await parseQuotePdfFile(file, rfq.vendorIds);
+      const result = await parseQuotePdfFile(file, rfq.vendorIds, vendors);
       setParsed(result);
       setVendorId(result.vendorId ?? "");
       setQuotedPrice(result.quotedPrice != null ? String(result.quotedPrice) : "");
@@ -351,7 +352,7 @@ export function ImportQuoteDialog({ open, onOpenChange, initialRfqId }: Props) {
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <p className="text-lg font-semibold text-success">Quote saved</p>
             <p className="text-sm text-muted-foreground">
-              {MOCK_VENDORS.find((v) => v.id === vendorId)?.vendorName}&apos;s quote on{" "}
+              {vendors.find((v) => v.id === vendorId)?.vendorName}&apos;s quote on{" "}
               {rfq?.rfqNumber} is now in the Quotes and Quote Comparison tabs.
             </p>
           </div>
