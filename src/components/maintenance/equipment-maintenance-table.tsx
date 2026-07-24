@@ -1,0 +1,215 @@
+"use client";
+
+import * as React from "react";
+import { Search, Pencil, Plus } from "lucide-react";
+
+import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PrintButton } from "@/components/shared/print-button";
+import { EquipmentMaintenanceEditDialog } from "@/components/maintenance/equipment-maintenance-edit-dialog";
+import { computeNextDueDate, isOverdue } from "@/lib/maintenance/next-due-date";
+import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
+
+type SortOption =
+  | "default"
+  | "property_az"
+  | "location_az"
+  | "system_az"
+  | "frequency_az"
+  | "last_completed_desc"
+  | "last_completed_asc"
+  | "next_due";
+
+function formatDate(d?: string) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+export function EquipmentMaintenanceTable() {
+  const records = useEquipmentMaintenance();
+  const [search, setSearch] = React.useState("");
+  const [propertyFilter, setPropertyFilter] = React.useState("all");
+  const [systemFilter, setSystemFilter] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState<SortOption>("default");
+  const [editingRecord, setEditingRecord] = React.useState<EquipmentMaintenanceSchedule | null>(null);
+  const [creating, setCreating] = React.useState(false);
+
+  const propertyNames = Array.from(new Set(records.map((e) => e.propertyName)));
+  const systemTypes = Array.from(new Set(records.map((e) => e.systemType))).sort();
+
+  let filtered = records.filter((e) => {
+    const matchesSearch =
+      e.propertyName.toLowerCase().includes(search.toLowerCase()) ||
+      e.location.toLowerCase().includes(search.toLowerCase()) ||
+      e.systemType.toLowerCase().includes(search.toLowerCase());
+    const matchesProperty = propertyFilter === "all" || e.propertyName === propertyFilter;
+    const matchesSystem = systemFilter === "all" || e.systemType === systemFilter;
+    return matchesSearch && matchesProperty && matchesSystem;
+  });
+
+  switch (sortBy) {
+    case "property_az":
+      filtered = [...filtered].sort((a, b) => a.propertyName.localeCompare(b.propertyName));
+      break;
+    case "location_az":
+      filtered = [...filtered].sort((a, b) => a.location.localeCompare(b.location));
+      break;
+    case "system_az":
+      filtered = [...filtered].sort((a, b) => a.systemType.localeCompare(b.systemType));
+      break;
+    case "frequency_az":
+      filtered = [...filtered].sort((a, b) => (a.frequency ?? "").localeCompare(b.frequency ?? ""));
+      break;
+    case "last_completed_desc":
+      filtered = [...filtered].sort((a, b) => (b.lastCompleted ?? "").localeCompare(a.lastCompleted ?? ""));
+      break;
+    case "last_completed_asc":
+      filtered = [...filtered].sort((a, b) => (a.lastCompleted ?? "").localeCompare(b.lastCompleted ?? ""));
+      break;
+    case "next_due":
+      filtered = [...filtered].sort((a, b) => {
+        const dateA = computeNextDueDate(a.lastCompleted, a.frequency);
+        const dateB = computeNextDueDate(b.lastCompleted, b.frequency);
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        return dateA.getTime() - dateB.getTime();
+      });
+      break;
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-xs flex-1">
+          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search property, location, system..."
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="All Properties" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Properties</SelectItem>
+            {propertyNames.map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={systemFilter} onValueChange={setSystemFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="All Systems" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Systems</SelectItem>
+            {systemTypes.map((sys) => (
+              <SelectItem key={sys} value={sys}>
+                {sys}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Default Order</SelectItem>
+            <SelectItem value="property_az">Property (A-Z)</SelectItem>
+            <SelectItem value="location_az">Location (A-Z)</SelectItem>
+            <SelectItem value="system_az">System (A-Z)</SelectItem>
+            <SelectItem value="frequency_az">Frequency (A-Z)</SelectItem>
+            <SelectItem value="last_completed_desc">Last Completed (Newest)</SelectItem>
+            <SelectItem value="last_completed_asc">Last Completed (Oldest)</SelectItem>
+            <SelectItem value="next_due">Next Due (Earliest → Latest)</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button size="sm" onClick={() => setCreating(true)} className="print:hidden">
+          <Plus className="size-3.5" /> Add Row
+        </Button>
+        <PrintButton />
+        <span className="ml-auto text-sm text-muted-foreground print:hidden">
+          {filtered.length} of {records.length} equipment records
+        </span>
+      </div>
+
+      <Card className="overflow-x-auto py-0">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <th className="px-4 py-3 font-medium">Property</th>
+              <th className="px-4 py-3 font-medium">Location</th>
+              <th className="px-4 py-3 font-medium">System</th>
+              <th className="px-4 py-3 font-medium">Maintenance Needed</th>
+              <th className="px-4 py-3 font-medium">Frequency</th>
+              <th className="px-4 py-3 font-medium">Last Completed</th>
+              <th className="px-4 py-3 font-medium">Next Due</th>
+              <th className="px-4 py-3 font-medium">Notes</th>
+              <th className="px-4 py-3 font-medium print:hidden">Edit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((e) => (
+              <tr key={e.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
+                <td className="px-4 py-3 font-medium text-foreground">{e.propertyName}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.location}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.systemType}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.maintenanceNeeded ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.frequency ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{formatDate(e.lastCompleted)}</td>
+                <td
+                  className={
+                    isOverdue(e.lastCompleted, e.frequency)
+                      ? "px-4 py-3 font-medium text-destructive"
+                      : "px-4 py-3 text-muted-foreground"
+                  }
+                >
+                  {formatDate(computeNextDueDate(e.lastCompleted, e.frequency)?.toISOString())}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground max-w-xs">{e.notes ?? "—"}</td>
+                <td className="px-4 py-3 print:hidden">
+                  <Button variant="ghost" size="icon" onClick={() => setEditingRecord(e)}>
+                    <Pencil className="size-3.5" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
+                  No equipment records match your search.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Card>
+
+      <EquipmentMaintenanceEditDialog
+        record={editingRecord}
+        open={!!editingRecord}
+        onOpenChange={(open) => !open && setEditingRecord(null)}
+      />
+      <EquipmentMaintenanceEditDialog
+        record={null}
+        open={creating}
+        onOpenChange={setCreating}
+      />
+    </div>
+  );
+}
