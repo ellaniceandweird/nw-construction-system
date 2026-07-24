@@ -239,7 +239,7 @@ export function DocumentEditDialog({ document, open, onOpenChange }: Props) {
           <div><Label htmlFor="tags">Tags (comma-separated, optional)</Label><Input id="tags" className="mt-1.5" value={tags} onChange={(e) => setTags(e.target.value)} /></div>
           <div><Label htmlFor="comments">Comments (optional)</Label><Textarea id="comments" className="mt-1.5" value={comments} onChange={(e) => setComments(e.target.value)} /></div>
         </div>
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {document ? (confirmingDelete ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Delete this document?</span>

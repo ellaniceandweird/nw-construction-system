@@ -96,6 +96,35 @@ export function updateVendor(id: string, input: VendorEditInput) {
   void store.update(id, input);
 }
 
+function nextVendorId(): string {
+  const items = store.getSnapshot();
+  const maxNum = items.reduce((max, v) => {
+    const n = parseInt(v.id.replace("VEN-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  return `VEN-${String(maxNum + 1).padStart(6, "0")}`;
+}
+
+export function createVendor(input: VendorEditInput) {
+  const id = nextVendorId();
+  void store.create({
+    id,
+    isPreferredVendor: false,
+    isApprovedVendor: true,
+    performance: {
+      totalPurchaseOrders: 0,
+      onTimeDeliveryPercent: 0,
+      averageDeliveryDays: 0,
+      qualityRating: 0,
+      priceRating: 0,
+      communicationRating: 0,
+      overallVendorScore: 0,
+    },
+    ...input,
+  });
+  return id;
+}
+
 /** Toggles the "Recommended" checkbox column on the Vendors / Subcontractor tabs. */
 export function toggleVendorRecommended(id: string, recommended: boolean) {
   void store.update(id, { isPreferredVendor: recommended });

@@ -79,7 +79,7 @@ export function CostDatabaseEditDialog({ item, open, onOpenChange }: Props) {
             <div><Label htmlFor="supplier">Typical Supplier (optional)</Label><Input id="supplier" className="mt-1.5" value={supplier} onChange={(e) => setSupplier(e.target.value)} /></div>
           </div>
         </div>
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {item ? (
             confirmingDelete ? (
               <div className="flex items-center gap-2">

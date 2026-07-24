@@ -57,7 +57,7 @@ export function CostCodeEditDialog({ costCode, open, onOpenChange }: Props) {
             <div><Label htmlFor="category">Category (optional)</Label><Input id="category" className="mt-1.5" value={category} onChange={(e) => setCategory(e.target.value)} /></div>
           </div>
         </div>
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {costCode ? (
             confirmingDelete ? (
               <div className="flex items-center gap-2">

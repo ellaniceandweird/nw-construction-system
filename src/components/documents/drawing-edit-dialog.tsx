@@ -188,7 +188,7 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
             )}
           </div>
         </div>
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {drawing ? (confirmingDelete ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Delete this drawing?</span>

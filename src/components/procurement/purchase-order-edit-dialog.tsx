@@ -355,7 +355,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
           </div>
         </div>
 
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {order ? (confirmingDelete ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Delete this purchase order?</span>

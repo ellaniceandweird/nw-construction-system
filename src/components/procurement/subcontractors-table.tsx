@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Search, ArrowUpDown } from "lucide-react";
+import { Pencil, Search, ArrowUpDown, Plus } from "lucide-react";
 
 import { useVendors } from "@/hooks/use-vendors";
 import { toggleVendorRecommended } from "@/lib/procurement/vendor-store";
@@ -24,6 +24,7 @@ import type { Vendor } from "@/types/procurement";
 export function SubcontractorsTable() {
   const vendors = useVendors();
   const [editingVendor, setEditingVendor] = React.useState<Vendor | null>(null);
+  const [creating, setCreating] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<"name" | "trade">("name");
@@ -44,6 +45,9 @@ export function SubcontractorsTable() {
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center gap-3">
+        <Button size="sm" onClick={() => setCreating(true)}>
+          <Plus className="size-3.5" /> Add Subcontractor
+        </Button>
         <div className="relative flex-1 min-w-[12rem]">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-8" placeholder="Search subcontractors…" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -104,7 +108,7 @@ export function SubcontractorsTable() {
             {sorted.length === 0 && (
               <tr>
                 <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
-                  No subcontractors yet — set a vendor's Type to "Subcontractor" from the Vendors tab to move it here.
+                  No subcontractors yet — click "Add Subcontractor" above, or set a vendor's Type to "Subcontractor" from the Vendors tab to move it here.
                 </td>
               </tr>
             )}
@@ -116,6 +120,12 @@ export function SubcontractorsTable() {
         vendor={editingVendor}
         open={!!editingVendor}
         onOpenChange={(open) => !open && setEditingVendor(null)}
+      />
+      <VendorEditDialog
+        vendor={null}
+        open={creating}
+        onOpenChange={setCreating}
+        defaultSupplierType="subcontractor"
       />
     </>
   );

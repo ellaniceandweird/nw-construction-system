@@ -106,7 +106,7 @@ export function ContactEditDialog({ contact, open, onOpenChange }: Props) {
           </div>
           <div><Label htmlFor="notes">Notes (optional)</Label><Textarea id="notes" className="mt-1.5" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
         </div>
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {contact ? (confirmingDelete ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Delete this contact?</span>

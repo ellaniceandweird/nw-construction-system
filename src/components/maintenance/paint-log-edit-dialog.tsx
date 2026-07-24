@@ -180,7 +180,7 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
             <Textarea id="comments" className="mt-1.5" value={comments} onChange={(e) => setComments(e.target.value)} />
           </div>
         </div>
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {entry ? (confirmingDelete ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Delete this entry?</span>

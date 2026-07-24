@@ -250,7 +250,7 @@ export function ActivityFormDialog({
             </Label>
           </div>
 
-          <DialogFooter className="sm:justify-between">
+          <DialogFooter className="justify-between">
             {existingActivity ? (confirmingDelete ? (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Delete this activity?</span>

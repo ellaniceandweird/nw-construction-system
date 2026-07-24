@@ -361,7 +361,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
           </div>
         </div>
 
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {estimate ? (
             confirmingDelete ? (
               <div className="flex items-center gap-2">

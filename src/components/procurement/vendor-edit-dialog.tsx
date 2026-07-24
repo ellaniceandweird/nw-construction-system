@@ -21,13 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateVendor, deleteVendor } from "@/lib/procurement/vendor-store";
+import { updateVendor, deleteVendor, createVendor } from "@/lib/procurement/vendor-store";
 import type { Vendor } from "@/types/procurement";
 
 interface Props {
   vendor: Vendor | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultSupplierType?: NonNullable<Vendor["supplierType"]>;
 }
 
 const SUPPLIER_TYPE_OPTIONS: { value: NonNullable<Vendor["supplierType"]>; label: string }[] = [
@@ -37,7 +38,7 @@ const SUPPLIER_TYPE_OPTIONS: { value: NonNullable<Vendor["supplierType"]>; label
   { value: "subcontractor", label: "Subcontractor" },
 ];
 
-export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
+export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierType }: Props) {
   const [vendorName, setVendorName] = React.useState("");
   const [vendorCategory, setVendorCategory] = React.useState("");
   const [trade, setTrade] = React.useState("");
@@ -50,6 +51,7 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   React.useEffect(() => {
+    if (!open) return;
     setConfirmingDelete(false);
     if (vendor) {
       setVendorName(vendor.vendorName);
@@ -61,12 +63,21 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
       setEmail(vendor.email ?? "");
       setWebsite(vendor.website ?? "");
       setNotes(vendor.notes ?? "");
+    } else {
+      setVendorName("");
+      setVendorCategory("");
+      setTrade("");
+      setSupplierType(defaultSupplierType ?? "material");
+      setPrimaryContact("");
+      setPhone("");
+      setEmail("");
+      setWebsite("");
+      setNotes("");
     }
-  }, [vendor]);
+  }, [vendor, open]);
 
   function handleSave() {
-    if (!vendor) return;
-    updateVendor(vendor.id, {
+    const input = {
       vendorName,
       vendorCategory,
       trade: trade || undefined,
@@ -76,7 +87,12 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
       email,
       website,
       notes,
-    });
+    };
+    if (vendor) {
+      updateVendor(vendor.id, input);
+    } else {
+      createVendor(input);
+    }
     onOpenChange(false);
   }
 
@@ -90,7 +106,7 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Vendor</DialogTitle>
+          <DialogTitle>{vendor ? "Edit Vendor" : "New Vendor"}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
@@ -161,7 +177,7 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
           </div>
         </div>
 
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {vendor ? (confirmingDelete ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Delete this vendor?</span>
@@ -177,7 +193,9 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={!vendorName.trim() || !vendorCategory.trim()}>
+              {vendor ? "Save Changes" : "Create Vendor"}
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>

@@ -55,7 +55,7 @@ export function BillingEntityEditDialog({ entity, open, onOpenChange }: Props) {
             <div><Label htmlFor="defaultPaymentTerms">Default Payment Terms (optional)</Label><Input id="defaultPaymentTerms" className="mt-1.5" placeholder="e.g. Net 30" value={defaultPaymentTerms} onChange={(e) => setDefaultPaymentTerms(e.target.value)} /></div>
           </div>
         </div>
-        <DialogFooter className="sm:justify-between">
+        <DialogFooter className="justify-between">
           {entity ? (confirmingDelete ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Delete this entity?</span>
