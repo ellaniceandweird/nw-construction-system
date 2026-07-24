@@ -14,6 +14,7 @@ import {
   Sparkles,
   Settings,
   Library,
+  ClipboardCheck,
 } from "lucide-react";
 import type { Role } from "@/types/roles";
 
@@ -55,6 +56,7 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Approvals", href: "/approvals", icon: ClipboardCheck },
   { label: "Property Profiles", href: "/properties", icon: Building2 },
   { label: "Projects", href: "/projects", icon: FolderKanban },
   {

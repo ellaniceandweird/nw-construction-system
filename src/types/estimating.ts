@@ -179,6 +179,8 @@ export interface Estimate extends BaseEntity {
   estimateDate: string;
   revision: number;
   estimateStatus: EstimateStatus;
+  approvedBy?: string;
+  approvalDate?: string;
   proposalNumber?: string;
   currency: string;
   taxMethod?: string;

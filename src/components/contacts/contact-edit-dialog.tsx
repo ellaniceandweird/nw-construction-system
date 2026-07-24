@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createContact, updateContact, deleteContact, restoreContact } from "@/lib/contacts/contact-store";
-import { showSuccessToast, showUndoToast } from "@/lib/toast/toast-store";
+import { showSuccessToast, showUndoToast, showErrorToast } from "@/lib/toast/toast-store";
 import { useProperties } from "@/hooks/use-properties";
 import type { Contact, ContactCategory } from "@/types/contacts";
 
@@ -34,6 +34,7 @@ export function ContactEditDialog({ contact, open, onOpenChange }: Props) {
   const [relatedPropertyId, setRelatedPropertyId] = React.useState(NONE);
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -50,7 +51,7 @@ export function ContactEditDialog({ contact, open, onOpenChange }: Props) {
     }
   }, [contact, open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!name) return;
     const input = {
       name, company: company || undefined, category, role: role || undefined,
@@ -58,7 +59,13 @@ export function ContactEditDialog({ contact, open, onOpenChange }: Props) {
       relatedPropertyId: relatedPropertyId === NONE ? undefined : relatedPropertyId,
       notes: notes || undefined,
     };
-    if (contact) { updateContact(contact.id, input); } else { createContact(input); }
+    setSaving(true);
+    const result = contact ? await updateContact(contact.id, input) : await createContact(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this contact — check your connection and try again.");
+      return;
+    }
     showSuccessToast(contact ? "Contact updated" : "Contact added");
     onOpenChange(false);
   }
@@ -118,7 +125,7 @@ export function ContactEditDialog({ contact, open, onOpenChange }: Props) {
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!name}>Save</Button>
+            <Button onClick={handleSave} disabled={!name || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

@@ -106,6 +106,21 @@ export function updateBudget(id: string, input: BudgetInput) {
   void store.update(id, { ...input, revision: (existing?.revision ?? 1) + 1 });
 }
 
+export function approveBudget(id: string, approvedBy: string) {
+  const existing = store.getSnapshot().find((b) => b.id === id);
+  if (!existing) return;
+  void store.update(id, {
+    budgetStatus: "approved",
+    approvedBy,
+    approvalDate: new Date().toISOString().slice(0, 10),
+  });
+}
+
+/** Budgets don't have a "rejected" state — sends it back to draft for rework instead. */
+export function rejectBudget(id: string) {
+  void store.update(id, { budgetStatus: "draft" });
+}
+
 export function deleteBudget(id: string) {
   void store.remove(id);
 }

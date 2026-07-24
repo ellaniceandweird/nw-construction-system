@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { KpiCard } from "@/components/dashboard/widgets/kpi-card";
 import { ProjectsOverviewWidget } from "@/components/dashboard/widgets/projects-overview-widget";
-import { BudgetOverviewWidget } from "@/components/dashboard/widgets/budget-overview-widget";
+import { BudgetVsActualChart } from "@/components/dashboard/widgets/budget-vs-actual-chart";
 import { RecentActivityWidget } from "@/components/dashboard/widgets/recent-activity-widget";
 import { UpcomingDeadlinesWidget } from "@/components/dashboard/widgets/upcoming-deadlines-widget";
 import { NotesFromManagementWidget } from "@/components/dashboard/widgets/notes-from-management-widget";
@@ -119,7 +119,7 @@ export default function DashboardPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ProjectsOverviewWidget />
-        <BudgetOverviewWidget />
+        <BudgetVsActualChart />
         <RecentActivityWidget />
       </div>
 

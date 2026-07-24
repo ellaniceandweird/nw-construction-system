@@ -74,13 +74,14 @@ function nextId(): string {
   return `CONTACT-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createContact(input: ContactInput) {
+export async function createContact(input: ContactInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  void store.create({ id, ...input });
-  return id;
+  const result = await store.create({ id, ...input });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
-export function updateContact(id: string, input: ContactInput) {
-  void store.update(id, input);
+export async function updateContact(id: string, input: ContactInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 export function deleteContact(id: string) {
   void store.remove(id);

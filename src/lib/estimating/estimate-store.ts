@@ -16,6 +16,8 @@ function fromRow(row: Record<string, any>): Estimate {
     estimateDate: row.estimate_date,
     revision: row.revision ?? 1,
     estimateStatus: row.estimate_status,
+    approvedBy: row.approved_by ?? undefined,
+    approvalDate: row.approval_date ?? undefined,
     proposalNumber: row.proposal_number ?? undefined,
     currency: row.currency ?? "USD",
     taxMethod: row.tax_method ?? undefined,
@@ -49,6 +51,8 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.estimateDate !== undefined) row.estimate_date = input.estimateDate;
   if (input.revision !== undefined) row.revision = input.revision;
   if (input.estimateStatus !== undefined) row.estimate_status = input.estimateStatus;
+  if (input.approvedBy !== undefined) row.approved_by = input.approvedBy;
+  if (input.approvalDate !== undefined) row.approval_date = input.approvalDate;
   if (input.proposalNumber !== undefined) row.proposal_number = input.proposalNumber;
   if (input.currency !== undefined) row.currency = input.currency;
   if (input.taxMethod !== undefined) row.tax_method = input.taxMethod;
@@ -89,6 +93,8 @@ export interface EstimateEditInput {
   estimator: string;
   estimateDate: string;
   estimateStatus: EstimateStatus;
+  approvedBy?: string;
+  approvalDate?: string;
   proposalNumber?: string;
   taxMethod?: string;
   notes?: string;
@@ -132,6 +138,18 @@ export function updateEstimate(id: string, input: EstimateEditInput) {
     revision: (existing?.revision ?? 1) + 1,
     totalEstimatedCost: computeEstimateTotal(input.lineItems, input.indirectCosts, input.contingency),
   });
+}
+
+export function approveEstimate(id: string, approvedBy: string) {
+  void store.update(id, {
+    estimateStatus: "approved",
+    approvedBy,
+    approvalDate: new Date().toISOString().slice(0, 10),
+  });
+}
+
+export function rejectEstimate(id: string) {
+  void store.update(id, { estimateStatus: "rejected" });
 }
 
 export function deleteEstimate(id: string) {

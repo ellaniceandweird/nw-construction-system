@@ -104,6 +104,18 @@ export function updateChangeOrder(id: string, input: ChangeOrderInput) {
   void store.update(id, input);
 }
 
+export function approveChangeOrder(id: string, approvedBy: string) {
+  void store.update(id, {
+    changeOrderStatus: "approved",
+    approvedBy,
+    approvedDate: new Date().toISOString().slice(0, 10),
+  });
+}
+
+export function rejectChangeOrder(id: string) {
+  void store.update(id, { changeOrderStatus: "rejected" });
+}
+
 export function deleteChangeOrder(id: string) {
   void store.remove(id);
 }

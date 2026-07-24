@@ -12,13 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { updateProperty, deleteProperty } from "@/lib/properties/property-store";
 import { getRelatedProjects, getMaintenanceHistory, getPropertyPhotos } from "@/lib/properties/property-relations";
@@ -31,7 +24,6 @@ import { useFieldPhotos } from "@/hooks/use-field-photos";
 import type { Property } from "@/types/maintenance";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 
-const NONE = "none";
 
 interface Props {
   property: Property | null;
@@ -117,10 +109,6 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
     updateProperty(property.id, { address: address || undefined, town: town || undefined });
     setEditingInfo(false);
   }
-  function handleBillingEntityChange(value: string) {
-    if (!property) return;
-    updateProperty(property.id, { billingEntityId: value === NONE ? undefined : value });
-  }
   function handleDelete() {
     if (!property) return;
     deleteProperty(property.id);
@@ -200,16 +188,9 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
                 Manage in References <ArrowUpRight className="size-3" />
               </Link>
             </div>
-            <Select value={property.billingEntityId ?? NONE} onValueChange={handleBillingEntityChange}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="None assigned" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>None assigned</SelectItem>
-                {billingEntities.map((b) => (<SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>))}
-              </SelectContent>
-            </Select>
-            {billingEntity?.defaultPaymentTerms && (
-              <p className="mt-1 text-xs text-muted-foreground">Default terms: {billingEntity.defaultPaymentTerms}</p>
-            )}
+            <div className="flex h-9 items-center rounded-lg border border-input bg-muted/40 px-3 text-sm text-foreground">
+              {billingEntity?.companyName ?? <span className="text-muted-foreground">None assigned</span>}
+            </div>
           </div>
 
           <div>

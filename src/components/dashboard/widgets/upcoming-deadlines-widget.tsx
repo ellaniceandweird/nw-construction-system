@@ -6,40 +6,45 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { StatusBadge } from "@/components/shared/status-badge";
-import { getUpcomingDeadlines } from "@/lib/dashboard/metrics";
-import { useActivities } from "@/hooks/use-activities";
-import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
+import { StatusBadge, type DashboardStatus } from "@/components/shared/status-badge";
 import { useProjects } from "@/hooks/use-projects";
+import type { ProjectCalculatedStatus } from "@/types/project";
 
-function formatDate(d: Date) {
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function daysBetween(a: Date, b: Date): number {
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const aStart = new Date(a.getFullYear(), a.getMonth(), a.getDate());
-  const bStart = new Date(b.getFullYear(), b.getMonth(), b.getDate());
-  return Math.round((aStart.getTime() - bStart.getTime()) / msPerDay);
+function formatCurrency(n: number) {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
-function specificDeadlineLabel(dueDate: Date): string {
-  const diff = daysBetween(dueDate, new Date());
-  if (diff < 0) return `Overdue by ${Math.abs(diff)} day${Math.abs(diff) === 1 ? "" : "s"}`;
-  if (diff === 0) return "Due today";
-  if (diff === 1) return "Due tomorrow";
-  return `Due in ${diff} days`;
-}
+const STATUS_MAP: Record<ProjectCalculatedStatus, DashboardStatus> = {
+  planning: "upcoming",
+  active: "on_track",
+  on_hold: "at_risk",
+  delayed: "behind_schedule",
+  substantially_complete: "on_track",
+  closed: "completed",
+  archived: "completed",
+};
 
-function deadlineHref(type: "Activity" | "Maintenance", id: string): string {
-  return type === "Activity" ? `/scheduling/master?highlight=${id}` : `/maintenance?tab=general&highlight=${id}`;
-}
+const STATUS_LABEL: Record<ProjectCalculatedStatus, string> = {
+  planning: "Planning",
+  active: "Active",
+  on_hold: "On Hold",
+  delayed: "Delayed",
+  substantially_complete: "Substantially Complete",
+  closed: "Closed",
+  archived: "Archived",
+};
 
 export function UpcomingDeadlinesWidget() {
-  const activities = useActivities();
-  const maintenanceTasks = useMaintenanceTasks();
   const projects = useProjects();
-  const deadlines = getUpcomingDeadlines(activities, maintenanceTasks, projects, 6);
+
+  const upcoming = [...projects]
+    .filter((p) => p.calculatedStatus !== "closed" && p.calculatedStatus !== "archived")
+    .sort((a, b) => new Date(a.plannedCompletionDate).getTime() - new Date(b.plannedCompletionDate).getTime())
+    .slice(0, 6);
 
   return (
     <Card className="lg:col-span-2">
@@ -51,46 +56,42 @@ export function UpcomingDeadlinesWidget() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th className="pb-2 pr-3 font-medium">Type</th>
-                <th className="pb-2 pr-3 font-medium">Item</th>
-                <th className="pb-2 pr-3 font-medium">Project / Property</th>
-                <th className="pb-2 pr-3 font-medium">Due Date</th>
-                <th className="pb-2 font-medium">Status</th>
+                <th className="pb-2 pr-3 font-medium">Project</th>
+                <th className="pb-2 pr-3 font-medium">Completion Date</th>
+                <th className="pb-2 pr-3 font-medium">Status</th>
+                <th className="pb-2 pr-3 font-medium">Budget</th>
+                <th className="pb-2 font-medium">Spent to Date</th>
               </tr>
             </thead>
             <tbody>
-              {deadlines.map((d) => (
-                <tr key={d.id} className="border-b border-border/60 last:border-0">
+              {upcoming.map((p) => (
+                <tr key={p.id} className="border-b border-border/60 last:border-0">
                   <td className="py-2 pr-3">
-                    <Link href={deadlineHref(d.type, d.id)} className="block text-muted-foreground hover:text-primary hover:underline">
-                      {d.type}
-                    </Link>
-                  </td>
-                  <td className="py-2 pr-3">
-                    <Link href={deadlineHref(d.type, d.id)} className="block text-foreground hover:text-primary hover:underline">
-                      {d.item}
+                    <Link href={`/projects/${p.id}`} className="block font-medium text-foreground hover:text-primary hover:underline">
+                      {p.projectName}
                     </Link>
                   </td>
                   <td className="py-2 pr-3 text-muted-foreground">
-                    {d.projectOrProperty}
+                    {formatDate(p.plannedCompletionDate)}
+                  </td>
+                  <td className="py-2 pr-3">
+                    <StatusBadge status={STATUS_MAP[p.calculatedStatus]} label={STATUS_LABEL[p.calculatedStatus]} />
                   </td>
                   <td className="py-2 pr-3 text-muted-foreground">
-                    {formatDate(d.dueDate)}
+                    {formatCurrency(p.approvedBudget)}
                   </td>
-                  <td className="py-2">
-                    <StatusBadge
-                      status={
-                        d.status === "overdue"
-                          ? "behind_schedule"
-                          : d.status === "due_soon"
-                          ? "due_soon"
-                          : "upcoming"
-                      }
-                      label={specificDeadlineLabel(d.dueDate)}
-                    />
+                  <td className="py-2 text-muted-foreground">
+                    {p.actualCostToDate != null ? formatCurrency(p.actualCostToDate) : "—"}
                   </td>
                 </tr>
               ))}
+              {upcoming.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                    No active projects with an upcoming completion date.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
