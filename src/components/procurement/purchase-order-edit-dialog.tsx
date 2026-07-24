@@ -156,7 +156,14 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Project</Label>
-              <Select value={projectId} onValueChange={setProjectId}>
+              <Select
+                value={projectId}
+                onValueChange={(v) => {
+                  setProjectId(v);
+                  const project = projects.find((p) => p.id === v);
+                  if (project?.billingEntityId) setBillingEntityId(project.billingEntityId);
+                }}
+              >
                 <SelectTrigger className="mt-1.5 w-full">
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>

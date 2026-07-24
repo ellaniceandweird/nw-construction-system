@@ -9,7 +9,8 @@ function fromRow(row: Record<string, any>): Project {
     id: row.id,
     projectNumber: row.project_number,
     projectName: row.project_name,
-    propertyName: row.property_name ?? undefined,
+    propertyId: row.property_id,
+    propertyName: row.property_name,
     billingEntityId: row.billing_entity_id,
     costCenter: row.cost_center ?? undefined,
     internalProjectCode: row.internal_project_code ?? undefined,
@@ -55,6 +56,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.id !== undefined) row.id = input.id;
   if (input.projectNumber !== undefined) row.project_number = input.projectNumber;
   if (input.projectName !== undefined) row.project_name = input.projectName;
+  if (input.propertyId !== undefined) row.property_id = input.propertyId;
   if (input.propertyName !== undefined) row.property_name = input.propertyName;
   if (input.billingEntityId !== undefined) row.billing_entity_id = input.billingEntityId;
   if (input.costCenter !== undefined) row.cost_center = input.costCenter;
@@ -104,7 +106,8 @@ export const getProjectsSnapshot = store.getSnapshot;
 export interface ProjectInput {
   projectNumber: string;
   projectName: string;
-  propertyName?: string;
+  propertyId: string;
+  propertyName: string;
   billingEntityId: string;
   address: Project["address"];
   clientName: string;

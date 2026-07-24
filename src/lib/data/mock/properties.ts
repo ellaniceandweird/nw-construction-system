@@ -2,9 +2,12 @@ import type { Property } from "@/types/maintenance";
 
 /**
  * Properties extracted from the real Maintenance To-Do List and HVAC Log
- * workbooks. These are physical buildings the company operates — a
- * superset of (and mostly separate from) the construction Projects in
- * projects.ts.
+ * workbooks, plus 5 more referenced by existing Projects (25 River
+ * Street, Robert Taylor House, 25/27 Cross Street, 74 Hamburg Road).
+ * These are physical buildings the company operates — a superset of
+ * (and mostly separate from) the construction Projects in projects.ts.
+ * billingEntityId maps to the real LLC structure in the Company
+ * Billing & Entity List.
  */
 export const MOCK_PROPERTIES: Property[] = [
   {
@@ -13,6 +16,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "104 Water St",
+    billingEntityId: "BE-000012",
   },
   {
     id: "PROP-000002",
@@ -20,6 +24,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "18 Cross St",
+    billingEntityId: "BE-000002",
   },
   {
     id: "PROP-000003",
@@ -27,6 +32,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "321 Main St",
+    billingEntityId: "BE-000013",
   },
   {
     id: "PROP-000004",
@@ -34,6 +40,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "335 Main St",
+    billingEntityId: "BE-000016",
   },
   {
     id: "PROP-000005",
@@ -41,6 +48,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "344 Main St",
+    billingEntityId: "BE-000017",
   },
   {
     id: "PROP-000006",
@@ -48,6 +56,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "373 Main St (Airbnb)",
+    billingEntityId: "BE-000018",
   },
   {
     id: "PROP-000007",
@@ -55,6 +64,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "373 Main St (Theater)",
+    billingEntityId: "BE-000018",
   },
   {
     id: "PROP-000008",
@@ -62,6 +72,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "391 Main St",
+    billingEntityId: "BE-000019",
   },
   {
     id: "PROP-000009",
@@ -69,6 +80,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "CSX",
+    billingEntityId: "BE-000007",
   },
   {
     id: "PROP-000010",
@@ -76,6 +88,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "CSX/Caboose/Grapefruit",
+    billingEntityId: "BE-000007",
   },
   {
     id: "PROP-000011",
@@ -83,6 +96,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "Caboose",
+    billingEntityId: "BE-000007",
   },
   {
     id: "PROP-000012",
@@ -90,6 +104,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "General",
+    billingEntityId: "BE-000006",
   },
   {
     id: "PROP-000013",
@@ -97,6 +112,7 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "Kitty's/Mr Cat",
+    billingEntityId: "BE-000007",
   },
   {
     id: "PROP-000014",
@@ -104,5 +120,51 @@ export const MOCK_PROPERTIES: Property[] = [
     lastModifiedBy: "system", lastModifiedDate: "2026-07-10T00:00:00.000Z",
     revisionNumber: 1, module: "Maintenance", status: "active",
     name: "The Wick",
-  }
+    billingEntityId: "BE-000009",
+  },
+  {
+    id: "PROP-000015",
+    createdBy: "system", createdDate: "2026-07-24T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-24T00:00:00.000Z",
+    revisionNumber: 1, module: "Maintenance", status: "active",
+    name: "25 River Street",
+    address: "25 River Street",
+    billingEntityId: "BE-000008",
+  },
+  {
+    id: "PROP-000016",
+    createdBy: "system", createdDate: "2026-07-24T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-24T00:00:00.000Z",
+    revisionNumber: 1, module: "Maintenance", status: "active",
+    name: "Robert Taylor House",
+    address: "68 South 2nd Street",
+    billingEntityId: "BE-000010",
+  },
+  {
+    id: "PROP-000017",
+    createdBy: "system", createdDate: "2026-07-24T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-24T00:00:00.000Z",
+    revisionNumber: 1, module: "Maintenance", status: "active",
+    name: "25 Cross Street",
+    address: "25 Cross Street",
+    billingEntityId: "BE-000007",
+  },
+  {
+    id: "PROP-000018",
+    createdBy: "system", createdDate: "2026-07-24T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-24T00:00:00.000Z",
+    revisionNumber: 1, module: "Maintenance", status: "active",
+    name: "27 Cross Street",
+    address: "27 Cross Street",
+    billingEntityId: "BE-000002",
+  },
+  {
+    id: "PROP-000019",
+    createdBy: "system", createdDate: "2026-07-24T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-24T00:00:00.000Z",
+    revisionNumber: 1, module: "Maintenance", status: "active",
+    name: "74 Hamburg Road",
+    address: "74 Hamburg Road",
+    billingEntityId: "BE-000004",
+  },
 ];

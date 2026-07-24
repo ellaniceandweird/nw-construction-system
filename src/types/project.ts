@@ -50,7 +50,8 @@ export interface Project extends BaseEntity {
   // Identification
   projectNumber: string;
   projectName: string;
-  propertyName?: string;
+  propertyId: string;
+  propertyName: string;
   billingEntityId: string;
   costCenter?: string;
   internalProjectCode?: string;

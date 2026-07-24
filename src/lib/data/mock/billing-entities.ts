@@ -1,32 +1,28 @@
 import type { BillingEntity } from "@/types/financial";
 
 /**
- * ILLUSTRATIVE billing entities — since Nice & Weird operates as an
- * internal team managing its own properties (no external clients), these
- * represent YOUR OWN company/property-holding entities used to pay
- * vendor invoices, not customers being billed.
+ * Real billing entities, transcribed from the Company Billing & Entity
+ * List (June 2026). Each of your properties bills through one of these
+ * LLCs, per that document.
  */
 export const MOCK_BILLING_ENTITIES: BillingEntity[] = [
-  {
-    id: "BE-000001",
-    createdBy: "system", createdDate: "2026-01-01T00:00:00.000Z",
-    lastModifiedBy: "system", lastModifiedDate: "2026-01-01T00:00:00.000Z",
-    revisionNumber: 1, module: "Financial", status: "active",
-    companyName: "Nice & Weird Construction LLC",
-    legalName: "Nice & Weird Construction, LLC",
-    address: "Hudson, NY",
-    invoicePrefix: "NW",
-    defaultPaymentTerms: "Net 30",
-  },
-  {
-    id: "BE-000002",
-    createdBy: "system", createdDate: "2026-01-01T00:00:00.000Z",
-    lastModifiedBy: "system", lastModifiedDate: "2026-01-01T00:00:00.000Z",
-    revisionNumber: 1, module: "Financial", status: "active",
-    companyName: "Wick Hotel Holdings LLC",
-    legalName: "Wick Hotel Holdings, LLC",
-    address: "Hudson, NY",
-    invoicePrefix: "WH",
-    defaultPaymentTerms: "Net 30",
-  },
+  { id: "BE-000001", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "Appleton Lane Holdings LLC", legalName: "Appleton Lane Holdings LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000002", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "Cross Street Holdings LLC", legalName: "Cross Street Holdings LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000003", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "Hana Road Holdings LLC", legalName: "Hana Road Holdings LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000004", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "74 Hamburg Road LLC", legalName: "74 Hamburg Road LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000005", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "Montgomery Street Projects LLC", legalName: "Montgomery Street Projects LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000006", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "Nice and Weird LLC", legalName: "Nice and Weird LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000007", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "South Front Street Holdings LLC", legalName: "South Front Street Holdings LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000008", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "25 River Street Catskill LLC", legalName: "25 River Street Catskill LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000009", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "41 Cross Street LLC", legalName: "41 Cross Street LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000010", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "Robert Taylor House LLC", legalName: "Robert Taylor House LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000011", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "72 South Front Street LLC", legalName: "72 South Front Street LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000012", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "104 Water Street Catskill LLC", legalName: "104 Water Street Catskill LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000013", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "321 Main Street Catskill LLC", legalName: "321 Main Street Catskill LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000014", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "323 Main Street Catskill LLC", legalName: "323 Main Street Catskill LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000015", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "331 Main Street Catskill LLC", legalName: "331 Main Street Catskill LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000016", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "335 Main Street LLC", legalName: "335 Main Street LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000017", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "344 Main Street LLC", legalName: "344 Main Street LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000018", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "373 Main Street LLC", legalName: "373 Main Street LLC", defaultPaymentTerms: "Net 30" },
+  { id: "BE-000019", createdBy: "system", createdDate: "2026-06-01T00:00:00.000Z", lastModifiedBy: "system", lastModifiedDate: "2026-06-01T00:00:00.000Z", revisionNumber: 1, module: "Financial", status: "active", companyName: "391 Main Street LLC", legalName: "391 Main Street LLC", defaultPaymentTerms: "Net 30" },
 ];

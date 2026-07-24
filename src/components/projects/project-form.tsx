@@ -19,6 +19,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
+import { useProperties } from "@/hooks/use-properties";
 import { createProject, updateProject, deleteProject } from "@/lib/projects/project-store";
 import {
   projectFormSchema,
@@ -43,6 +44,7 @@ function fieldError(message?: string) {
 export function ProjectForm({ existingProject }: { existingProject?: Project }) {
   const router = useRouter();
   const billingEntities = useBillingEntities();
+  const properties = useProperties();
   const [submitted, setSubmitted] = React.useState(false);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
@@ -57,7 +59,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
     defaultValues: existingProject
       ? {
           projectName: existingProject.projectName,
-          propertyName: existingProject.propertyName ?? "",
+          propertyId: existingProject.propertyId,
           clientName: existingProject.clientName,
           billingEntityId: existingProject.billingEntityId,
           street: existingProject.address.street,
@@ -82,6 +84,18 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
 
   const selectedTags = watch("tags") ?? [];
 
+  function handlePropertyChange(propertyId: string) {
+    setValue("propertyId", propertyId, { shouldValidate: true });
+    const property = properties.find((p) => p.id === propertyId);
+    if (property?.billingEntityId) {
+      setValue("billingEntityId", property.billingEntityId, { shouldValidate: true });
+      const entity = billingEntities.find((b) => b.id === property.billingEntityId);
+      if (entity && !watch("clientName")) {
+        setValue("clientName", entity.companyName, { shouldValidate: true });
+      }
+    }
+  }
+
   function toggleTag(tag: string) {
     const next = selectedTags.includes(tag)
       ? selectedTags.filter((t) => t !== tag)
@@ -90,10 +104,12 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
   }
 
   function onSubmit(values: ProjectFormValues) {
+    const property = properties.find((p) => p.id === values.propertyId);
     const input = {
       projectNumber: existingProject?.projectNumber ?? `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
       projectName: values.projectName,
-      propertyName: values.propertyName || undefined,
+      propertyId: values.propertyId,
+      propertyName: property?.name ?? existingProject?.propertyName ?? "",
       clientName: values.clientName,
       billingEntityId: values.billingEntityId,
       address: {
@@ -148,8 +164,21 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           </div>
 
           <div>
-            <Label htmlFor="propertyName">Property Name (optional)</Label>
-            <Input id="propertyName" className="mt-1.5" {...register("propertyName")} />
+            <Label>Property</Label>
+            <Select
+              value={watch("propertyId")}
+              onValueChange={handlePropertyChange}
+            >
+              <SelectTrigger className="mt-1.5 w-full">
+                <SelectValue placeholder="Select property" />
+              </SelectTrigger>
+              <SelectContent>
+                {properties.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldError(errors.propertyId?.message)}
           </div>
           <div>
             <Label htmlFor="clientName">Client / Billing Entity Name</Label>
@@ -171,6 +200,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
                 ))}
               </SelectContent>
             </Select>
+            <p className="mt-1 text-xs text-muted-foreground">Auto-filled from the selected property — change it here if this project is an exception.</p>
             {fieldError(errors.billingEntityId?.message)}
           </div>
 
