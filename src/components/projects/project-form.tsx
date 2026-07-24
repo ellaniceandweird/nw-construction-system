@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { useProperties } from "@/hooks/use-properties";
 import { createProject, updateProject, deleteProject } from "@/lib/projects/project-store";
+import { showErrorToast } from "@/lib/toast/toast-store";
 import {
   projectFormSchema,
   type ProjectFormValues,
@@ -46,6 +47,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
   const billingEntities = useBillingEntities();
   const properties = useProperties();
   const [submitted, setSubmitted] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   const {
@@ -93,7 +95,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
     setValue("tags", next, { shouldValidate: true });
   }
 
-  function onSubmit(values: ProjectFormValues) {
+  async function onSubmit(values: ProjectFormValues) {
     const property = properties.find((p) => p.id === values.propertyId);
     const entity = billingEntities.find((b) => b.id === values.billingEntityId);
     const input = {
@@ -125,10 +127,15 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
       notes: values.notes || undefined,
     };
 
-    if (existingProject) {
-      updateProject(existingProject.id, input);
-    } else {
-      createProject(input);
+    setSaving(true);
+    const result = existingProject
+      ? await updateProject(existingProject.id, input)
+      : await createProject(input);
+    setSaving(false);
+
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this project — check your connection and try again.");
+      return;
     }
     setSubmitted(true);
     setTimeout(() => router.push("/projects"), 800);
@@ -282,8 +289,8 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
       </Card>
 
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={isSubmitting}>
-          {existingProject ? "Save Changes" : "Create Project"}
+        <Button type="submit" disabled={isSubmitting || saving}>
+          {saving ? "Saving…" : existingProject ? "Save Changes" : "Create Project"}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.push("/projects")}>
           Cancel

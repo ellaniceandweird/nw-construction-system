@@ -143,9 +143,9 @@ function nextId(): string {
   return `PRJ-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createProject(input: ProjectInput) {
+export async function createProject(input: ProjectInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextId();
-  void store.create({
+  const result = await store.create({
     id,
     calculatedStatus: input.manualStatus,
     team: input.team ?? {},
@@ -153,11 +153,14 @@ export function createProject(input: ProjectInput) {
     completionPercent: 0,
     ...input,
   });
-  return id;
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
 }
 
-export function updateProject(id: string, input: Partial<ProjectInput>) {
-  void store.update(id, input);
+export async function updateProject(id: string, input: Partial<ProjectInput>): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function deleteProject(id: string) {
