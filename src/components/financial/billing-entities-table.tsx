@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PropertyDetailDialog } from "@/components/properties/property-detail-dialog";
+import { PropertyBillingEditDialog } from "@/components/financial/property-billing-edit-dialog";
 import type { Property } from "@/types/maintenance";
 
 /**
@@ -56,8 +56,8 @@ export function BillingEntitiesTable() {
     <>
       <p className="mb-3 text-xs text-muted-foreground">
         Which of your company's billing entities (LLCs) each property runs through — per the
-        Company Billing &amp; Entity List and property maps. Click the pencil to open that
-        property and change its billing entity there.
+        Company Billing &amp; Entity List and property maps. Click the pencil for a quick edit of
+        the property name, address, or billing entity.
       </p>
 
       <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -116,7 +116,7 @@ export function BillingEntitiesTable() {
         </table>
       </Card>
 
-      <PropertyDetailDialog
+      <PropertyBillingEditDialog
         property={editingProperty}
         open={!!editingProperty}
         onOpenChange={(open) => !open && setEditingProperty(null)}
