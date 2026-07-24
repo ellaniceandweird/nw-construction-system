@@ -157,3 +157,7 @@ export function removeTimeEntry(logId: string, entryIndex: number) {
   if (!log) return;
   void store.update(logId, { timeEntries: log.timeEntries.filter((_, i) => i !== entryIndex) });
 }
+
+export function deleteDailyLog(id: string) {
+  void store.remove(id);
+}

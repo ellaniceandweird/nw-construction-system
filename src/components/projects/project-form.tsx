@@ -61,11 +61,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           projectName: existingProject.projectName,
           propertyId: existingProject.propertyId,
           billingEntityId: existingProject.billingEntityId,
-          street: existingProject.address.street,
-          city: existingProject.address.city,
-          state: existingProject.address.state,
-          zip: existingProject.address.zip,
-          projectType: existingProject.projectType,
+          projectDescription: existingProject.projectDescription ?? "",
           manualStatus: existingProject.manualStatus,
           startDate: existingProject.startDate,
           plannedCompletionDate: existingProject.plannedCompletionDate,
@@ -78,6 +74,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           tags: [],
           approvedBudget: 0,
           notes: "",
+          projectDescription: "",
         },
   });
 
@@ -107,14 +104,14 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
       clientName: entity?.companyName ?? existingProject?.clientName ?? "",
       billingEntityId: values.billingEntityId,
       address: {
-        street: values.street,
-        city: values.city,
-        state: values.state,
-        zip: values.zip,
+        street: property?.address ?? existingProject?.address.street ?? "",
+        city: property?.town ?? existingProject?.address.city ?? "",
+        state: existingProject?.address.state ?? "NY",
+        zip: existingProject?.address.zip ?? "",
         country: "USA",
       },
-      projectType: values.projectType,
-      constructionCategory: existingProject?.constructionCategory ?? values.projectType,
+      projectDescription: values.projectDescription || undefined,
+      constructionCategory: existingProject?.constructionCategory ?? "Renovation",
       contractType: existingProject?.contractType ?? "Time & Materials",
       currentPhase: existingProject?.currentPhase ?? "construction",
       manualStatus: values.manualStatus,
@@ -186,37 +183,30 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           </div>
 
           <div className="sm:col-span-2">
-            <Label htmlFor="street">Street Address</Label>
-            <Input id="street" className="mt-1.5" {...register("street")} />
-            {fieldError(errors.street?.message)}
-          </div>
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Input id="city" className="mt-1.5" {...register("city")} />
-            {fieldError(errors.city?.message)}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="state">State</Label>
-              <Input id="state" className="mt-1.5" maxLength={2} {...register("state")} />
-              {fieldError(errors.state?.message)}
+            <Label>Address</Label>
+            <div className="mt-1.5 flex min-h-9 items-center rounded-lg border border-input bg-muted/40 px-3 py-2 text-sm text-foreground">
+              {(() => {
+                const property = properties.find((p) => p.id === watch("propertyId"));
+                if (!property) return <span className="text-muted-foreground">Select a property first</span>;
+                return [property.address, property.town].filter(Boolean).join(", ") || (
+                  <span className="text-muted-foreground">No address on file for this property yet</span>
+                );
+              })()}
             </div>
-            <div>
-              <Label htmlFor="zip">ZIP</Label>
-              <Input id="zip" className="mt-1.5" {...register("zip")} />
-              {fieldError(errors.zip?.message)}
-            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Pulled from the property record — edit it in References {"->"} Billing Entities, not here.
+            </p>
           </div>
 
           <div className="sm:col-span-2">
-            <Label htmlFor="projectType">Project Type</Label>
-            <Input
-              id="projectType"
+            <Label htmlFor="projectDescription">Project Description</Label>
+            <Textarea
+              id="projectDescription"
               className="mt-1.5"
-              placeholder="e.g. Renovation"
-              {...register("projectType")}
+              placeholder="What's this project about?"
+              {...register("projectDescription")}
             />
-            {fieldError(errors.projectType?.message)}
+            {fieldError(errors.projectDescription?.message)}
           </div>
 
           <div>

@@ -68,7 +68,7 @@ export function FinancialRollupTable() {
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
           <SelectTrigger className="w-[180px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="project">Property (A-Z)</SelectItem>
+            <SelectItem value="project">Project (A-Z)</SelectItem>
             <SelectItem value="budget_desc">Budget (Highest)</SelectItem>
             <SelectItem value="remaining_asc">Remaining (Lowest First)</SelectItem>
           </SelectContent>
@@ -79,7 +79,7 @@ export function FinancialRollupTable() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="px-4 py-3 font-medium">Property</th>
+              <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Current Budget</th>
               <th className="px-4 py-3 font-medium">Actual Spent</th>
               <th className="px-4 py-3 font-medium">Remaining</th>

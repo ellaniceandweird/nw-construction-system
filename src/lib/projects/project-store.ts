@@ -23,7 +23,7 @@ function fromRow(row: Record<string, any>): Project {
     primaryContact: row.primary_contact ?? undefined,
     contactEmail: row.contact_email ?? undefined,
     contactPhone: row.contact_phone ?? undefined,
-    projectType: row.project_type,
+    projectDescription: row.project_description ?? undefined,
     constructionCategory: row.construction_category,
     contractType: row.contract_type,
     currentPhase: row.current_phase,
@@ -70,7 +70,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.primaryContact !== undefined) row.primary_contact = input.primaryContact;
   if (input.contactEmail !== undefined) row.contact_email = input.contactEmail;
   if (input.contactPhone !== undefined) row.contact_phone = input.contactPhone;
-  if (input.projectType !== undefined) row.project_type = input.projectType;
+  if (input.projectDescription !== undefined) row.project_description = input.projectDescription;
   if (input.constructionCategory !== undefined) row.construction_category = input.constructionCategory;
   if (input.contractType !== undefined) row.contract_type = input.contractType;
   if (input.currentPhase !== undefined) row.current_phase = input.currentPhase;
@@ -118,7 +118,7 @@ export interface ProjectInput {
   primaryContact?: string;
   contactEmail?: string;
   contactPhone?: string;
-  projectType: string;
+  projectDescription?: string;
   constructionCategory: string;
   contractType: string;
   currentPhase: Project["currentPhase"];

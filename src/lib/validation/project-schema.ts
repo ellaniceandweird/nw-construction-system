@@ -11,12 +11,7 @@ export const projectFormSchema = z.object({
   propertyId: z.string().min(1, "Select a property"),
   billingEntityId: z.string().min(1, "Select a property to determine the billing entity"),
 
-  street: z.string().min(2, "Street address is required"),
-  city: z.string().min(2, "City is required"),
-  state: z.string().length(2, "Use a 2-letter state code (e.g. NY)"),
-  zip: z.string().regex(/^\d{5}$/, "ZIP must be 5 digits"),
-
-  projectType: z.string().min(2, "Project type is required"),
+  projectDescription: z.string().optional(),
   manualStatus: z.enum(["active", "on_hold", "closed", "archived"]),
 
   startDate: z.string().min(1, "Start date is required"),

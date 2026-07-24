@@ -83,6 +83,10 @@ export function createCostTransaction(input: CostTransactionInput) {
   return id;
 }
 
+export function updateCostTransaction(id: string, input: CostTransactionInput) {
+  void store.update(id, input);
+}
+
 export function deleteCostTransaction(id: string) {
   void store.remove(id);
 }

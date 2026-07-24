@@ -1,7 +1,9 @@
 "use client";
 import * as React from "react";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, Pencil } from "lucide-react";
 import { useCostTransactions } from "@/hooks/use-cost-transactions";
+import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
+import { derivePurchaseOrderTransactions } from "@/lib/financial/cost-transaction-derivation";
 import { useCostLedgerNotes } from "@/hooks/use-cost-ledger-notes";
 import { setCostLedgerNote } from "@/lib/financial/cost-ledger-notes-store";
 import { exportToExcel } from "@/lib/financial/export-excel";
@@ -21,7 +23,9 @@ import {
 } from "@/components/ui/select";
 import { ArrowUpDown } from "lucide-react";
 import { AddCostTransactionDialog } from "@/components/financial/add-cost-transaction-dialog";
+import { EditCostTransactionDialog } from "@/components/financial/edit-cost-transaction-dialog";
 import type { Project } from "@/types/project";
+import type { CostTransaction } from "@/types/financial";
 
 const SOURCE_LABEL: Record<string, string> = {
   procurement: "Procurement",
@@ -59,13 +63,20 @@ function NotesCell({ transactionId, initialValue }: { transactionId: string; ini
 
 export function CostLedgerTable() {
   const projects = useProjects();
-  const allTransactions = useCostTransactions();
+  const manualTransactions = useCostTransactions();
+  const purchaseOrders = usePurchaseOrders();
   const vendors = useVendors();
   const notes = useCostLedgerNotes();
   const [adding, setAdding] = React.useState(false);
+  const [editing, setEditing] = React.useState<CostTransaction | null>(null);
   const [projectFilter, setProjectFilter] = React.useState("all");
   const [sourceFilter, setSourceFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<"date_desc" | "date_asc" | "amount_desc" | "amount_asc">("date_desc");
+
+  const allTransactions = React.useMemo(
+    () => [...manualTransactions, ...derivePurchaseOrderTransactions(purchaseOrders)],
+    [manualTransactions, purchaseOrders]
+  );
 
   const filtered = allTransactions.filter((t) => {
     const matchesProject = projectFilter === "all" || t.projectId === projectFilter;
@@ -158,13 +169,14 @@ export function CostLedgerTable() {
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-4 py-3 font-medium">Date</th>
-              <th className="px-4 py-3 font-medium">Property</th>
+              <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Description</th>
               <th className="px-4 py-3 font-medium">Cost Code</th>
               <th className="px-4 py-3 font-medium">Vendor</th>
               <th className="px-4 py-3 font-medium">Source</th>
               <th className="px-4 py-3 font-medium">Amount</th>
               <th className="px-4 py-3 font-medium">Notes</th>
+              <th className="px-4 py-3 font-medium w-10"></th>
             </tr>
           </thead>
           <tbody>
@@ -182,10 +194,19 @@ export function CostLedgerTable() {
                 <td className="px-4 py-3">
                   <NotesCell transactionId={t.id} initialValue={notes[t.id] ?? ""} />
                 </td>
+                <td className="px-4 py-3">
+                  {t.sourceModule === "manual" ? (
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(t)}>
+                      <Pencil className="size-3.5" />
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground" title="Auto-generated from Procurement — edit the Purchase Order instead">—</span>
+                  )}
+                </td>
               </tr>
             ))}
             {transactions.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">No cost transactions yet.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">No cost transactions yet.</td></tr>
             )}
           </tbody>
           {transactions.length > 0 && (
@@ -194,6 +215,7 @@ export function CostLedgerTable() {
                 <td colSpan={6} className="px-4 py-3 text-right">Total</td>
                 <td className="px-4 py-3">{currency(total)}</td>
                 <td></td>
+                <td></td>
               </tr>
             </tfoot>
           )}
@@ -201,6 +223,11 @@ export function CostLedgerTable() {
       </Card>
 
       <AddCostTransactionDialog open={adding} onOpenChange={setAdding} />
+      <EditCostTransactionDialog
+        transaction={editing}
+        open={!!editing}
+        onOpenChange={(open) => !open && setEditing(null)}
+      />
     </>
   );
 }

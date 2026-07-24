@@ -2,11 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Search, Cloud, CloudRain, Sun, Wind, Snowflake } from "lucide-react";
+import { Search, Cloud, CloudRain, Sun, Wind, Snowflake, Trash2 } from "lucide-react";
 
 import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useProjects } from "@/hooks/use-projects";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { deleteDailyLog } from "@/lib/field-operations/daily-log-store";
 import {
   Select,
   SelectContent,
@@ -36,6 +38,7 @@ export function DailyLogsList() {
   const logs = useDailyLogs();
   const [search, setSearch] = React.useState("");
   const [projectFilter, setProjectFilter] = React.useState("all");
+  const [confirmingDeleteId, setConfirmingDeleteId] = React.useState<string | null>(null);
 
   const projectsWithLogs = projects.filter((p) =>
     logs.some((l) => l.projectId === p.id)
@@ -87,6 +90,7 @@ export function DailyLogsList() {
               <th className="px-4 py-3 font-medium">Weather</th>
               <th className="px-4 py-3 font-medium">Crew</th>
               <th className="px-4 py-3 font-medium">Total Hours</th>
+              <th className="px-4 py-3 font-medium w-10"></th>
             </tr>
           </thead>
           <tbody>
@@ -121,12 +125,28 @@ export function DailyLogsList() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{crewCount}</td>
                   <td className="px-4 py-3 text-muted-foreground">{totalHours}h</td>
+                  <td className="px-4 py-3">
+                    {confirmingDeleteId === log.id ? (
+                      <div className="flex items-center gap-1.5 whitespace-nowrap">
+                        <Button variant="destructive" size="sm" onClick={() => { deleteDailyLog(log.id); setConfirmingDeleteId(null); }}>
+                          Confirm
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setConfirmingDeleteId(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setConfirmingDeleteId(log.id)}>
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    )}
+                  </td>
                 </tr>
               );
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
                   No daily logs match your search.
                 </td>
               </tr>

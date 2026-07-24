@@ -1,9 +1,12 @@
 "use client";
 
+import * as React from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ForecastTable } from "@/components/procurement/forecast-table";
 import { MaterialRequestsTable } from "@/components/procurement/material-requests-table";
 import { RfqsTable } from "@/components/procurement/rfqs-table";
@@ -21,7 +24,12 @@ const VALID_TABS = [
   "subcontractors",
 ];
 
-const SOURCING_SUB_TABS = ["mrs", "rfqs", "quotes", "comparison"];
+const SOURCING_SUB_TABS = [
+  { value: "mrs", label: "Material Request" },
+  { value: "rfqs", label: "RFQs" },
+  { value: "quotes", label: "Quotes" },
+  { value: "comparison", label: "Quote Comparison" },
+] as const;
 
 export function ProcurementPageClient() {
   const searchParams = useSearchParams();
@@ -31,15 +39,13 @@ export function ProcurementPageClient() {
   const tabParam = searchParams.get("tab");
   const activeTab = VALID_TABS.includes(tabParam ?? "") ? tabParam! : "forecast";
 
-  const subTabParam = searchParams.get("sourcing");
-  const activeSourcingTab = SOURCING_SUB_TABS.includes(subTabParam ?? "") ? subTabParam! : "mrs";
+  // Local state, not URL-driven — avoids nesting a second URL-controlled
+  // Tabs instance inside the outer one, which was making these buttons
+  // unclickable.
+  const [activeSourcingTab, setActiveSourcingTab] = React.useState<string>("mrs");
 
   function handleTabChange(value: string) {
     router.push(`${pathname}?tab=${value}`, { scroll: false });
-  }
-
-  function handleSourcingTabChange(value: string) {
-    router.push(`${pathname}?tab=sourcing&sourcing=${value}`, { scroll: false });
   }
 
   return (
@@ -65,26 +71,29 @@ export function ProcurementPageClient() {
             Material Request, RFQs, Quotes, and Quote Comparison — the day-to-day sourcing
             workflow, grouped together since these all feed into each other.
           </p>
-          <Tabs value={activeSourcingTab} onValueChange={handleSourcingTabChange}>
-            <TabsList>
-              <TabsTrigger value="mrs">Material Request</TabsTrigger>
-              <TabsTrigger value="rfqs">RFQs</TabsTrigger>
-              <TabsTrigger value="quotes">Quotes</TabsTrigger>
-              <TabsTrigger value="comparison">Quote Comparison</TabsTrigger>
-            </TabsList>
-            <TabsContent value="mrs">
-              <MaterialRequestsTable />
-            </TabsContent>
-            <TabsContent value="rfqs">
-              <RfqsTable />
-            </TabsContent>
-            <TabsContent value="quotes">
-              <QuotesTable />
-            </TabsContent>
-            <TabsContent value="comparison">
-              <QuoteComparison />
-            </TabsContent>
-          </Tabs>
+          <div className="mb-4 inline-flex items-center gap-1 rounded-lg bg-muted p-1 text-muted-foreground">
+            {SOURCING_SUB_TABS.map((t) => (
+              <Button
+                key={t.value}
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveSourcingTab(t.value)}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm font-medium hover:bg-transparent",
+                  activeSourcingTab === t.value
+                    ? "bg-card text-foreground shadow-sm hover:bg-card"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {t.label}
+              </Button>
+            ))}
+          </div>
+          {activeSourcingTab === "mrs" && <MaterialRequestsTable />}
+          {activeSourcingTab === "rfqs" && <RfqsTable />}
+          {activeSourcingTab === "quotes" && <QuotesTable />}
+          {activeSourcingTab === "comparison" && <QuoteComparison />}
         </TabsContent>
         <TabsContent value="pos">
           <PurchaseOrdersTable />

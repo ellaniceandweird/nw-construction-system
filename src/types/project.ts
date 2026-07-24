@@ -78,7 +78,7 @@ export interface Project extends BaseEntity {
   contactPhone?: string;
 
   // Project information
-  projectType: string;
+  projectDescription?: string;
   constructionCategory: string;
   contractType: string;
   currentPhase: ProjectLifecyclePhase;
