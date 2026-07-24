@@ -157,3 +157,7 @@ export function getRFQStatus(
   if (r.responses.length < r.vendorIds.length) return "partial";
   return "quoted";
 }
+
+export function deleteRFQ(id: string) {
+  void store.remove(id);
+}

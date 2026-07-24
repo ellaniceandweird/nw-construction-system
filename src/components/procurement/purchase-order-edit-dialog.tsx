@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updatePurchaseOrder, createPurchaseOrder, computeTotal } from "@/lib/procurement/purchase-order-store";
+import { updatePurchaseOrder, createPurchaseOrder, computeTotal, deletePurchaseOrder } from "@/lib/procurement/purchase-order-store";
 import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
@@ -62,12 +62,14 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
   const [expectedDelivery, setExpectedDelivery] = React.useState("");
   const [terms, setTerms] = React.useState("");
   const [poStatus, setPoStatus] = React.useState<PurchaseOrderStatus>("approved");
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [tax, setTax] = React.useState("");
   const [freight, setFreight] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [lineItems, setLineItems] = React.useState<PurchaseOrderLineItem[]>([emptyLineItem()]);
 
   React.useEffect(() => {
+    setConfirmingDelete(false);
     if (order) {
       setProjectId(order.projectId);
       setVendorId(order.vendorId);
@@ -140,6 +142,12 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
     } else {
       createPurchaseOrder(input);
     }
+    onOpenChange(false);
+  }
+
+  function handleDelete() {
+    if (!order) return;
+    deletePurchaseOrder(order.id);
     onOpenChange(false);
   }
 
@@ -347,13 +355,26 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!canSave}>
-            {order ? "Save Changes" : "Create Purchase Order"}
-          </Button>
+        <DialogFooter className="sm:justify-between">
+          {order ? (confirmingDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Delete this purchase order?</span>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
+              <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+            </div>
+          ) : (
+            <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmingDelete(true)}>
+              <Trash2 className="size-3.5" /> Delete
+            </Button>
+          )) : <span />}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={!canSave}>
+              {order ? "Save Changes" : "Create Purchase Order"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

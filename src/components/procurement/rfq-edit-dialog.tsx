@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Trash2 } from "lucide-react";
 
 import {
   Dialog,
@@ -21,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateRFQ, getRFQStatus } from "@/lib/procurement/rfq-store";
+import { updateRFQ, getRFQStatus, deleteRFQ } from "@/lib/procurement/rfq-store";
 import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { useMaterialRequests } from "@/hooks/use-material-requests";
@@ -49,8 +50,10 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
   const [scope, setScope] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [manualStatus, setManualStatus] = React.useState<"none" | "closed" | "cancelled">("none");
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   React.useEffect(() => {
+    setConfirmingDelete(false);
     if (rfq) {
       setProjectId(rfq.projectId);
       setMaterialRequestId(rfq.materialRequestId ?? NONE);
@@ -81,6 +84,12 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
       notes: notes || undefined,
       manualStatus: manualStatus === "none" ? undefined : manualStatus,
     });
+    onOpenChange(false);
+  }
+
+  function handleDelete() {
+    if (!rfq) return;
+    deleteRFQ(rfq.id);
     onOpenChange(false);
   }
 
@@ -218,13 +227,26 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!canSave}>
-            Save Changes
-          </Button>
+        <DialogFooter className="sm:justify-between">
+          {rfq ? (confirmingDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Delete this RFQ?</span>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
+              <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+            </div>
+          ) : (
+            <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmingDelete(true)}>
+              <Trash2 className="size-3.5" /> Delete
+            </Button>
+          )) : <span />}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={!canSave}>
+              Save Changes
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

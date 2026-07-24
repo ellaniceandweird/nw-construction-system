@@ -100,3 +100,7 @@ export function updateVendor(id: string, input: VendorEditInput) {
 export function toggleVendorRecommended(id: string, recommended: boolean) {
   void store.update(id, { isPreferredVendor: recommended });
 }
+
+export function deleteVendor(id: string) {
+  void store.remove(id);
+}

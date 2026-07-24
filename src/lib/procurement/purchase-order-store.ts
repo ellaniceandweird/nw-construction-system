@@ -161,3 +161,7 @@ export function createPurchaseOrderFromQuote(input: AutoGenerateFromQuoteInput) 
   });
   return poNumber;
 }
+
+export function deletePurchaseOrder(id: string) {
+  void store.remove(id);
+}

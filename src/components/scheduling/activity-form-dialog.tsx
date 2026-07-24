@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Trash2 } from "lucide-react";
 
 import {
   Dialog,
@@ -28,7 +29,7 @@ import {
   activityFormSchema,
   type ActivityFormValues,
 } from "@/lib/validation/activity-schema";
-import { addActivity, updateActivity } from "@/lib/scheduling/activity-store";
+import { addActivity, updateActivity, deleteActivity } from "@/lib/scheduling/activity-store";
 import type { Activity } from "@/types/scheduling";
 
 function fieldError(message?: string) {
@@ -58,6 +59,7 @@ export function ActivityFormDialog({
   existingActivity,
 }: ActivityFormDialogProps) {
   const projects = useProjects();
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const {
     register,
     handleSubmit,
@@ -88,6 +90,7 @@ export function ActivityFormDialog({
   // Reset form whenever we switch between add / a different activity to edit
   React.useEffect(() => {
     if (open) {
+      setConfirmingDelete(false);
       reset(
         existingActivity
           ? {
@@ -113,6 +116,12 @@ export function ActivityFormDialog({
     } else {
       addActivity(values, project?.projectName ?? "Unknown Project");
     }
+    onOpenChange(false);
+  }
+
+  function handleDelete() {
+    if (!existingActivity) return;
+    deleteActivity(existingActivity.id);
     onOpenChange(false);
   }
 
@@ -241,13 +250,31 @@ export function ActivityFormDialog({
             </Label>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {existingActivity ? "Save Changes" : "Add Activity"}
-            </Button>
+          <DialogFooter className="sm:justify-between">
+            {existingActivity ? (confirmingDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Delete this activity?</span>
+                <Button type="button" variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => setConfirmingDelete(true)}
+              >
+                <Trash2 className="size-3.5" /> Delete
+              </Button>
+            )) : <span />}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {existingActivity ? "Save Changes" : "Add Activity"}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

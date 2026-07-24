@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Building2, ArrowUpRight, ImageOff, ExternalLink } from "lucide-react";
+import { Building2, ArrowUpRight, ImageOff, ExternalLink, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
-import { updateProperty } from "@/lib/properties/property-store";
+import { updateProperty, deleteProperty } from "@/lib/properties/property-store";
 import { getRelatedProjects, getMaintenanceHistory, getPropertyPhotos } from "@/lib/properties/property-relations";
 import { useProjects } from "@/hooks/use-projects";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
@@ -82,12 +82,14 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
   const [address, setAddress] = React.useState("");
   const [town, setTown] = React.useState("");
   const [editingInfo, setEditingInfo] = React.useState(false);
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   React.useEffect(() => {
     if (property && open) {
       setAddress(property.address ?? "");
       setTown(property.town ?? "");
       setEditingInfo(false);
+      setConfirmingDelete(false);
     }
   }, [property, open]);
 
@@ -119,12 +121,35 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
     if (!property) return;
     updateProperty(property.id, { billingEntityId: value === NONE ? undefined : value });
   }
+  function handleDelete() {
+    if (!property) return;
+    deleteProperty(property.id);
+    onOpenChange(false);
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{property.name}</DialogTitle>
+          <div className="flex items-center justify-between gap-3 pr-6">
+            <DialogTitle>{property.name}</DialogTitle>
+            {confirmingDelete ? (
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="text-xs text-muted-foreground">Delete this property?</span>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
+                <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="shrink-0 text-destructive hover:text-destructive"
+                onClick={() => setConfirmingDelete(true)}
+              >
+                <Trash2 className="size-3.5" /> Delete
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="flex flex-col gap-5">

@@ -108,3 +108,7 @@ export function createMaterialRequest(input: MaterialRequestCreateInput) {
   });
   return mrNumber;
 }
+
+export function deleteMaterialRequest(id: string) {
+  void store.remove(id);
+}

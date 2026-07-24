@@ -65,3 +65,7 @@ export interface PropertyInput {
 export function updateProperty(id: string, input: PropertyInput) {
   void store.update(id, input);
 }
+
+export function deleteProperty(id: string) {
+  void store.remove(id);
+}

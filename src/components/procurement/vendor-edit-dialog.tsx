@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Trash2 } from "lucide-react";
 
 import {
   Dialog,
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateVendor } from "@/lib/procurement/vendor-store";
+import { updateVendor, deleteVendor } from "@/lib/procurement/vendor-store";
 import type { Vendor } from "@/types/procurement";
 
 interface Props {
@@ -46,8 +47,10 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
   const [email, setEmail] = React.useState("");
   const [website, setWebsite] = React.useState("");
   const [notes, setNotes] = React.useState("");
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   React.useEffect(() => {
+    setConfirmingDelete(false);
     if (vendor) {
       setVendorName(vendor.vendorName);
       setVendorCategory(vendor.vendorCategory);
@@ -74,6 +77,12 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
       website,
       notes,
     });
+    onOpenChange(false);
+  }
+
+  function handleDelete() {
+    if (!vendor) return;
+    deleteVendor(vendor.id);
     onOpenChange(false);
   }
 
@@ -152,11 +161,24 @@ export function VendorEditDialog({ vendor, open, onOpenChange }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+        <DialogFooter className="sm:justify-between">
+          {vendor ? (confirmingDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Delete this vendor?</span>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
+              <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+            </div>
+          ) : (
+            <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmingDelete(true)}>
+              <Trash2 className="size-3.5" /> Delete
+            </Button>
+          )) : <span />}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
