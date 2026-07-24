@@ -79,13 +79,13 @@ function nextId(): string {
   return `PAINT-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createPaintLogEntry(input: PaintLogInput) {
+export async function createPaintLogEntry(input: PaintLogInput): Promise<boolean> {
   const id = nextId();
-  void store.create({ id, ...input });
-  return id;
+  const result = await store.create({ id, ...input });
+  return result !== null;
 }
-export function updatePaintLogEntry(id: string, input: PaintLogInput) {
-  void store.update(id, input);
+export async function updatePaintLogEntry(id: string, input: PaintLogInput): Promise<boolean> {
+  return store.update(id, input);
 }
 export function deletePaintLogEntry(id: string) {
   void store.remove(id);

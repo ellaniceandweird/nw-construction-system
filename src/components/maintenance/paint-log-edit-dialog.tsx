@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
 import { createPaintLogEntry, updatePaintLogEntry, deletePaintLogEntry } from "@/lib/maintenance/paint-log-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { PaintLogEntry } from "@/types/maintenance";
 
 const MANUAL_ENTRY = "__manual__";
@@ -41,6 +42,7 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
   const [colorCode, setColorCode] = React.useState("");
   const [comments, setComments] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -71,7 +73,8 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
     if (property?.address) setPropertyAddress(property.address);
   }
 
-  function handleSave() {
+  async function handleSave() {
+    setSaving(true);
     const input = {
       propertyId: propertyId || undefined,
       propertyName,
@@ -85,11 +88,15 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
       colorCode: colorCode || undefined,
       comments: comments || undefined,
     };
-    if (entry) {
-      updatePaintLogEntry(entry.id, input);
-    } else {
-      createPaintLogEntry(input);
+    const ok = entry
+      ? await updatePaintLogEntry(entry.id, input)
+      : await createPaintLogEntry(input);
+    setSaving(false);
+    if (!ok) {
+      showErrorToast("Couldn't save this paint log entry — check your connection and try again.");
+      return;
     }
+    showSuccessToast(entry ? "Paint log entry updated" : "Paint log entry added");
     onOpenChange(false);
   }
 
@@ -183,7 +190,7 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

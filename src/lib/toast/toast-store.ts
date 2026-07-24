@@ -8,7 +8,7 @@ export interface ToastAction {
 export interface Toast {
   id: string;
   message: string;
-  tone: "success" | "info";
+  tone: "success" | "info" | "error";
   action?: ToastAction;
   durationMs: number;
 }
@@ -49,6 +49,11 @@ function pushToast(message: string, tone: Toast["tone"], action?: ToastAction, d
 /** A quick confirmation that something saved/happened — auto-dismisses in 4s. */
 export function showSuccessToast(message: string) {
   return pushToast(message, "success");
+}
+
+/** Something failed to save — stays up longer (7s) since it needs to actually be read. */
+export function showErrorToast(message: string) {
+  return pushToast(message, "error", undefined, 7000);
 }
 
 /**

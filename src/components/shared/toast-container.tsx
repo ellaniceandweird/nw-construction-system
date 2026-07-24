@@ -1,5 +1,5 @@
 "use client";
-import { CheckCircle2, Info, X } from "lucide-react";
+import { CheckCircle2, Info, AlertCircle, X } from "lucide-react";
 import { useToasts } from "@/hooks/use-toasts";
 import { dismissToast } from "@/lib/toast/toast-store";
 
@@ -14,11 +14,17 @@ export function ToastContainer() {
         <div
           key={t.id}
           className={`pointer-events-auto flex items-center gap-2.5 rounded-lg border px-4 py-3 shadow-lg ${
-            t.tone === "success" ? "border-success/30 bg-success-soft" : "border-info/30 bg-info-soft"
+            t.tone === "success"
+              ? "border-success/30 bg-success-soft"
+              : t.tone === "error"
+              ? "border-destructive/30 bg-destructive-soft"
+              : "border-info/30 bg-info-soft"
           }`}
         >
           {t.tone === "success" ? (
             <CheckCircle2 className="size-4 shrink-0 text-success" />
+          ) : t.tone === "error" ? (
+            <AlertCircle className="size-4 shrink-0 text-destructive" />
           ) : (
             <Info className="size-4 shrink-0 text-info-foreground" />
           )}

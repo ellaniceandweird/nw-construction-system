@@ -64,13 +64,13 @@ function nextId(): string {
   return `KEY-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createKeyCodeEntry(input: KeyCodeInput) {
+export async function createKeyCodeEntry(input: KeyCodeInput): Promise<boolean> {
   const id = nextId();
-  void store.create({ id, ...input });
-  return id;
+  const result = await store.create({ id, ...input });
+  return result !== null;
 }
-export function updateKeyCodeEntry(id: string, input: KeyCodeInput) {
-  void store.update(id, input);
+export async function updateKeyCodeEntry(id: string, input: KeyCodeInput): Promise<boolean> {
+  return store.update(id, input);
 }
 export function deleteKeyCodeEntry(id: string) {
   void store.remove(id);

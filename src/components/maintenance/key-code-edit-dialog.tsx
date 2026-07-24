@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
 import { createKeyCodeEntry, updateKeyCodeEntry, deleteKeyCodeEntry } from "@/lib/maintenance/key-code-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { KeyCodeEntry } from "@/types/maintenance";
 
 const MANUAL_ENTRY = "__manual__";
@@ -36,6 +37,7 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
   const [accessCode, setAccessCode] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -60,7 +62,8 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
     setPropertyName(property?.name ?? "");
   }
 
-  function handleSave() {
+  async function handleSave() {
+    setSaving(true);
     const input = {
       propertyId: propertyId || undefined,
       propertyName,
@@ -69,11 +72,15 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
       accessCode: accessCode || undefined,
       notes: notes || undefined,
     };
-    if (entry) {
-      updateKeyCodeEntry(entry.id, input);
-    } else {
-      createKeyCodeEntry(input);
+    const ok = entry
+      ? await updateKeyCodeEntry(entry.id, input)
+      : await createKeyCodeEntry(input);
+    setSaving(false);
+    if (!ok) {
+      showErrorToast("Couldn't save this key code entry — check your connection and try again.");
+      return;
     }
+    showSuccessToast(entry ? "Key code entry updated" : "Key code entry added");
     onOpenChange(false);
   }
 
@@ -141,7 +148,7 @@ export function KeyCodeEditDialog({ entry, open, onOpenChange }: Props) {
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>
