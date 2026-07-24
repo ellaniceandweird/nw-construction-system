@@ -195,16 +195,12 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
 
           <div>
             <Label>Billing Entity</Label>
-            <Select value={billingEntityId} onValueChange={setBillingEntityId}>
-              <SelectTrigger className="mt-1.5 w-full">
-                <SelectValue placeholder="Select billing entity" />
-              </SelectTrigger>
-              <SelectContent>
-                {billingEntities.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="mt-1.5 flex h-9 items-center rounded-lg border border-input bg-muted/40 px-3 text-sm text-foreground">
+              {billingEntities.find((b) => b.id === billingEntityId)?.companyName ?? (
+                <span className="text-muted-foreground">Select a project first</span>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Determined by the project's property — every property bills through one dedicated entity.</p>
           </div>
 
           <div className="grid grid-cols-3 gap-4">

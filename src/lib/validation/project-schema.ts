@@ -9,8 +9,7 @@ import { z } from "zod";
 export const projectFormSchema = z.object({
   projectName: z.string().min(3, "Project name must be at least 3 characters"),
   propertyId: z.string().min(1, "Select a property"),
-  clientName: z.string().min(2, "Client name is required"),
-  billingEntityId: z.string().min(1, "Select a billing entity"),
+  billingEntityId: z.string().min(1, "Select a property to determine the billing entity"),
 
   street: z.string().min(2, "Street address is required"),
   city: z.string().min(2, "City is required"),

@@ -60,7 +60,6 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
       ? {
           projectName: existingProject.projectName,
           propertyId: existingProject.propertyId,
-          clientName: existingProject.clientName,
           billingEntityId: existingProject.billingEntityId,
           street: existingProject.address.street,
           city: existingProject.address.city,
@@ -87,13 +86,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
   function handlePropertyChange(propertyId: string) {
     setValue("propertyId", propertyId, { shouldValidate: true });
     const property = properties.find((p) => p.id === propertyId);
-    if (property?.billingEntityId) {
-      setValue("billingEntityId", property.billingEntityId, { shouldValidate: true });
-      const entity = billingEntities.find((b) => b.id === property.billingEntityId);
-      if (entity && !watch("clientName")) {
-        setValue("clientName", entity.companyName, { shouldValidate: true });
-      }
-    }
+    setValue("billingEntityId", property?.billingEntityId ?? "", { shouldValidate: true });
   }
 
   function toggleTag(tag: string) {
@@ -105,12 +98,13 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
 
   function onSubmit(values: ProjectFormValues) {
     const property = properties.find((p) => p.id === values.propertyId);
+    const entity = billingEntities.find((b) => b.id === values.billingEntityId);
     const input = {
       projectNumber: existingProject?.projectNumber ?? `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
       projectName: values.projectName,
       propertyId: values.propertyId,
       propertyName: property?.name ?? existingProject?.propertyName ?? "",
-      clientName: values.clientName,
+      clientName: entity?.companyName ?? existingProject?.clientName ?? "",
       billingEntityId: values.billingEntityId,
       address: {
         street: values.street,
@@ -181,26 +175,13 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             {fieldError(errors.propertyId?.message)}
           </div>
           <div>
-            <Label htmlFor="clientName">Client / Billing Entity Name</Label>
-            <Input id="clientName" className="mt-1.5" {...register("clientName")} />
-            {fieldError(errors.clientName?.message)}
-          </div>
-          <div>
             <Label>Billing Entity</Label>
-            <Select
-              value={watch("billingEntityId")}
-              onValueChange={(v) => setValue("billingEntityId", v, { shouldValidate: true })}
-            >
-              <SelectTrigger className="mt-1.5 w-full">
-                <SelectValue placeholder="Select billing entity" />
-              </SelectTrigger>
-              <SelectContent>
-                {billingEntities.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="mt-1 text-xs text-muted-foreground">Auto-filled from the selected property — change it here if this project is an exception.</p>
+            <div className="mt-1.5 flex h-9 items-center rounded-lg border border-input bg-muted/40 px-3 text-sm text-foreground">
+              {billingEntities.find((b) => b.id === watch("billingEntityId"))?.companyName ?? (
+                <span className="text-muted-foreground">Select a property first</span>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Every property bills through one dedicated entity — this is set in References, not here.</p>
             {fieldError(errors.billingEntityId?.message)}
           </div>
 
