@@ -164,6 +164,7 @@ export interface RequestForQuotation extends BaseEntity {
 }
 
 export type PurchaseOrderStatus =
+  | "pending_approval"
   | "approved"
   | "paid"
   | "partially_delivered"

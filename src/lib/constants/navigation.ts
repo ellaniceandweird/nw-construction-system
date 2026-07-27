@@ -56,7 +56,6 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Approvals", href: "/approvals", icon: ClipboardCheck },
   { label: "Property Profiles", href: "/properties", icon: Building2 },
   { label: "Projects", href: "/projects", icon: FolderKanban },
   {
@@ -126,6 +125,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "Financial Rollup", href: "/financial?tab=rollup" },
     ],
   },
+  { label: "Approvals", href: "/approvals", icon: ClipboardCheck },
   {
     label: "Documents",
     href: "/documents",

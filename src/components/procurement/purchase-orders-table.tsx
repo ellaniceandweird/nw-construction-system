@@ -20,6 +20,7 @@ import { PurchaseOrderEditDialog } from "@/components/procurement/purchase-order
 import type { PurchaseOrder, PurchaseOrderStatus } from "@/types/procurement";
 
 const STATUS_CLASS: Record<PurchaseOrderStatus, string> = {
+  pending_approval: "bg-warning-soft text-warning-foreground",
   approved: "bg-info-soft text-info-foreground",
   paid: "bg-success-soft text-success",
   partially_delivered: "bg-warning-soft text-warning-foreground",

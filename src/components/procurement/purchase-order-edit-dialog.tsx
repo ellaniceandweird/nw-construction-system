@@ -36,6 +36,7 @@ interface Props {
 }
 
 const STATUS_OPTIONS: { value: PurchaseOrderStatus; label: string }[] = [
+  { value: "pending_approval", label: "Pending Approval" },
   { value: "approved", label: "Approved" },
   { value: "paid", label: "Paid" },
   { value: "partially_delivered", label: "Partially Delivered" },
@@ -61,7 +62,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
   const [orderDate, setOrderDate] = React.useState(() => new Date().toISOString().slice(0, 10));
   const [expectedDelivery, setExpectedDelivery] = React.useState("");
   const [terms, setTerms] = React.useState("");
-  const [poStatus, setPoStatus] = React.useState<PurchaseOrderStatus>("approved");
+  const [poStatus, setPoStatus] = React.useState<PurchaseOrderStatus>("pending_approval");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [tax, setTax] = React.useState("");
   const [freight, setFreight] = React.useState("");
@@ -89,7 +90,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
       setOrderDate(new Date().toISOString().slice(0, 10));
       setExpectedDelivery("");
       setTerms("");
-      setPoStatus("approved");
+      setPoStatus("pending_approval");
       setTax("");
       setFreight("");
       setNotes("");
