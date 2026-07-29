@@ -163,6 +163,7 @@ export function ProjectList() {
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-4 py-3 font-medium">Project</th>
+              <th className="px-4 py-3 font-medium">Description</th>
               <th className="px-4 py-3 font-medium">Location</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">% Complete</th>
@@ -183,6 +184,9 @@ export function ProjectList() {
                   >
                     {p.projectName}
                   </Link>
+                </td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-pre-wrap break-words min-w-[220px] max-w-[360px]">
+                  {p.projectDescription || "—"}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{p.address.street}</td>
                 <td className="px-4 py-3">
@@ -212,7 +216,7 @@ export function ProjectList() {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">
                   No projects match your search.
                 </td>
               </tr>

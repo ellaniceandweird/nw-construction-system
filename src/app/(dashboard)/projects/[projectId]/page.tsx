@@ -61,11 +61,6 @@ export default function ProjectDetailsPage() {
             <div className="flex flex-1 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <ProjectStatusBadge status={project.calculatedStatus} />
-                {project.tags.map((t) => (
-                  <Badge key={t} variant="outline">
-                    {t.replace(/_/g, " ")}
-                  </Badge>
-                ))}
               </div>
               <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-3">
                 <div>

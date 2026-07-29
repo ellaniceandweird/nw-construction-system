@@ -62,6 +62,23 @@ export interface PropertyInput {
   googleDriveFolderName?: string;
 }
 
+function nextId(): string {
+  const items = store.getSnapshot();
+  const maxNum = items.reduce((max, p) => {
+    const n = parseInt(p.id.replace("PROP-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  return `PROP-${String(maxNum + 1).padStart(6, "0")}`;
+}
+
+export async function createProperty(input: PropertyInput): Promise<{ ok: boolean; error?: string; id: string }> {
+  const id = nextId();
+  const result = await store.create({ id, ...input });
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
+}
+
 /** Updates a property. Fire-and-forget is fine — the UI updates optimistically and reconciles with the real database in the background. */
 export async function updateProperty(id: string, input: PropertyInput): Promise<{ ok: boolean; error?: string }> {
   const ok = await store.update(id, input);

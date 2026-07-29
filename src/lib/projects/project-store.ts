@@ -130,7 +130,7 @@ export interface ProjectInput {
   estimatedContractValue: number;
   approvedBudget: number;
   team?: Project["team"];
-  tags: Project["tags"];
+  tags?: Project["tags"];
   notes?: string;
 }
 

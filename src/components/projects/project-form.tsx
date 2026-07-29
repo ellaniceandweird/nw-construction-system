@@ -28,15 +28,6 @@ import {
 } from "@/lib/validation/project-schema";
 import type { Project } from "@/types";
 
-const AVAILABLE_TAGS = [
-  "residential",
-  "commercial",
-  "roofing",
-  "exterior_renovation",
-  "historic_restoration",
-  "internal",
-] as const;
-
 function fieldError(message?: string) {
   if (!message) return null;
   return <p className="mt-1 text-xs text-destructive">{message}</p>;
@@ -68,19 +59,16 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           startDate: existingProject.startDate,
           plannedCompletionDate: existingProject.plannedCompletionDate,
           approvedBudget: existingProject.approvedBudget,
-          tags: existingProject.tags,
           notes: existingProject.notes ?? "",
         }
       : {
           manualStatus: "active",
-          tags: [],
           approvedBudget: 0,
           notes: "",
           projectDescription: "",
         },
   });
 
-  const selectedTags = watch("tags") ?? [];
 
   function handlePropertyChange(propertyId: string) {
     setValue("propertyId", propertyId, { shouldValidate: true });
@@ -88,23 +76,16 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
     setValue("billingEntityId", property?.billingEntityId ?? "", { shouldValidate: true });
   }
 
-  function toggleTag(tag: string) {
-    const next = selectedTags.includes(tag)
-      ? selectedTags.filter((t) => t !== tag)
-      : [...selectedTags, tag];
-    setValue("tags", next, { shouldValidate: true });
-  }
-
   async function onSubmit(values: ProjectFormValues) {
     const property = properties.find((p) => p.id === values.propertyId);
     const entity = billingEntities.find((b) => b.id === values.billingEntityId);
     const input = {
       projectNumber: existingProject?.projectNumber ?? `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
-      projectName: values.projectName,
-      propertyId: values.propertyId,
-      propertyName: property?.name ?? existingProject?.propertyName ?? "",
+      projectName: values.projectName || existingProject?.projectName || "Untitled Project",
+      propertyId: values.propertyId || existingProject?.propertyId || "",
+      propertyName: property?.name ?? property?.address ?? existingProject?.propertyName ?? "",
       clientName: entity?.companyName ?? existingProject?.clientName ?? "",
-      billingEntityId: values.billingEntityId,
+      billingEntityId: values.billingEntityId || existingProject?.billingEntityId || "",
       address: {
         street: property?.address ?? existingProject?.address.street ?? "",
         city: property?.town ?? existingProject?.address.city ?? "",
@@ -116,14 +97,13 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
       constructionCategory: existingProject?.constructionCategory ?? "Renovation",
       contractType: existingProject?.contractType ?? "Time & Materials",
       currentPhase: existingProject?.currentPhase ?? "construction",
-      manualStatus: values.manualStatus,
-      calculatedStatus: values.manualStatus,
+      manualStatus: values.manualStatus ?? existingProject?.manualStatus ?? "active",
+      calculatedStatus: values.manualStatus ?? existingProject?.calculatedStatus ?? "active",
       priority: existingProject?.priority ?? "medium",
-      startDate: values.startDate,
-      plannedCompletionDate: values.plannedCompletionDate,
-      estimatedContractValue: existingProject?.estimatedContractValue ?? values.approvedBudget,
-      approvedBudget: values.approvedBudget,
-      tags: values.tags as Project["tags"],
+      startDate: values.startDate || existingProject?.startDate || new Date().toISOString().slice(0, 10),
+      plannedCompletionDate: values.plannedCompletionDate || existingProject?.plannedCompletionDate || "",
+      estimatedContractValue: existingProject?.estimatedContractValue ?? values.approvedBudget ?? 0,
+      approvedBudget: values.approvedBudget ?? existingProject?.approvedBudget ?? 0,
       notes: values.notes || undefined,
     };
 
@@ -262,27 +242,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           </div>
 
           <div className="sm:col-span-2">
-            <Label>Tags</Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {AVAILABLE_TAGS.map((tag) => (
-                <button
-                  type="button"
-                  key={tag}
-                  onClick={() => toggleTag(tag)}
-                  className={
-                    selectedTags.includes(tag)
-                      ? "rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
-                      : "rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-accent"
-                  }
-                >
-                  {tag.replace(/_/g, " ")}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="sm:col-span-2">
-            <Label htmlFor="notes">Notes (optional)</Label>
+            <Label htmlFor="notes">Notes</Label>
             <Textarea id="notes" className="mt-1.5" {...register("notes")} />
           </div>
         </CardContent>

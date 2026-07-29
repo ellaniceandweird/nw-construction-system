@@ -1,8 +1,9 @@
 "use client";
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown, Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -20,6 +21,7 @@ import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { useMaintenanceLog } from "@/hooks/use-maintenance-log";
 import { PropertyCard } from "@/components/properties/property-card";
 import { PropertyDetailDialog } from "@/components/properties/property-detail-dialog";
+import { PropertyCreateDialog } from "@/components/properties/property-create-dialog";
 import { recordRecentlyViewed } from "@/lib/search/recently-viewed-store";
 
 type SortOption = "address" | "name" | "town" | "billingEntity";
@@ -37,6 +39,7 @@ export function PropertiesPageClient() {
   const [billingEntityFilter, setBillingEntityFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<SortOption>("address");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [creating, setCreating] = React.useState(false);
   const selectedProperty = properties.find((p) => p.id === selectedId) ?? null;
 
   React.useEffect(() => {
@@ -89,6 +92,12 @@ export function PropertiesPageClient() {
         title="Property Profiles"
         description="Every property Nice & Weird operates — cover photo, related construction projects, and maintenance history in one place."
       />
+
+      <div className="mb-4 flex justify-end">
+        <Button size="sm" onClick={() => setCreating(true)}>
+          <Plus className="size-3.5" /> New Property
+        </Button>
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative min-w-[14rem] flex-1 max-w-sm">
@@ -151,6 +160,7 @@ export function PropertiesPageClient() {
       </p>
 
       <PropertyDetailDialog property={selectedProperty} open={!!selectedId} onOpenChange={(open) => !open && setSelectedId(null)} />
+      <PropertyCreateDialog open={creating} onOpenChange={setCreating} />
     </>
   );
 }

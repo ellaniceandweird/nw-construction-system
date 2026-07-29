@@ -105,7 +105,7 @@ export interface Project extends BaseEntity {
     estimator?: string;
   };
 
-  tags: ProjectTag[];
+  tags?: ProjectTag[];
 
   /** 0-100, SDS §5.9 — weighted schedule/budget/RFI/safety/productivity/AI score. */
   healthScore: number;
