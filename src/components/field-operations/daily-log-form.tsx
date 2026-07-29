@@ -23,6 +23,7 @@ import { getPropertyForProject } from "@/lib/properties/property-relations";
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
 import {
   addDailyLog,
   getMostRecentCrew,
@@ -80,6 +81,7 @@ export function DailyLogForm() {
   const allActivities = useActivities();
   const workerRates = useFieldWorkerRates();
   const properties = useProperties();
+  const existingDailyLogs = useDailyLogs();
   const seededRef = React.useRef(false);
 
   const {
@@ -105,8 +107,13 @@ export function DailyLogForm() {
   // their own project/property/activity from that day — no need to pick
   // a single "primary project" up front. Ella just adjusts whatever
   // changed and deletes anyone not working today.
+  //
+  // Runs once real daily log data has actually loaded from the database
+  // (not just once on mount) — otherwise this could fire before the
+  // data arrives and seed a single blank row instead of the real crew.
   React.useEffect(() => {
     if (seededRef.current) return;
+    if (existingDailyLogs.length === 0) return;
     seededRef.current = true;
     const recentCrew = getMostRecentCrew(watchedDate || new Date().toISOString().slice(0, 10));
     if (recentCrew.length > 0) {
@@ -116,6 +123,20 @@ export function DailyLogForm() {
     } else {
       timeEntryFields.append(emptyTimeEntry(""));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingDailyLogs]);
+
+  // Safety net: if this is a genuinely brand-new setup with no prior daily
+  // logs at all (not just still loading), make sure at least one blank
+  // row appears so the form is never stuck empty.
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!seededRef.current) {
+        seededRef.current = true;
+        timeEntryFields.append(emptyTimeEntry(""));
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

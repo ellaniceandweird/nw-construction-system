@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { ChevronRight, Home } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useProjects } from "@/hooks/use-projects";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
 
 function toLabel(segment: string) {
   return segment
@@ -14,12 +16,32 @@ function toLabel(segment: string) {
 
 export function Breadcrumbs() {
   const pathname = usePathname();
+  const projects = useProjects();
+  const dailyLogs = useDailyLogs();
   const segments = pathname.split("/").filter(Boolean);
 
   if (segments.length === 0) return null;
 
   const crumbs = segments.map((segment, index) => {
     const href = "/" + segments.slice(0, index + 1).join("/");
+    const parentSegment = segments[index - 1];
+
+    // Known ID-shaped segments get resolved to a real, human name instead
+    // of showing the raw record ID in the breadcrumb.
+    if (parentSegment === "projects") {
+      const project = projects.find((p) => p.id === segment);
+      if (project) return { href, label: project.projectName };
+    }
+    if (parentSegment === "field-operations") {
+      const log = dailyLogs.find((l) => l.id === segment);
+      if (log) {
+        return {
+          href,
+          label: new Date(log.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        };
+      }
+    }
+
     return { href, label: toLabel(segment) };
   });
 

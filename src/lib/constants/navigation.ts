@@ -93,18 +93,6 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    label: "Procurement",
-    href: "/procurement",
-    icon: ShoppingCart,
-    children: [
-      { label: "Forecast", href: "/procurement?tab=forecast" },
-      { label: "Sourcing", href: "/procurement?tab=sourcing" },
-      { label: "Purchase Order", href: "/procurement?tab=pos" },
-      { label: "Vendors", href: "/procurement?tab=vendors" },
-      { label: "Subcontractor", href: "/procurement?tab=subcontractors" },
-    ],
-  },
-  {
     label: "Estimating & Budgeting",
     href: "/estimating",
     icon: Calculator,
@@ -115,6 +103,18 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "Cost Tracking", href: "/estimating?tab=costtracking" },
       { label: "Change Orders", href: "/estimating?tab=changeorders" },
       { label: "Portfolio Rollup", href: "/estimating?tab=portfolio" },
+    ],
+  },
+  {
+    label: "Procurement",
+    href: "/procurement",
+    icon: ShoppingCart,
+    children: [
+      { label: "Forecast", href: "/procurement?tab=forecast" },
+      { label: "Sourcing", href: "/procurement?tab=sourcing" },
+      { label: "Purchase Order", href: "/procurement?tab=pos" },
+      { label: "Vendors", href: "/procurement?tab=vendors" },
+      { label: "Subcontractor", href: "/procurement?tab=subcontractors" },
     ],
   },
   {
