@@ -81,13 +81,15 @@ export interface BudgetInput {
   categories: Budget["categories"];
 }
 
-export function createBudget(input: BudgetInput) {
+export async function createBudget(input: BudgetInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextId();
-  void store.create({ id, revision: 1, ...input });
-  return id;
+  const result = await store.create({ id, revision: 1, ...input });
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
 }
 
-export function createBudgetFromEstimate(estimate: Estimate, preparedBy: string) {
+export async function createBudgetFromEstimate(estimate: Estimate, preparedBy: string) {
   const categories = deriveBudgetCategoriesFromEstimate(estimate);
   return createBudget({
     projectId: estimate.projectId,
@@ -101,9 +103,10 @@ export function createBudgetFromEstimate(estimate: Estimate, preparedBy: string)
   });
 }
 
-export function updateBudget(id: string, input: BudgetInput) {
+export async function updateBudget(id: string, input: BudgetInput): Promise<{ ok: boolean; error?: string }> {
   const existing = store.getSnapshot().find((b) => b.id === id);
-  void store.update(id, { ...input, revision: (existing?.revision ?? 1) + 1 });
+  const ok = await store.update(id, { ...input, revision: (existing?.revision ?? 1) + 1 });
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function approveBudget(id: string, approvedBy: string) {

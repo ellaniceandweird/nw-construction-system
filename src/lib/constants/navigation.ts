@@ -110,6 +110,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Calculator,
     children: [
       { label: "Estimates", href: "/estimating?tab=estimates" },
+      { label: "Takeoff", href: "/estimating?tab=takeoff" },
       { label: "Cost Database", href: "/estimating?tab=costdatabase" },
       { label: "Cost Tracking", href: "/estimating?tab=costtracking" },
       { label: "Change Orders", href: "/estimating?tab=changeorders" },
@@ -122,6 +123,8 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Wallet,
     children: [
       { label: "Cost Ledger", href: "/financial?tab=costledger" },
+      { label: "Budgets", href: "/financial?tab=budgets" },
+      { label: "Invoices", href: "/financial?tab=invoices" },
       { label: "Financial Rollup", href: "/financial?tab=rollup" },
     ],
   },

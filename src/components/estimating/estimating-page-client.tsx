@@ -9,8 +9,9 @@ import { CostDatabaseTable } from "@/components/estimating/cost-database-table";
 import { CostTrackingTable } from "@/components/estimating/cost-tracking-table";
 import { ChangeOrdersTable } from "@/components/estimating/change-orders-table";
 import { PortfolioRollupTable } from "@/components/estimating/portfolio-rollup-table";
+import { TakeoffTable } from "@/components/estimating/takeoff-table";
 
-const VALID_TABS = ["estimates", "costdatabase", "costtracking", "changeorders", "portfolio"];
+const VALID_TABS = ["estimates", "takeoff", "costdatabase", "costtracking", "changeorders", "portfolio"];
 
 export function EstimatingPageClient() {
   const searchParams = useSearchParams();
@@ -34,6 +35,7 @@ export function EstimatingPageClient() {
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="print:hidden">
           <TabsTrigger value="estimates">Estimates</TabsTrigger>
+          <TabsTrigger value="takeoff">Takeoff</TabsTrigger>
           <TabsTrigger value="costdatabase">Cost Database</TabsTrigger>
           <TabsTrigger value="costtracking">Cost Tracking</TabsTrigger>
           <TabsTrigger value="changeorders">Change Orders</TabsTrigger>
@@ -41,6 +43,9 @@ export function EstimatingPageClient() {
         </TabsList>
         <TabsContent value="estimates">
           <EstimatesTable />
+        </TabsContent>
+        <TabsContent value="takeoff">
+          <TakeoffTable />
         </TabsContent>
         <TabsContent value="costdatabase">
           <CostDatabaseTable />

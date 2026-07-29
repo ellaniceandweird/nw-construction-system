@@ -10,6 +10,7 @@ import { DriveUploadButton } from "@/components/shared/drive-upload-button";
 import { useProperties } from "@/hooks/use-properties";
 import { getPropertyForProject } from "@/lib/properties/property-relations";
 import { createPhotos } from "@/lib/documents/photo-store";
+import { showErrorToast } from "@/lib/toast/toast-store";
 import { useProjects } from "@/hooks/use-projects";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 import type { PhotoCategory } from "@/types/field-operations";
@@ -51,9 +52,9 @@ export function AddPhotosDialog({ open, onOpenChange }: Props) {
     }
   }
 
-  function addOnePhoto(file: DrivePickedFile) {
+  async function addOnePhoto(file: DrivePickedFile) {
     if (!projectId) return;
-    createPhotos([{
+    const result = await createPhotos([{
       projectId,
       projectName: projectId === MANUAL_ENTRY ? projectName : undefined,
       propertyId: propertyId || undefined,
@@ -65,12 +66,16 @@ export function AddPhotosDialog({ open, onOpenChange }: Props) {
       fileUrl: file.url,
       thumbnailUrl: file.thumbnailUrl,
     }]);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save photo: ${result.error}` : "Couldn't save this photo — check your connection and try again.");
+      return;
+    }
     setAdded((n) => n + 1);
   }
 
-  function handleSelect(files: DrivePickedFile[]) {
+  async function handleSelect(files: DrivePickedFile[]) {
     if (!projectId || files.length === 0) return;
-    createPhotos(
+    const result = await createPhotos(
       files.map((f) => ({
         projectId,
         projectName: projectId === MANUAL_ENTRY ? projectName : undefined,
@@ -84,6 +89,10 @@ export function AddPhotosDialog({ open, onOpenChange }: Props) {
         thumbnailUrl: f.thumbnailUrl,
       }))
     );
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save photos: ${result.error}` : "Couldn't save these photos — check your connection and try again.");
+      return;
+    }
     setAdded((n) => n + files.length);
   }
 

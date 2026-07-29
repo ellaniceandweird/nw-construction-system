@@ -6,8 +6,10 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CostLedgerTable } from "@/components/financial/cost-ledger-table";
 import { FinancialRollupTable } from "@/components/financial/financial-rollup-table";
+import { BudgetsTable } from "@/components/financial/budgets-table";
+import { InvoicesTable } from "@/components/financial/invoices-table";
 
-const VALID_TABS = ["costledger", "rollup"];
+const VALID_TABS = ["costledger", "rollup", "budgets", "invoices"];
 
 export function FinancialPageClient() {
   const searchParams = useSearchParams();
@@ -31,10 +33,18 @@ export function FinancialPageClient() {
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="costledger">Cost Ledger</TabsTrigger>
+          <TabsTrigger value="budgets">Budgets</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="rollup">Financial Rollup</TabsTrigger>
         </TabsList>
         <TabsContent value="costledger">
           <CostLedgerTable />
+        </TabsContent>
+        <TabsContent value="budgets">
+          <BudgetsTable />
+        </TabsContent>
+        <TabsContent value="invoices">
+          <InvoicesTable />
         </TabsContent>
         <TabsContent value="rollup">
           <FinancialRollupTable />
@@ -42,9 +52,9 @@ export function FinancialPageClient() {
       </Tabs>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        Budget lives on each Project record, Billing Entities and Cost Codes live in
-        References, and Change Orders live in Estimating &amp; Budgeting — kept here to
-        just Cost Ledger and Rollup so nothing is tracked in two places at once.
+        Billing Entities and Cost Codes live in References, and Change Orders live in
+        Estimating &amp; Budgeting — kept here to just Cost Ledger, Budgets, Invoices, and Rollup
+        so nothing is tracked in two places at once.
       </p>
     </>
   );

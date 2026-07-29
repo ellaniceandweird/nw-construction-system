@@ -85,16 +85,23 @@ function nextId(): string {
   return `PHOTO-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createPhoto(input: PhotoInput) {
+export async function createPhoto(input: PhotoInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextId();
-  void store.create({ id, fileVersion: 1, ...input });
-  return id;
+  const result = await store.create({ id, fileVersion: 1, ...input });
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
 }
-export function createPhotos(inputs: PhotoInput[]) {
-  for (const input of inputs) createPhoto(input);
+export async function createPhotos(inputs: PhotoInput[]): Promise<{ ok: boolean; error?: string }> {
+  for (const input of inputs) {
+    const result = await createPhoto(input);
+    if (!result.ok) return { ok: false, error: result.error };
+  }
+  return { ok: true };
 }
-export function updatePhoto(id: string, input: PhotoInput) {
-  void store.update(id, input);
+export async function updatePhoto(id: string, input: PhotoInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 export function deletePhoto(id: string) {
   void store.remove(id);
