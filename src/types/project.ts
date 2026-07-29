@@ -82,7 +82,7 @@ export interface Project extends BaseEntity {
   constructionCategory: string;
   contractType: string;
   currentPhase: ProjectLifecyclePhase;
-  manualStatus: "active" | "on_hold" | "closed" | "archived"; // user-set
+  manualStatus: "planning" | "active" | "on_hold" | "closed" | "archived"; // user-set
   calculatedStatus: ProjectCalculatedStatus; // system-derived, SDS §5.8
   priority: ProjectPriority;
   startDate: string;

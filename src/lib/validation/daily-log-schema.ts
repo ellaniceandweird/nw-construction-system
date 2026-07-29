@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const dailyLogFormSchema = z.object({
-  projectId: z.string().min(1, "Select a project"),
   date: z.string().min(1, "Date is required"),
   weatherCondition: z.enum([
     "clear",
@@ -16,7 +15,6 @@ export const dailyLogFormSchema = z.object({
     "extreme_heat",
     "extreme_cold",
   ]),
-  preparedBy: z.string().min(2, "Enter who prepared this log"),
   timeEntries: z
     .array(
       z.object({

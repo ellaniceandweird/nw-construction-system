@@ -206,6 +206,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="planning">Upcoming</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="on_hold">On Hold</SelectItem>
                 <SelectItem value="closed">Closed</SelectItem>

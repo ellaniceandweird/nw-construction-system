@@ -201,7 +201,7 @@ export interface DailyLog extends BaseEntity {
   dailyLogNumber: string;
   date: string;
   dayOfWeek: string;
-  preparedBy: string;
+  preparedBy?: string;
   reviewedBy?: string;
   superintendent?: string;
   projectEngineer?: string;

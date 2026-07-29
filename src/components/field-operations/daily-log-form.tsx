@@ -99,38 +99,29 @@ export function DailyLogForm() {
   });
 
   const timeEntryFields = useFieldArray({ control, name: "timeEntries" });
-  const mainProjectId = watch("projectId");
   const watchedDate = watch("date");
 
-  // Once a main project is picked, auto-populate rows from the most
-  // recent daily log's crew — Ella just adjusts project/activity/hours
-  // instead of re-picking the same people every morning.
+  // Rows are auto-generated from the last daily log's crew, each keeping
+  // their own project/property/activity from that day — no need to pick
+  // a single "primary project" up front. Ella just adjusts whatever
+  // changed and deletes anyone not working today.
   React.useEffect(() => {
-    if (mainProjectId && !seededRef.current) {
-      seededRef.current = true;
-      const project = projects.find((p) => p.id === mainProjectId);
-      const property = project ? getPropertyForProject(project, properties) : undefined;
-      const propertyFields = property ? { propertyId: property.id, propertyName: property.name } : {};
-      const recentCrew = getMostRecentCrew(watchedDate || new Date().toISOString().slice(0, 10));
-      if (recentCrew.length > 0) {
-        recentCrew.forEach((entry) => {
-          timeEntryFields.append({
-            ...emptyTimeEntry(mainProjectId),
-            ...propertyFields,
-            employeeId: entry.employeeId,
-            employeeName: entry.employeeName,
-            trade: entry.trade,
-          });
-        });
-      } else {
-        timeEntryFields.append({ ...emptyTimeEntry(mainProjectId), ...propertyFields });
-      }
+    if (seededRef.current) return;
+    seededRef.current = true;
+    const recentCrew = getMostRecentCrew(watchedDate || new Date().toISOString().slice(0, 10));
+    if (recentCrew.length > 0) {
+      recentCrew.forEach((entry) => {
+        timeEntryFields.append({ ...entry, activityId: entry.activityId ?? "" });
+      });
+    } else {
+      timeEntryFields.append(emptyTimeEntry(""));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mainProjectId]);
+  }, []);
 
   function onSubmit(values: DailyLogFormValues) {
-    const id = addDailyLog(values);
+    const primaryProjectId = values.timeEntries[0]?.projectId || "";
+    const id = addDailyLog({ ...values, projectId: primaryProjectId });
     setSubmitted(true);
     setTimeout(() => router.push(`/field-operations/${id}`), 800);
   }
@@ -198,29 +189,6 @@ export function DailyLogForm() {
       <Card>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <Label>Primary Project</Label>
-            <Select
-              value={watch("projectId")}
-              onValueChange={(v) => setValue("projectId", v, { shouldValidate: true })}
-            >
-              <SelectTrigger className="mt-1.5 w-full">
-                <SelectValue placeholder="Select a project" />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.projectName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {fieldError(errors.projectId?.message)}
-            <p className="mt-1 text-xs text-muted-foreground">
-              Just the default for new rows below — any worker can still be logged against a different project.
-            </p>
-          </div>
-
-          <div>
             <Label htmlFor="date">Date</Label>
             <Input id="date" type="date" className="mt-1.5" {...register("date")} />
             {fieldError(errors.date?.message)}
@@ -246,12 +214,6 @@ export function DailyLogForm() {
               </SelectContent>
             </Select>
           </div>
-
-          <div>
-            <Label htmlFor="preparedBy">Prepared By</Label>
-            <Input id="preparedBy" className="mt-1.5" {...register("preparedBy")} />
-            {fieldError(errors.preparedBy?.message)}
-          </div>
         </CardContent>
       </Card>
 
@@ -268,14 +230,7 @@ export function DailyLogForm() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => {
-              const project = projects.find((p) => p.id === mainProjectId);
-              const property = project ? getPropertyForProject(project, properties) : undefined;
-              timeEntryFields.append({
-                ...emptyTimeEntry(mainProjectId ?? ""),
-                ...(property ? { propertyId: property.id, propertyName: property.name } : {}),
-              });
-            }}
+            onClick={() => timeEntryFields.append(emptyTimeEntry(""))}
           >
             <Plus /> Add Row
           </Button>

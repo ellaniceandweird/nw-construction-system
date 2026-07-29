@@ -87,7 +87,7 @@ export interface DailyLogInput {
   projectId: string;
   date: string;
   weatherCondition: WeatherCondition;
-  preparedBy: string;
+  preparedBy?: string;
   timeEntries: DailyTimeEntry[];
   generalNotes?: string;
 }

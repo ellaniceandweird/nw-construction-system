@@ -11,7 +11,7 @@ export const projectFormSchema = z.object({
   billingEntityId: z.string().optional(),
 
   projectDescription: z.string().optional(),
-  manualStatus: z.enum(["active", "on_hold", "closed", "archived"]).optional(),
+  manualStatus: z.enum(["planning", "active", "on_hold", "closed", "archived"]).optional(),
 
   startDate: z.string().optional(),
   plannedCompletionDate: z.string().optional(),

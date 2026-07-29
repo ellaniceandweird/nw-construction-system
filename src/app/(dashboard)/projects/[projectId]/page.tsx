@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { HealthScoreGauge } from "@/components/shared/health-score-badge";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 import { ProjectMilestones } from "@/components/projects/project-milestones";
 import { ProjectSchedulePreview } from "@/components/projects/project-schedule-preview";
@@ -59,7 +58,6 @@ export default function ProjectDetailsPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardContent className="flex flex-wrap items-center gap-6">
-            <HealthScoreGauge score={project.healthScore} />
             <div className="flex flex-1 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <ProjectStatusBadge status={project.calculatedStatus} />

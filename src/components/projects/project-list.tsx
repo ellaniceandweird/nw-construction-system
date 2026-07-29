@@ -138,7 +138,7 @@ export function ProjectList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="planning">Planning</SelectItem>
+            <SelectItem value="planning">Upcoming</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="on_hold">On Hold</SelectItem>
             <SelectItem value="closed">Closed</SelectItem>

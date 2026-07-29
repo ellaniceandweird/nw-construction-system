@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import type { ProjectCalculatedStatus } from "@/types";
 
 const CONFIG: Record<ProjectCalculatedStatus, { label: string; className: string }> = {
-  planning: { label: "Planning", className: "bg-primary-soft text-primary" },
+  planning: { label: "Upcoming", className: "bg-primary-soft text-primary" },
   active: { label: "Active", className: "bg-success-soft text-success" },
   on_hold: { label: "On Hold", className: "bg-warning-soft text-warning-foreground" },
   delayed: { label: "Delayed", className: "bg-destructive-soft text-destructive" },
