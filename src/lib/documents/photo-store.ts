@@ -68,9 +68,12 @@ export interface PhotoInput {
   projectName?: string;
   propertyId?: string;
   propertyName?: string;
+  activityId?: string;
   dateTaken: string;
   uploadedBy: string;
+  location?: string;
   caption?: string;
+  tags?: string[];
   category: PhotoCategory;
   fileUrl: string;
   thumbnailUrl?: string;

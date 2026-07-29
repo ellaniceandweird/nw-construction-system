@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useAutomationRules } from "@/hooks/use-automation-rules";
 import { updateAutomationRules } from "@/lib/settings/automation-rules-store";
+import { showErrorToast } from "@/lib/toast/toast-store";
 
 const LIVE_RULES = [
   "A Purchase Order is created automatically the moment a quote is marked Awarded on the Quotes tab.",
@@ -32,8 +33,12 @@ export function AutomationRulesCard() {
     setDraft(rules);
   }, [rules]);
 
-  function handleSave() {
-    updateAutomationRules(draft);
+  async function handleSave() {
+    const result = await updateAutomationRules(draft);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save these settings — check your connection and try again.");
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }

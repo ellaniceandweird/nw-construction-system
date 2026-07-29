@@ -1,5 +1,7 @@
 "use client";
 
+import { createCollectionStore } from "@/lib/supabase/collection-store";
+
 /**
  * Manual notes for the Cost Tracking tab, keyed by estimate ID. These are
  * free-text updates someone types in ("waiting on final invoice from
@@ -7,45 +9,58 @@
  * Estimate's own notes field since this is specifically for tracking
  * budget-vs-actual progress over time, not the original estimate scope.
  */
-const STORAGE_KEY = "project-nw:cost-tracking-notes";
+
+interface CostTrackingNoteRow {
+  id: string; // the estimate id this note belongs to
+  note: string;
+}
+
+function fromRow(row: Record<string, any>): CostTrackingNoteRow {
+  return { id: row.id, note: row.note ?? "" };
+}
+function toRow(input: Record<string, any>): Record<string, any> {
+  const row: Record<string, any> = {};
+  if (input.id !== undefined) row.id = input.id;
+  if (input.note !== undefined) row.note = input.note;
+  return row;
+}
+
+const store = createCollectionStore<CostTrackingNoteRow>({
+  table: "cost_tracking_notes",
+  seedData: [],
+  fromRow,
+  toRow,
+  orderBy: "id",
+});
 
 type Listener = () => void;
 type NotesMap = Record<string, string>;
 
-let notes: NotesMap = loadInitial();
-const listeners = new Set<Listener>();
+let cachedMap: NotesMap = {};
+let cachedFromItems: CostTrackingNoteRow[] | null = null;
 
-function loadInitial(): NotesMap {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as NotesMap;
-  } catch {
-    return {};
+function getMap(): NotesMap {
+  const items = store.getSnapshot();
+  if (items !== cachedFromItems) {
+    cachedFromItems = items;
+    cachedMap = Object.fromEntries(items.map((i) => [i.id, i.note]));
   }
-}
-
-function persist() {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-}
-
-function emit() {
-  listeners.forEach((l) => l());
+  return cachedMap;
 }
 
 export function subscribeCostTrackingNotes(listener: Listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+  return store.subscribe(listener);
 }
-
 export function getCostTrackingNotesSnapshot(): NotesMap {
-  return notes;
+  return getMap();
 }
 
-export function setCostTrackingNote(estimateId: string, note: string) {
-  notes = { ...notes, [estimateId]: note };
-  persist();
-  emit();
+export async function setCostTrackingNote(estimateId: string, note: string): Promise<{ ok: boolean; error?: string }> {
+  const existing = store.getSnapshot().find((i) => i.id === estimateId);
+  if (existing) {
+    const ok = await store.update(estimateId, { note });
+    return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
+  }
+  const result = await store.create({ id: estimateId, note });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }

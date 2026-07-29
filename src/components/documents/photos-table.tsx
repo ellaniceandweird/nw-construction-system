@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Plus, Trash2, ImageOff, Search } from "lucide-react";
+import { Plus, Trash2, Pencil, ImageOff, Search } from "lucide-react";
 import { useFieldPhotos } from "@/hooks/use-field-photos";
 import { deletePhoto, restorePhoto } from "@/lib/documents/photo-store";
 import { showUndoToast } from "@/lib/toast/toast-store";
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddPhotosDialog } from "@/components/documents/add-photos-dialog";
+import { PhotoEditDialog } from "@/components/documents/photo-edit-dialog";
 import type { FieldPhoto } from "@/types/field-operations";
 import type { Project } from "@/types/project";
 
@@ -46,6 +47,7 @@ export function PhotosTable() {
   const projects = useProjects();
   const allPhotos = useFieldPhotos();
   const [adding, setAdding] = React.useState(false);
+  const [editing, setEditing] = React.useState<FieldPhoto | null>(null);
   const [search, setSearch] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState("all");
 
@@ -112,17 +114,27 @@ export function PhotosTable() {
                       {photo.propertyName && <p className="truncate text-[10px] text-muted-foreground">{photo.propertyName}</p>}
                       <p className="text-[10px] text-muted-foreground">{formatDate(photo.dateTaken)}</p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-6 shrink-0"
-                      onClick={() => {
-                        deletePhoto(photo.id);
-                        showUndoToast("Photo deleted", () => restorePhoto(photo));
-                      }}
-                    >
-                      <Trash2 className="size-3 text-destructive" />
-                    </Button>
+                    <div className="flex shrink-0 items-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-6"
+                        onClick={() => setEditing(photo)}
+                      >
+                        <Pencil className="size-3 text-muted-foreground" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-6"
+                        onClick={() => {
+                          deletePhoto(photo.id);
+                          showUndoToast("Photo deleted", () => restorePhoto(photo));
+                        }}
+                      >
+                        <Trash2 className="size-3 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                   <Badge className="mt-1 bg-muted text-muted-foreground border-transparent text-[10px]">{photo.category.replace(/_/g, " ")}</Badge>
                 </Card>
@@ -133,6 +145,7 @@ export function PhotosTable() {
       </div>
 
       <AddPhotosDialog open={adding} onOpenChange={setAdding} />
+      <PhotoEditDialog photo={editing} open={!!editing} onOpenChange={(open) => !open && setEditing(null)} />
     </>
   );
 }
