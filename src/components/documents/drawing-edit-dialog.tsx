@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createDrawing, updateDrawing, deleteDrawing } from "@/lib/documents/drawing-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { DriveUploadButton } from "@/components/shared/drive-upload-button";
 import { useProperties } from "@/hooks/use-properties";
@@ -47,6 +48,7 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
   const [drawingStatus, setDrawingStatus] = React.useState<DocumentStatus>("draft");
   const [architect, setArchitect] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -97,7 +99,7 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
     }
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!projectId || !drawingNumber || !drawingTitle || !currentRevisionUrl) return;
     const input = {
       projectId, projectName: projectId === MANUAL_ENTRY ? projectName : undefined,
@@ -108,7 +110,14 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
       issueDate, currentRevisionUrl, drawingStatus, architect: architect || undefined,
       uploadedBy: drawing?.uploadedBy ?? "Ella Esquivel",
     };
-    if (drawing) { updateDrawing(drawing.id, input); } else { createDrawing(input); }
+    setSaving(true);
+    const result = drawing ? await updateDrawing(drawing.id, input) : await createDrawing(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this drawing — check your connection and try again.");
+      return;
+    }
+    showSuccessToast(drawing ? "Drawing updated" : "Drawing added");
     onOpenChange(false);
   }
   function handleDelete() { if (!drawing) return; deleteDrawing(drawing.id); onOpenChange(false); }
@@ -200,7 +209,7 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

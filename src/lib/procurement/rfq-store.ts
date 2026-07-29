@@ -89,10 +89,12 @@ export interface CreateRFQInput {
   attachments?: { name: string; url: string }[];
 }
 
-export function createRFQ(input: CreateRFQInput) {
+export async function createRFQ(input: CreateRFQInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextId();
-  void store.create({ id, rfqNumber: nextRfqNumber(), responses: [], ...input });
-  return id;
+  const result = await store.create({ id, rfqNumber: nextRfqNumber(), responses: [], ...input });
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
 }
 
 export interface RFQEditInput {
@@ -107,9 +109,9 @@ export interface RFQEditInput {
   manualStatus?: "cancelled" | "closed";
 }
 
-export function updateRFQ(id: string, input: RFQEditInput) {
+export async function updateRFQ(id: string, input: RFQEditInput): Promise<{ ok: boolean; error?: string }> {
   const existing = store.getSnapshot().find((r) => r.id === id);
-  if (!existing) return;
+  if (!existing) return { ok: false, error: "RFQ not found" };
   const patch: Record<string, any> = { ...input };
   // If the invited-vendor list shrank, drop responses/award for vendors no longer invited.
   if (input.vendorIds) {
@@ -120,7 +122,8 @@ export function updateRFQ(id: string, input: RFQEditInput) {
       patch.awardedVendorId = null;
     }
   }
-  void store.update(id, patch);
+  const ok = await store.update(id, patch);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export type QuoteResponseInput = Omit<VendorQuoteResponse, "overallScore">;

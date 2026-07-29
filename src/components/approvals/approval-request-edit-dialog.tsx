@@ -16,6 +16,7 @@ import {
   deleteApprovalRequest,
 } from "@/lib/approvals/approval-request-store";
 import { computeRequiredApprovers } from "@/lib/approvals/approval-rules";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { ALL_APPROVERS, type ApprovalRequest, type ApproverName } from "@/types/approvals";
 
 interface Props {
@@ -35,6 +36,7 @@ export function ApprovalRequestEditDialog({ request, open, onOpenChange }: Props
   const [approversTouched, setApproversTouched] = React.useState(false);
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   const isManual = !request || request.kind === "manual";
 
@@ -79,7 +81,7 @@ export function ApprovalRequestEditDialog({ request, open, onOpenChange }: Props
     );
   }
 
-  function handleSave() {
+  async function handleSave() {
     const input = {
       kind: (request?.kind ?? "manual") as ApprovalRequest["kind"],
       sourceId: request?.sourceId,
@@ -91,11 +93,14 @@ export function ApprovalRequestEditDialog({ request, open, onOpenChange }: Props
       requiredApprovers,
       notes: notes || undefined,
     };
-    if (request) {
-      updateApprovalRequest(request.id, input);
-    } else {
-      createApprovalRequest(input);
+    setSaving(true);
+    const result = request ? await updateApprovalRequest(request.id, input) : await createApprovalRequest(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this approval — check your connection and try again.");
+      return;
     }
+    showSuccessToast(request ? "Approval updated" : "Approval added");
     onOpenChange(false);
   }
 
@@ -189,7 +194,7 @@ export function ApprovalRequestEditDialog({ request, open, onOpenChange }: Props
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

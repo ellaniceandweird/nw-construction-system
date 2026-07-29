@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateRFQ, getRFQStatus, deleteRFQ } from "@/lib/procurement/rfq-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { useMaterialRequests } from "@/hooks/use-material-requests";
@@ -51,6 +52,7 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
   const [notes, setNotes] = React.useState("");
   const [manualStatus, setManualStatus] = React.useState<"none" | "closed" | "cancelled">("none");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     setConfirmingDelete(false);
@@ -71,9 +73,10 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
     setVendorIds((prev) => (checked ? [...prev, id] : prev.filter((v) => v !== id)));
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!rfq || !projectId || !materialList || !dueDate || vendorIds.length === 0) return;
-    updateRFQ(rfq.id, {
+    setSaving(true);
+    const result = await updateRFQ(rfq.id, {
       projectId,
       materialRequestId: materialRequestId === NONE ? undefined : materialRequestId,
       vendorIds,
@@ -84,6 +87,12 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
       notes: notes || undefined,
       manualStatus: manualStatus === "none" ? undefined : manualStatus,
     });
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this RFQ — check your connection and try again.");
+      return;
+    }
+    showSuccessToast("RFQ updated");
     onOpenChange(false);
   }
 
@@ -243,8 +252,8 @@ export function RfqEditDialog({ rfq, open, onOpenChange }: Props) {
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!canSave}>
-              Save Changes
+            <Button onClick={handleSave} disabled={!canSave || saving}>
+              {saving ? "Saving…" : "Save Changes"}
             </Button>
           </div>
         </DialogFooter>

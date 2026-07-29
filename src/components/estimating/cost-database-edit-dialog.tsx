@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createCostDatabaseItem, updateCostDatabaseItem, deleteCostDatabaseItem } from "@/lib/estimating/cost-database-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { CostDatabaseItem } from "@/types/estimating";
 
 interface Props { item: CostDatabaseItem | null; open: boolean; onOpenChange: (open: boolean) => void; }
@@ -21,6 +22,7 @@ export function CostDatabaseEditDialog({ item, open, onOpenChange }: Props) {
   const [profitPercent, setProfitPercent] = React.useState("");
   const [supplier, setSupplier] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -37,7 +39,7 @@ export function CostDatabaseEditDialog({ item, open, onOpenChange }: Props) {
     }
   }, [item, open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!costCode || !description || !unit) return;
     const input = {
       costCode, description, unit,
@@ -48,7 +50,14 @@ export function CostDatabaseEditDialog({ item, open, onOpenChange }: Props) {
       profitPercent: profitPercent ? parseFloat(profitPercent) : undefined,
       supplier: supplier || undefined,
     };
-    if (item) { updateCostDatabaseItem(item.id, input); } else { createCostDatabaseItem(input); }
+    setSaving(true);
+    const result = item ? await updateCostDatabaseItem(item.id, input) : await createCostDatabaseItem(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this item — check your connection and try again.");
+      return;
+    }
+    showSuccessToast(item ? "Item updated" : "Item added");
     onOpenChange(false);
   }
   function handleDelete() {
@@ -95,7 +104,7 @@ export function CostDatabaseEditDialog({ item, open, onOpenChange }: Props) {
           ) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

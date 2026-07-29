@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createMaterialRequest } from "@/lib/procurement/material-request-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { useProjects } from "@/hooks/use-projects";
 
 interface Props {
@@ -53,10 +54,12 @@ export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
   }, [open]);
 
   const canSave = !!projectId && !!description && !!requestedBy;
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     if (!canSave) return;
-    createMaterialRequest({
+    setSaving(true);
+    const result = await createMaterialRequest({
       projectId,
       description,
       quantity: Number(quantity) || 1,
@@ -66,6 +69,12 @@ export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
       referenceUrl: referenceUrl || undefined,
       notes: notes || undefined,
     });
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this request — check your connection and try again.");
+      return;
+    }
+    showSuccessToast("Material request added");
     onOpenChange(false);
   }
 
@@ -127,7 +136,7 @@ export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+          <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

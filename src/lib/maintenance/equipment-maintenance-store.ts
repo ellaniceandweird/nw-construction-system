@@ -70,15 +70,16 @@ function nextId(): string {
   return `EQ-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createEquipmentMaintenance(input: EquipmentMaintenanceEditInput) {
+export async function createEquipmentMaintenance(input: EquipmentMaintenanceEditInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  void store.create({ id, ...input });
-  return id;
+  const result = await store.create({ id, ...input });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
-export function updateEquipmentMaintenance(id: string, input: EquipmentMaintenanceEditInput) {
+export async function updateEquipmentMaintenance(id: string, input: EquipmentMaintenanceEditInput): Promise<{ ok: boolean; error?: string }> {
   const existing = store.getSnapshot().find((r) => r.id === id);
-  void store.update(id, input);
+  const ok = await store.update(id, input);
+  if (!ok) return { ok: false, error: store.getLastError() ?? undefined };
   if (existing && input.lastCompleted && input.lastCompleted !== existing.lastCompleted) {
     const formattedDate = new Date(input.lastCompleted).toLocaleDateString("en-US", {
       month: "short",
@@ -92,6 +93,7 @@ export function updateEquipmentMaintenance(id: string, input: EquipmentMaintenan
       detail: `Last completed date updated to ${formattedDate}`,
     });
   }
+  return { ok: true };
 }
 
 export function deleteEquipmentMaintenance(id: string) {

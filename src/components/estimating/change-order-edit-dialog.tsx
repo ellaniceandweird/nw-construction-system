@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createChangeOrder, updateChangeOrder, deleteChangeOrder } from "@/lib/estimating/change-order-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { useEstimates } from "@/hooks/use-estimates";
 import { useProjects } from "@/hooks/use-projects";
 import type { ChangeOrder, ChangeOrderStatus } from "@/types/change-orders";
@@ -42,6 +43,7 @@ export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props
   const [requestedDate, setRequestedDate] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -71,7 +73,7 @@ export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props
     }
   }, [changeOrder, open, estimates]);
 
-  function handleSave() {
+  async function handleSave() {
     const estimate = estimates.find((e) => e.id === estimateId);
     if (!estimate || !description || !costImpact || !requestedDate) return;
     const input = {
@@ -89,7 +91,14 @@ export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props
       approvedDate: changeOrderStatus === "approved" ? new Date().toISOString().slice(0, 10) : undefined,
       notes: notes || undefined,
     };
-    if (changeOrder) { updateChangeOrder(changeOrder.id, input); } else { createChangeOrder(input); }
+    setSaving(true);
+    const result = changeOrder ? await updateChangeOrder(changeOrder.id, input) : await createChangeOrder(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this change order — check your connection and try again.");
+      return;
+    }
+    showSuccessToast(changeOrder ? "Change order updated" : "Change order created");
     onOpenChange(false);
   }
   function handleDelete() {
@@ -189,7 +198,7 @@ export function ChangeOrderEditDialog({ changeOrder, open, onOpenChange }: Props
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

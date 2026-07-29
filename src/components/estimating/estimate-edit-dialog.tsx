@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createEstimate, updateEstimate, deleteEstimate, withComputedLineItemTotals } from "@/lib/estimating/estimate-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { findRateForCostCode } from "@/lib/estimating/cost-database-store";
 import { computeEstimateTotal, computeLineItemTotal } from "@/lib/estimating/estimate-calculations";
 import { useCostCodes } from "@/hooks/use-cost-codes";
@@ -97,6 +98,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
   const [indirectCosts, setIndirectCosts] = React.useState<IndirectCosts>({});
   const [contingency, setContingency] = React.useState<Contingency>({});
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -141,18 +143,21 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
   const computedLineItems = withComputedLineItemTotals(lineItems);
   const previewTotal = computeEstimateTotal(computedLineItems, indirectCosts, contingency);
 
-  function handleSave() {
+  async function handleSave() {
     if (!projectId || !estimator || !estimateDate || lineItems.some((li) => !li.description)) return;
     const input = {
       projectId, client: client || undefined, address: address || undefined, estimator, estimateDate,
       estimateStatus, proposalNumber: proposalNumber || undefined, taxMethod: taxMethod || undefined,
       notes: notes || undefined, lineItems: computedLineItems, indirectCosts, contingency,
     };
-    if (estimate) {
-      updateEstimate(estimate.id, input);
-    } else {
-      createEstimate(input);
+    setSaving(true);
+    const result = estimate ? await updateEstimate(estimate.id, input) : await createEstimate(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this estimate — check your connection and try again.");
+      return;
     }
+    showSuccessToast(estimate ? "Estimate updated" : "Estimate created");
     onOpenChange(false);
   }
 
@@ -379,7 +384,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
           )}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

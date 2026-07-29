@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateMaterialRequest, deleteMaterialRequest } from "@/lib/procurement/material-request-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { MaterialRequest, MaterialRequestStatus } from "@/types/procurement";
 
 interface Props {
@@ -31,20 +32,18 @@ interface Props {
 }
 
 const STATUS_OPTIONS: { value: MaterialRequestStatus; label: string }[] = [
-  { value: "draft", label: "Draft" },
-  { value: "pending_approval", label: "Pending Approval" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
-  { value: "rfq_issued", label: "RFQ Issued" },
-  { value: "po_issued", label: "PO Issued" },
-  { value: "closed", label: "Closed" },
+  { value: "pending", label: "Pending" },
+  { value: "sourcing", label: "Sourcing" },
+  { value: "ordered", label: "Ordered" },
+  { value: "canceled", label: "Canceled" },
 ];
 
 export function MaterialRequestEditDialog({ request, open, onOpenChange }: Props) {
-  const [requestStatus, setRequestStatus] = React.useState<MaterialRequestStatus>("draft");
+  const [requestStatus, setRequestStatus] = React.useState<MaterialRequestStatus>("pending");
   const [notes, setNotes] = React.useState("");
   const [referenceUrl, setReferenceUrl] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (request) {
@@ -55,9 +54,16 @@ export function MaterialRequestEditDialog({ request, open, onOpenChange }: Props
     }
   }, [request]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!request) return;
-    updateMaterialRequest(request.id, { requestStatus, notes, referenceUrl });
+    setSaving(true);
+    const result = await updateMaterialRequest(request.id, { requestStatus, notes, referenceUrl });
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this request — check your connection and try again.");
+      return;
+    }
+    showSuccessToast("Material request updated");
     onOpenChange(false);
   }
 
@@ -124,7 +130,7 @@ export function MaterialRequestEditDialog({ request, open, onOpenChange }: Props
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

@@ -66,8 +66,9 @@ export interface MaterialRequestEditInput {
   referenceUrl?: string;
 }
 
-export function updateMaterialRequest(id: string, input: MaterialRequestEditInput) {
-  void store.update(id, input);
+export async function updateMaterialRequest(id: string, input: MaterialRequestEditInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export interface MaterialRequestCreateInput {
@@ -90,9 +91,9 @@ function nextMrNumber(): string {
   return `MR-${(max + 1).toString().padStart(5, "0")}`;
 }
 
-export function createMaterialRequest(input: MaterialRequestCreateInput) {
+export async function createMaterialRequest(input: MaterialRequestCreateInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const mrNumber = nextMrNumber();
-  void store.create({
+  const result = await store.create({
     id: mrNumber,
     projectId: input.projectId,
     mrNumber,
@@ -103,10 +104,12 @@ export function createMaterialRequest(input: MaterialRequestCreateInput) {
     approvalStatus: "pending",
     notes: input.notes,
     referenceUrl: input.referenceUrl,
-    requestStatus: "draft",
+    requestStatus: "pending",
     lineItems: [{ description: input.description, quantity: input.quantity, unit: input.unit }],
   });
-  return mrNumber;
+  return result !== null
+    ? { ok: true, id: mrNumber }
+    : { ok: false, error: store.getLastError() ?? undefined, id: mrNumber };
 }
 
 export function deleteMaterialRequest(id: string) {

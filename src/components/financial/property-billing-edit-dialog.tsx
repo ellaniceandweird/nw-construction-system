@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { updateProperty, deleteProperty } from "@/lib/properties/property-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { Property } from "@/types/maintenance";
 
 interface Props {
@@ -41,6 +42,7 @@ export function PropertyBillingEditDialog({ property, open, onOpenChange }: Prop
   const [address, setAddress] = React.useState("");
   const [billingEntityId, setBillingEntityId] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (property && open) {
@@ -50,12 +52,19 @@ export function PropertyBillingEditDialog({ property, open, onOpenChange }: Prop
     }
   }, [property, open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!property) return;
-    updateProperty(property.id, {
+    setSaving(true);
+    const result = await updateProperty(property.id, {
       address: address || undefined,
       billingEntityId: billingEntityId || undefined,
     });
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this property — check your connection and try again.");
+      return;
+    }
+    showSuccessToast("Property updated");
     onOpenChange(false);
   }
 
@@ -108,7 +117,7 @@ export function PropertyBillingEditDialog({ property, open, onOpenChange }: Prop
           )}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

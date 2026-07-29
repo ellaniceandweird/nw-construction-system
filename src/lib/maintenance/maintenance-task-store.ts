@@ -115,10 +115,11 @@ export interface MaintenanceTaskEditInput {
   comments?: string;
 }
 
-export function updateTask(taskId: string, input: MaintenanceTaskEditInput) {
+export async function updateTask(taskId: string, input: MaintenanceTaskEditInput): Promise<{ ok: boolean; error?: string }> {
   const existing = store.getSnapshot().find((t) => t.id === taskId);
-  if (!existing) return;
-  void store.update(taskId, input);
+  if (!existing) return { ok: false, error: "Task not found" };
+  const ok = await store.update(taskId, input);
+  if (!ok) return { ok: false, error: store.getLastError() ?? undefined };
   if (input.taskStatus === "complete" && existing.taskStatus !== "complete") {
     addMaintenanceLogEntry({
       type: "task_completed",
@@ -127,6 +128,7 @@ export function updateTask(taskId: string, input: MaintenanceTaskEditInput) {
       detail: "Marked complete",
     });
   }
+  return { ok: true };
 }
 
 export function deleteMaintenanceTask(taskId: string) {

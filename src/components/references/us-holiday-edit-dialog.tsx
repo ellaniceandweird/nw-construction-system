@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createUSHoliday, updateUSHoliday, deleteUSHoliday } from "@/lib/references/us-holiday-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { USHoliday } from "@/types/references";
 
 interface Props { holiday: USHoliday | null; open: boolean; onOpenChange: (open: boolean) => void; }
@@ -15,6 +16,7 @@ export function USHolidayEditDialog({ holiday, open, onOpenChange }: Props) {
   const [date, setDate] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -25,10 +27,17 @@ export function USHolidayEditDialog({ holiday, open, onOpenChange }: Props) {
     }
   }, [holiday, open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!name || !date) return;
     const input = { name, date, notes: notes || undefined };
-    if (holiday) { updateUSHoliday(holiday.id, input); } else { createUSHoliday(input); }
+    setSaving(true);
+    const result = holiday ? await updateUSHoliday(holiday.id, input) : await createUSHoliday(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this holiday — check your connection and try again.");
+      return;
+    }
+    showSuccessToast(holiday ? "Holiday updated" : "Holiday added");
     onOpenChange(false);
   }
   function handleDelete() { if (!holiday) return; deleteUSHoliday(holiday.id); onOpenChange(false); }
@@ -54,7 +63,7 @@ export function USHolidayEditDialog({ holiday, open, onOpenChange }: Props) {
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!name || !date}>Save</Button>
+            <Button onClick={handleSave} disabled={!name || !date || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

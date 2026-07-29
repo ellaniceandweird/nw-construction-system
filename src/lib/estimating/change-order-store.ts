@@ -94,14 +94,17 @@ function nextNumber(): string {
   return `CO-${year}-${String(items.length + 1).padStart(4, "0")}`;
 }
 
-export function createChangeOrder(input: ChangeOrderInput) {
+export async function createChangeOrder(input: ChangeOrderInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextId();
-  void store.create({ id, changeOrderNumber: nextNumber(), ...input });
-  return id;
+  const result = await store.create({ id, changeOrderNumber: nextNumber(), ...input });
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
 }
 
-export function updateChangeOrder(id: string, input: ChangeOrderInput) {
-  void store.update(id, input);
+export async function updateChangeOrder(id: string, input: ChangeOrderInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function approveChangeOrder(id: string, approvedBy: string) {

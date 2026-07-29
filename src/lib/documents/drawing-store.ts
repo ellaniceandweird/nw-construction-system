@@ -98,19 +98,20 @@ function nextId(): string {
   return `DWG-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createDrawing(input: DrawingInput) {
+export async function createDrawing(input: DrawingInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  void store.create({ id, ...input });
-  return id;
+  const result = await store.create({ id, ...input });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
-export function updateDrawing(id: string, input: DrawingInput) {
+export async function updateDrawing(id: string, input: DrawingInput): Promise<{ ok: boolean; error?: string }> {
   const existing = store.getSnapshot().find((d) => d.id === id);
   const previousRevisionUrls =
     existing && existing.revision !== input.revision
       ? [...(existing.previousRevisionUrls ?? []), existing.currentRevisionUrl]
       : existing?.previousRevisionUrls;
-  void store.update(id, { ...input, previousRevisionUrls });
+  const ok = await store.update(id, { ...input, previousRevisionUrls });
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function deleteDrawing(id: string) {

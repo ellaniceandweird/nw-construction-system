@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
 import { createEquipmentMaintenance, updateEquipmentMaintenance, deleteEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
 
 interface Props {
@@ -35,6 +36,7 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
   const [lastCompleted, setLastCompleted] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -55,13 +57,16 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
     onOpenChange(false);
   }
 
-  function handleSave() {
+  async function handleSave() {
     const input = { propertyName, location, systemType, maintenanceNeeded, frequency, lastCompleted, notes };
-    if (record) {
-      updateEquipmentMaintenance(record.id, input);
-    } else {
-      createEquipmentMaintenance(input);
+    setSaving(true);
+    const result = record ? await updateEquipmentMaintenance(record.id, input) : await createEquipmentMaintenance(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this schedule — check your connection and try again.");
+      return;
     }
+    showSuccessToast(record ? "Schedule updated" : "Schedule added");
     onOpenChange(false);
   }
   const canSave = !!propertyName && !!location && !!systemType;
@@ -166,7 +171,7 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save Changes"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

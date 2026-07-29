@@ -19,7 +19,7 @@ export const MOCK_MATERIAL_REQUESTS: MaterialRequest[] = [
     approvalStatus: "approved",
     notes: "Confirmed measurements with Pedro on site.",
     referenceUrl: "https://drive.google.com/file/d/example-siding-measurements",
-    requestStatus: "approved",
+    requestStatus: "sourcing",
     lineItems: [{
       description: "Additional cedar siding for north side",
       quantity: 300,
@@ -40,7 +40,7 @@ export const MOCK_MATERIAL_REQUESTS: MaterialRequest[] = [
     approvalStatus: "pending",
     notes: undefined,
     referenceUrl: undefined,
-    requestStatus: "pending_approval",
+    requestStatus: "pending",
     lineItems: [{
       description: "HVAC filter replacements",
       quantity: 6,
@@ -61,7 +61,7 @@ export const MOCK_MATERIAL_REQUESTS: MaterialRequest[] = [
     approvalStatus: "pending",
     notes: "Engineer spec attached.",
     referenceUrl: "https://drive.google.com/file/d/example-rebar-spec.pdf",
-    requestStatus: "pending_approval",
+    requestStatus: "pending",
     lineItems: [{
       description: "Rebar for bulkhead reinforcement",
       quantity: 40,
@@ -82,7 +82,7 @@ export const MOCK_MATERIAL_REQUESTS: MaterialRequest[] = [
     approvalStatus: "pending",
     notes: undefined,
     referenceUrl: undefined,
-    requestStatus: "draft",
+    requestStatus: "pending",
     lineItems: [{
       description: "Roof underlayment",
       quantity: 15,

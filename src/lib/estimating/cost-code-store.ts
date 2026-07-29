@@ -62,13 +62,14 @@ function nextId(): string {
   return `CC-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createCostCode(input: CostCodeInput) {
+export async function createCostCode(input: CostCodeInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  void store.create({ id, ...input });
-  return id;
+  const result = await store.create({ id, ...input });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
-export function updateCostCode(id: string, input: CostCodeInput) {
-  void store.update(id, input);
+export async function updateCostCode(id: string, input: CostCodeInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 export function deleteCostCode(id: string) {
   void store.remove(id);

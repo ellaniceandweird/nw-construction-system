@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
 import { updateTask, deleteMaintenanceTask, restoreMaintenanceTask } from "@/lib/maintenance/maintenance-task-store";
-import { showUndoToast } from "@/lib/toast/toast-store";
+import { showUndoToast, showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type {
   MaintenanceTask,
   MaintenancePriority,
@@ -47,6 +47,7 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
   const [plannedCompletionDate, setPlannedCompletionDate] = React.useState("");
   const [comments, setComments] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (task) {
@@ -69,9 +70,10 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
     onOpenChange(false);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!task) return;
-    updateTask(task.id, {
+    setSaving(true);
+    const result = await updateTask(task.id, {
       propertyName,
       taskDescription,
       priority,
@@ -80,6 +82,12 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
       plannedCompletionDate,
       comments,
     });
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this task — check your connection and try again.");
+      return;
+    }
+    showSuccessToast("Maintenance task updated");
     onOpenChange(false);
   }
 
@@ -198,7 +206,7 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

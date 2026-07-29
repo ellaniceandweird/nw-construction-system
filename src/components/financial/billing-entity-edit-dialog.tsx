@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createBillingEntity, updateBillingEntity, deleteBillingEntity } from "@/lib/financial/billing-entity-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { BillingEntity } from "@/types/financial";
 
 interface Props { entity: BillingEntity | null; open: boolean; onOpenChange: (open: boolean) => void; }
@@ -18,6 +19,7 @@ export function BillingEntityEditDialog({ entity, open, onOpenChange }: Props) {
   const [invoicePrefix, setInvoicePrefix] = React.useState("");
   const [defaultPaymentTerms, setDefaultPaymentTerms] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -31,10 +33,17 @@ export function BillingEntityEditDialog({ entity, open, onOpenChange }: Props) {
     }
   }, [entity, open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!companyName) return;
     const input = { companyName, legalName: legalName || undefined, taxId: taxId || undefined, address: address || undefined, invoicePrefix: invoicePrefix || undefined, defaultPaymentTerms: defaultPaymentTerms || undefined };
-    if (entity) { updateBillingEntity(entity.id, input); } else { createBillingEntity(input); }
+    setSaving(true);
+    const result = entity ? await updateBillingEntity(entity.id, input) : await createBillingEntity(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this billing entity — check your connection and try again.");
+      return;
+    }
+    showSuccessToast(entity ? "Billing entity updated" : "Billing entity added");
     onOpenChange(false);
   }
   function handleDelete() { if (!entity) return; deleteBillingEntity(entity.id); onOpenChange(false); }
@@ -67,7 +76,7 @@ export function BillingEntityEditDialog({ entity, open, onOpenChange }: Props) {
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!companyName}>Save</Button>
+            <Button onClick={handleSave} disabled={!companyName || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

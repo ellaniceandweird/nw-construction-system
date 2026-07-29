@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createRFQ } from "@/lib/procurement/rfq-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 import { Trash2 } from "lucide-react";
@@ -89,9 +90,12 @@ export function RfqCreateDialog({
     setVendorIds((prev) => (checked ? [...prev, id] : prev.filter((v) => v !== id)));
   }
 
-  function handleCreate() {
+  const [saving, setSaving] = React.useState(false);
+
+  async function handleCreate() {
     if (!projectId || !materialList || !dueDate || vendorIds.length === 0) return;
-    createRFQ({
+    setSaving(true);
+    const result = await createRFQ({
       projectId,
       materialRequestId: materialRequestId === NONE ? undefined : materialRequestId,
       vendorIds,
@@ -102,6 +106,12 @@ export function RfqCreateDialog({
       notes: notes || undefined,
       attachments: attachments.length > 0 ? attachments : undefined,
     });
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't create this RFQ — check your connection and try again.");
+      return;
+    }
+    showSuccessToast("RFQ created");
     reset();
     onOpenChange(false);
   }
@@ -245,8 +255,8 @@ export function RfqCreateDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={!canCreate}>
-            Create RFQ
+          <Button onClick={handleCreate} disabled={!canCreate || saving}>
+            {saving ? "Creating…" : "Create RFQ"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -62,8 +62,9 @@ export interface PropertyInput {
 }
 
 /** Updates a property. Fire-and-forget is fine — the UI updates optimistically and reconciles with the real database in the background. */
-export function updateProperty(id: string, input: PropertyInput) {
-  void store.update(id, input);
+export async function updateProperty(id: string, input: PropertyInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function deleteProperty(id: string) {

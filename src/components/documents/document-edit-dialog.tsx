@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createDocument, updateDocument, deleteDocument, restoreDocument } from "@/lib/documents/document-store";
-import { showSuccessToast, showUndoToast } from "@/lib/toast/toast-store";
+import { showSuccessToast, showUndoToast, showErrorToast } from "@/lib/toast/toast-store";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { DriveUploadButton } from "@/components/shared/drive-upload-button";
 import { detectFileType } from "@/lib/documents/detect-file-type";
@@ -78,6 +78,7 @@ export function DocumentEditDialog({ document, open, onOpenChange }: Props) {
   const [tags, setTags] = React.useState("");
   const [comments, setComments] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -140,7 +141,7 @@ export function DocumentEditDialog({ document, open, onOpenChange }: Props) {
     }
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!projectId || !title || !fileUrl) return;
     const input = {
       projectId, projectName: projectId === MANUAL_ENTRY ? projectName : undefined,
@@ -152,7 +153,13 @@ export function DocumentEditDialog({ document, open, onOpenChange }: Props) {
       tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : undefined,
       comments: comments || undefined,
     };
-    if (document) { updateDocument(document.id, input); } else { createDocument(input); }
+    setSaving(true);
+    const result = document ? await updateDocument(document.id, input) : await createDocument(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this document — check your connection and try again.");
+      return;
+    }
     showSuccessToast(document ? "Document updated" : "Document added");
     onOpenChange(false);
   }
@@ -251,7 +258,7 @@ export function DocumentEditDialog({ document, open, onOpenChange }: Props) {
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

@@ -85,8 +85,9 @@ export function computeTotal(input: Pick<PurchaseOrderEditInput, "lineItems" | "
   return lineTotal + (input.tax ?? 0) + (input.freight ?? 0);
 }
 
-export function updatePurchaseOrder(id: string, input: PurchaseOrderEditInput) {
-  void store.update(id, { ...input, total: computeTotal(input) });
+export async function updatePurchaseOrder(id: string, input: PurchaseOrderEditInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, { ...input, total: computeTotal(input) });
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 function nextPoNumber(): string {
@@ -99,11 +100,13 @@ function nextPoNumber(): string {
 }
 
 /** Manual entry — always available even though most POs auto-generate from awarded quotes. */
-export function createPurchaseOrder(input: PurchaseOrderEditInput) {
+export async function createPurchaseOrder(input: PurchaseOrderEditInput): Promise<{ ok: boolean; error?: string; poNumber: string }> {
   const poNumber = nextPoNumber();
   const total = computeTotal(input);
-  void store.create({ id: poNumber, poNumber, currency: "USD", total, ...input });
-  return poNumber;
+  const result = await store.create({ id: poNumber, poNumber, currency: "USD", total, ...input });
+  return result !== null
+    ? { ok: true, poNumber }
+    : { ok: false, error: store.getLastError() ?? undefined, poNumber };
 }
 
 export interface AutoGenerateFromQuoteInput {

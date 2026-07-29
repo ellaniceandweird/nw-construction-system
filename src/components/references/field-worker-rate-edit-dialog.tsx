@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createFieldWorkerRate, updateFieldWorkerRate, deleteFieldWorkerRate } from "@/lib/references/field-worker-rate-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { FieldWorkerRate } from "@/types/references";
 
 interface Props { rate: FieldWorkerRate | null; open: boolean; onOpenChange: (open: boolean) => void; }
@@ -19,6 +20,7 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
   const [defaultCostCode, setDefaultCostCode] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -33,7 +35,7 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
     }
   }, [rate, open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!employeeName || !hourlyRate) return;
     const input = {
       employeeId: employeeId || `EMP-${Date.now()}`,
@@ -43,7 +45,14 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
       defaultCostCode: defaultCostCode || undefined,
       notes: notes || undefined,
     };
-    if (rate) { updateFieldWorkerRate(rate.id, input); } else { createFieldWorkerRate(input); }
+    setSaving(true);
+    const result = rate ? await updateFieldWorkerRate(rate.id, input) : await createFieldWorkerRate(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this rate — check your connection and try again.");
+      return;
+    }
+    showSuccessToast(rate ? "Rate updated" : "Rate added");
     onOpenChange(false);
   }
   function handleDelete() { if (!rate) return; deleteFieldWorkerRate(rate.id); onOpenChange(false); }
@@ -77,7 +86,7 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
           )) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!employeeName || !hourlyRate}>Save</Button>
+            <Button onClick={handleSave} disabled={!employeeName || !hourlyRate || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

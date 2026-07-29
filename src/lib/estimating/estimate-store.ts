@@ -118,9 +118,9 @@ function nextEstimateNumber(): string {
   return `EST-${year}-${String(items.length + 1).padStart(4, "0")}`;
 }
 
-export function createEstimate(input: EstimateEditInput) {
+export async function createEstimate(input: EstimateEditInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextId();
-  void store.create({
+  const result = await store.create({
     id,
     estimateNumber: nextEstimateNumber(),
     revision: 1,
@@ -128,16 +128,19 @@ export function createEstimate(input: EstimateEditInput) {
     totalEstimatedCost: computeEstimateTotal(input.lineItems, input.indirectCosts, input.contingency),
     ...input,
   });
-  return id;
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
 }
 
-export function updateEstimate(id: string, input: EstimateEditInput) {
+export async function updateEstimate(id: string, input: EstimateEditInput): Promise<{ ok: boolean; error?: string }> {
   const existing = store.getSnapshot().find((e) => e.id === id);
-  void store.update(id, {
+  const ok = await store.update(id, {
     ...input,
     revision: (existing?.revision ?? 1) + 1,
     totalEstimatedCost: computeEstimateTotal(input.lineItems, input.indirectCosts, input.contingency),
   });
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function approveEstimate(id: string, approvedBy: string) {

@@ -81,14 +81,15 @@ export interface ApprovalRequestInput {
   notes?: string;
 }
 
-export function createApprovalRequest(input: ApprovalRequestInput) {
+export async function createApprovalRequest(input: ApprovalRequestInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  void store.create({ id, approvalStatus: "pending", ...input });
-  return id;
+  const result = await store.create({ id, approvalStatus: "pending", ...input });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
-export function updateApprovalRequest(id: string, input: ApprovalRequestInput) {
-  void store.update(id, input);
+export async function updateApprovalRequest(id: string, input: ApprovalRequestInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function deleteApprovalRequest(id: string) {

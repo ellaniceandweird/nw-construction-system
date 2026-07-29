@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, Users, HardHat, Briefcase, AlertTriangle, MessageSquare, Printer } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, HardHat, Briefcase, AlertTriangle, MessageSquare, Printer, ImageDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { generateDailyFieldUpdateText } from "@/lib/scheduling/daily-field-updat
 import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-update-dialog";
 import { openPrintWindow } from "@/lib/estimating/print-window";
 import { buildDailyWorkPlanHtml } from "@/lib/scheduling/print-daily-work-plan";
+import { generateDailyWorkPlanImage } from "@/lib/scheduling/generate-daily-work-plan-image";
 
 const TODAY = new Date("2026-07-10");
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -25,6 +26,13 @@ function formatDate(d: Date) {
     day: "numeric",
   });
 }
+
+const CARD_PALETTE = [
+  "bg-primary-soft border-primary/20",
+  "bg-success-soft border-success/20",
+  "bg-warning-soft border-warning/20",
+  "bg-info-soft border-info/20",
+];
 
 function JobCard({
   number,
@@ -39,10 +47,11 @@ function JobCard({
 }) {
   const project = projects.find((p) => p.id === activity.projectId);
   const workType = getWorkType(activity);
+  const palette = CARD_PALETTE[(number - 1) % CARD_PALETTE.length];
 
   return (
-    <div className="flex items-start gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+    <div className={`flex items-start gap-4 rounded-2xl border p-5 shadow-sm ${palette}`}>
+      <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card text-lg font-bold text-foreground shadow-sm">
         {number}
       </div>
       <div className="flex flex-1 flex-col gap-2">
@@ -52,15 +61,15 @@ function JobCard({
         <p className="text-base text-muted-foreground">{activity.name}</p>
 
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <span className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-medium text-foreground">
+          <span className="flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-sm font-medium text-foreground shadow-sm">
             <Users className="size-4" />
             {crewCount} {crewCount === 1 ? "person" : "people"}
           </span>
           <Badge
             className={
               workType === "internal"
-                ? "bg-primary-soft text-primary border-transparent text-sm py-1"
-                : "bg-info-soft text-info-foreground border-transparent text-sm py-1"
+                ? "bg-card text-primary border-transparent text-sm py-1 shadow-sm"
+                : "bg-card text-info-foreground border-transparent text-sm py-1 shadow-sm"
             }
           >
             {workType === "internal" ? (
@@ -123,6 +132,10 @@ export function DailyWorkPlanView() {
     openPrintWindow("Daily Work Plan", buildDailyWorkPlanHtml(formatDate(date), rows));
   }
 
+  function handleGenerateImage() {
+    generateDailyWorkPlanImage(date, capacity.scheduled, projects);
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-3 print:hidden">
@@ -140,6 +153,9 @@ export function DailyWorkPlanView() {
         )}
         <Button variant="outline" size="sm" onClick={handlePrint}>
           <Printer className="size-3.5" /> Print
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleGenerateImage}>
+          <ImageDown className="size-3.5" /> Generate Image for Pedro &amp; Vinnie
         </Button>
         <Button
           variant="outline"

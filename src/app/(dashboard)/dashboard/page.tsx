@@ -23,10 +23,10 @@ import { printExecutiveSummary } from "@/lib/dashboard/print-executive-summary";
 import { useProjects } from "@/hooks/use-projects";
 import { useActivities } from "@/hooks/use-activities";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
+import { useApprovalRequests } from "@/hooks/use-approval-requests";
 import {
   getProjectsBehindSchedule,
   getProjectsOverBudget,
-  getPendingApprovals,
   getOverdueMaintenance,
   getMaintenanceDueThisWeek,
   getProcurementRequiringAttention,
@@ -38,10 +38,11 @@ export default function DashboardPage() {
   const projects = useProjects();
   const activities = useActivities();
   const maintenanceTasks = useMaintenanceTasks();
+  const approvalRequests = useApprovalRequests();
 
   const behindSchedule = getProjectsBehindSchedule(projects);
   const overBudget = getProjectsOverBudget(projects);
-  const pendingApprovals = getPendingApprovals(maintenanceTasks);
+  const pendingApprovals = approvalRequests.filter((a) => a.approvalStatus === "pending");
   const overdueMaintenance = getOverdueMaintenance(maintenanceTasks);
   const dueThisWeek = getMaintenanceDueThisWeek(maintenanceTasks);
   const procurementAttention = getProcurementRequiringAttention(activities);
@@ -92,7 +93,7 @@ export default function DashboardPage() {
           value={pendingApprovals.length}
           icon={ClipboardCheck}
           tone="warning"
-          href="/maintenance"
+          href="/approvals"
         />
         <KpiCard
           label="Overdue Maintenance"

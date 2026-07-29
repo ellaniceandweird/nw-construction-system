@@ -15,9 +15,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { updateMaterialRequest } from "@/lib/procurement/material-request-store";
 import { MaterialRequestEditDialog } from "@/components/procurement/material-request-edit-dialog";
 import { MaterialRequestCreateDialog } from "@/components/procurement/material-request-create-dialog";
-import type { MaterialRequest } from "@/types/procurement";
+import type { MaterialRequest, MaterialRequestStatus } from "@/types/procurement";
+
+const STATUS_OPTIONS: { value: MaterialRequestStatus; label: string }[] = [
+  { value: "pending", label: "Pending" },
+  { value: "sourcing", label: "Sourcing" },
+  { value: "ordered", label: "Ordered" },
+  { value: "canceled", label: "Canceled" },
+];
+
+const STATUS_CLASS: Record<MaterialRequestStatus, string> = {
+  pending: "border-warning/40",
+  sourcing: "border-info/40",
+  ordered: "border-success/40",
+  canceled: "border-destructive/40",
+};
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -80,7 +95,9 @@ export function MaterialRequestsTable() {
               <th className="px-4 py-3 font-medium">MR Number</th>
               <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Description</th>
+              <th className="px-4 py-3 font-medium">Quantity</th>
               <th className="px-4 py-3 font-medium">Needed By</th>
+              <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Reference</th>
               <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium">Edit</th>
@@ -95,9 +112,34 @@ export function MaterialRequestsTable() {
                   <td className="px-4 py-3 text-muted-foreground">{project?.projectName ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {mr.lineItems[0]?.description}
+                    {mr.lineItems.length > 1 && ` +${mr.lineItems.length - 1} more`}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                    {mr.lineItems[0] ? `${mr.lineItems[0].quantity} ${mr.lineItems[0].unit}` : "—"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatDate(mr.requiredOnSiteDate)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Select
+                      value={mr.requestStatus}
+                      onValueChange={(v) =>
+                        updateMaterialRequest(mr.id, {
+                          requestStatus: v as MaterialRequestStatus,
+                          notes: mr.notes,
+                          referenceUrl: mr.referenceUrl,
+                        })
+                      }
+                    >
+                      <SelectTrigger className={`w-[130px] ${STATUS_CLASS[mr.requestStatus]}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUS_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </td>
                   <td className="px-4 py-3">
                     {mr.referenceUrl ? (
@@ -123,7 +165,7 @@ export function MaterialRequestsTable() {
               );
             })}
             {sorted.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">No material requests yet — click &quot;Add Entry&quot; above.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">No material requests yet — click &quot;Add Entry&quot; above.</td></tr>
             )}
           </tbody>
         </table>

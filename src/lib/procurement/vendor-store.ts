@@ -92,8 +92,9 @@ export interface VendorEditInput {
   notes?: string;
 }
 
-export function updateVendor(id: string, input: VendorEditInput) {
-  void store.update(id, input);
+export async function updateVendor(id: string, input: VendorEditInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 function nextVendorId(): string {
@@ -105,9 +106,9 @@ function nextVendorId(): string {
   return `VEN-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createVendor(input: VendorEditInput) {
+export async function createVendor(input: VendorEditInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextVendorId();
-  void store.create({
+  const result = await store.create({
     id,
     isPreferredVendor: false,
     isApprovedVendor: true,
@@ -122,7 +123,7 @@ export function createVendor(input: VendorEditInput) {
     },
     ...input,
   });
-  return id;
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 /** Toggles the "Recommended" checkbox column on the Vendors / Subcontractor tabs. */

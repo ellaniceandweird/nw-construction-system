@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateVendor, deleteVendor, createVendor } from "@/lib/procurement/vendor-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { Vendor } from "@/types/procurement";
 
 interface Props {
@@ -49,6 +50,7 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
   const [website, setWebsite] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -76,7 +78,7 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
     }
   }, [vendor, open]);
 
-  function handleSave() {
+  async function handleSave() {
     const input = {
       vendorName,
       vendorCategory,
@@ -88,11 +90,14 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
       website,
       notes,
     };
-    if (vendor) {
-      updateVendor(vendor.id, input);
-    } else {
-      createVendor(input);
+    setSaving(true);
+    const result = vendor ? await updateVendor(vendor.id, input) : await createVendor(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this vendor — check your connection and try again.");
+      return;
     }
+    showSuccessToast(vendor ? "Vendor updated" : "Vendor added");
     onOpenChange(false);
   }
 
@@ -193,8 +198,8 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!vendorName.trim() || !vendorCategory.trim()}>
-              {vendor ? "Save Changes" : "Create Vendor"}
+            <Button onClick={handleSave} disabled={!vendorName.trim() || !vendorCategory.trim() || saving}>
+              {saving ? "Saving…" : vendor ? "Save Changes" : "Create Vendor"}
             </Button>
           </div>
         </DialogFooter>

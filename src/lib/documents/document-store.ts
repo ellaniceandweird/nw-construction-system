@@ -108,13 +108,14 @@ function nextNumber(): string {
   return `DOC-${year}-${String(items.length + 1).padStart(4, "0")}`;
 }
 
-export function createDocument(input: DocumentInput) {
+export async function createDocument(input: DocumentInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  void store.create({ id, documentNumber: nextNumber(), ...input });
-  return id;
+  const result = await store.create({ id, documentNumber: nextNumber(), ...input });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
-export function updateDocument(id: string, input: DocumentInput) {
-  void store.update(id, input);
+export async function updateDocument(id: string, input: DocumentInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 export function deleteDocument(id: string) {
   void store.remove(id);

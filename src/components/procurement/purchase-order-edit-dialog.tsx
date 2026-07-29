@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updatePurchaseOrder, createPurchaseOrder, computeTotal, deletePurchaseOrder } from "@/lib/procurement/purchase-order-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
@@ -64,6 +65,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
   const [terms, setTerms] = React.useState("");
   const [poStatus, setPoStatus] = React.useState<PurchaseOrderStatus>("pending_approval");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
   const [tax, setTax] = React.useState("");
   const [freight, setFreight] = React.useState("");
   const [notes, setNotes] = React.useState("");
@@ -123,7 +125,7 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
     freight: freight ? parseFloat(freight) : undefined,
   });
 
-  function handleSave() {
+  async function handleSave() {
     if (!projectId || !vendorId || !billingEntityId || !orderDate) return;
     const input = {
       projectId,
@@ -138,11 +140,14 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
       notes: notes || undefined,
       lineItems,
     };
-    if (order) {
-      updatePurchaseOrder(order.id, input);
-    } else {
-      createPurchaseOrder(input);
+    setSaving(true);
+    const result = order ? await updatePurchaseOrder(order.id, input) : await createPurchaseOrder(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this purchase order — check your connection and try again.");
+      return;
     }
+    showSuccessToast(order ? "Purchase order updated" : "Purchase order created");
     onOpenChange(false);
   }
 
@@ -372,8 +377,8 @@ export function PurchaseOrderEditDialog({ order, open, onOpenChange, createMode 
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!canSave}>
-              {order ? "Save Changes" : "Create Purchase Order"}
+            <Button onClick={handleSave} disabled={!canSave || saving}>
+              {saving ? "Saving…" : order ? "Save Changes" : "Create Purchase Order"}
             </Button>
           </div>
         </DialogFooter>

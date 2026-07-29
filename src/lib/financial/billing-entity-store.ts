@@ -65,13 +65,14 @@ function nextId(): string {
   return `BE-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createBillingEntity(input: BillingEntityInput) {
+export async function createBillingEntity(input: BillingEntityInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  void store.create({ id, ...input });
-  return id;
+  const result = await store.create({ id, ...input });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
-export function updateBillingEntity(id: string, input: BillingEntityInput) {
-  void store.update(id, input);
+export async function updateBillingEntity(id: string, input: BillingEntityInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 export function deleteBillingEntity(id: string) {
   void store.remove(id);

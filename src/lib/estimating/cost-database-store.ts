@@ -86,13 +86,14 @@ function nextId(): string {
   return `CDB-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function createCostDatabaseItem(input: CostDatabaseInput) {
+export async function createCostDatabaseItem(input: CostDatabaseInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  void store.create({ id, ...input });
-  return id;
+  const result = await store.create({ id, ...input });
+  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
-export function updateCostDatabaseItem(id: string, input: CostDatabaseInput) {
-  void store.update(id, input);
+export async function updateCostDatabaseItem(id: string, input: CostDatabaseInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 export function deleteCostDatabaseItem(id: string) {
   void store.remove(id);

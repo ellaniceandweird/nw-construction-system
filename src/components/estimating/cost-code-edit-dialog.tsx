@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createCostCode, updateCostCode, deleteCostCode } from "@/lib/estimating/cost-code-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { CostCode } from "@/types/estimating";
 
 interface Props { costCode: CostCode | null; open: boolean; onOpenChange: (open: boolean) => void; }
@@ -17,6 +18,7 @@ export function CostCodeEditDialog({ costCode, open, onOpenChange }: Props) {
   const [trade, setTrade] = React.useState("");
   const [category, setCategory] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -29,10 +31,17 @@ export function CostCodeEditDialog({ costCode, open, onOpenChange }: Props) {
     }
   }, [costCode, open]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!code || !description || !division) return;
     const input = { code, description, division, trade: trade || undefined, category: category || undefined };
-    if (costCode) { updateCostCode(costCode.id, input); } else { createCostCode(input); }
+    setSaving(true);
+    const result = costCode ? await updateCostCode(costCode.id, input) : await createCostCode(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this cost code — check your connection and try again.");
+      return;
+    }
+    showSuccessToast(costCode ? "Cost code updated" : "Cost code added");
     onOpenChange(false);
   }
   function handleDelete() {
@@ -73,7 +82,7 @@ export function CostCodeEditDialog({ costCode, open, onOpenChange }: Props) {
           ) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </DialogFooter>
       </DialogContent>
