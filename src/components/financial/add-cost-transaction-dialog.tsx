@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createCostTransaction } from "@/lib/financial/cost-transaction-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { useProjects } from "@/hooks/use-projects";
 import type { CostTransaction } from "@/types/financial";
 
@@ -21,6 +22,7 @@ const CATEGORY_OPTIONS: { value: CostTransaction["category"]; label: string }[] 
 export function AddCostTransactionDialog({ open, onOpenChange }: Props) {
   const projects = useProjects();
   const [projectId, setProjectId] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
   const [description, setDescription] = React.useState("");
   const [costCode, setCostCode] = React.useState("");
   const [category, setCategory] = React.useState<CostTransaction["category"]>("miscellaneous");
@@ -32,13 +34,20 @@ export function AddCostTransactionDialog({ open, onOpenChange }: Props) {
     setProjectId(""); setDescription(""); setCostCode(""); setCategory("miscellaneous");
     setDate(new Date().toISOString().slice(0, 10)); setAmount(""); setReferenceNumber("");
   }
-  function handleSave() {
+  async function handleSave() {
     if (!projectId || !description || !amount) return;
-    createCostTransaction({
+    setSaving(true);
+    const result = await createCostTransaction({
       projectId, description, costCode, category, date,
       amount: parseFloat(amount),
       referenceNumber: referenceNumber || undefined,
     });
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this entry — check your connection and try again.");
+      return;
+    }
+    showSuccessToast("Cost entry added");
     reset();
     onOpenChange(false);
   }
@@ -75,7 +84,7 @@ export function AddCostTransactionDialog({ open, onOpenChange }: Props) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!canSave}>Save</Button>
+          <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

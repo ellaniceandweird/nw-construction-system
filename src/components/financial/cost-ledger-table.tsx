@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
-import { Download } from "lucide-react";
+import { Plus, Download, Pencil } from "lucide-react";
+import { useCostTransactions } from "@/hooks/use-cost-transactions";
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
 import { derivePurchaseOrderTransactions } from "@/lib/financial/cost-transaction-derivation";
 import { useCostLedgerNotes } from "@/hooks/use-cost-ledger-notes";
@@ -21,7 +22,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowUpDown } from "lucide-react";
+import { AddCostTransactionDialog } from "@/components/financial/add-cost-transaction-dialog";
+import { EditCostTransactionDialog } from "@/components/financial/edit-cost-transaction-dialog";
 import type { Project } from "@/types/project";
+import type { CostTransaction } from "@/types/financial";
+
+const SOURCE_LABEL: Record<string, string> = {
+  procurement: "Procurement",
+  field_operations: "Field Ops",
+  estimating: "Estimating",
+  manual: "Manual",
+};
 
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -52,19 +63,25 @@ function NotesCell({ transactionId, initialValue }: { transactionId: string; ini
 
 export function CostLedgerTable() {
   const projects = useProjects();
+  const manualTransactions = useCostTransactions();
   const purchaseOrders = usePurchaseOrders();
   const vendors = useVendors();
   const notes = useCostLedgerNotes();
+  const [adding, setAdding] = React.useState(false);
+  const [editing, setEditing] = React.useState<CostTransaction | null>(null);
   const [projectFilter, setProjectFilter] = React.useState("all");
+  const [sourceFilter, setSourceFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<"date_desc" | "date_asc" | "amount_desc" | "amount_asc">("date_desc");
 
   const allTransactions = React.useMemo(
-    () => derivePurchaseOrderTransactions(purchaseOrders),
-    [purchaseOrders]
+    () => [...manualTransactions, ...derivePurchaseOrderTransactions(purchaseOrders)],
+    [manualTransactions, purchaseOrders]
   );
 
   const filtered = allTransactions.filter((t) => {
-    return projectFilter === "all" || t.projectId === projectFilter;
+    const matchesProject = projectFilter === "all" || t.projectId === projectFilter;
+    const matchesSource = sourceFilter === "all" || t.sourceModule === sourceFilter;
+    return matchesProject && matchesSource;
   });
 
   const transactions = [...filtered].sort((a, b) => {
@@ -92,6 +109,7 @@ export function CostLedgerTable() {
         Description: t.description,
         "Cost Code": t.costCode || "",
         Vendor: vendorName(t.vendorId, vendors),
+        Source: SOURCE_LABEL[t.sourceModule],
         Amount: t.amount,
         Notes: notes[t.id] ?? "",
       }))
@@ -108,6 +126,16 @@ export function CostLedgerTable() {
             {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
           </SelectContent>
         </Select>
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Sources" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            <SelectItem value="procurement">Procurement</SelectItem>
+            <SelectItem value="field_operations">Field Ops</SelectItem>
+            <SelectItem value="estimating">Estimating</SelectItem>
+            <SelectItem value="manual">Manual</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
           <SelectTrigger className="w-[170px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -122,12 +150,18 @@ export function CostLedgerTable() {
 
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Every real cost hitting a project, pulled directly from Purchase Orders in
-          Procurement — to change an amount, edit the Purchase Order itself.
+          Every real cost hitting a property — Purchase Orders flow in automatically from
+          Procurement; add anything that doesn&apos;t (permit fees paid directly, petty
+          cash, etc.) manually below.
         </p>
-        <Button size="sm" variant="outline" onClick={handleExport}>
-          <Download className="size-3.5" /> Export to Excel
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          <Button size="sm" variant="outline" onClick={handleExport}>
+            <Download className="size-3.5" /> Export to Excel
+          </Button>
+          <Button size="sm" onClick={() => setAdding(true)}>
+            <Plus className="size-3.5" /> Add Manual Entry
+          </Button>
+        </div>
       </div>
 
       <Card className="overflow-x-auto py-0">
@@ -139,8 +173,10 @@ export function CostLedgerTable() {
               <th className="px-4 py-3 font-medium">Description</th>
               <th className="px-4 py-3 font-medium">Cost Code</th>
               <th className="px-4 py-3 font-medium">Vendor</th>
+              <th className="px-4 py-3 font-medium">Source</th>
               <th className="px-4 py-3 font-medium">Amount</th>
               <th className="px-4 py-3 font-medium">Notes</th>
+              <th className="px-4 py-3 font-medium w-10">Edit</th>
             </tr>
           </thead>
           <tbody>
@@ -151,27 +187,47 @@ export function CostLedgerTable() {
                 <td className="px-4 py-3 text-muted-foreground max-w-sm">{t.description}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.costCode || "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{vendorName(t.vendorId, vendors)}</td>
+                <td className="px-4 py-3">
+                  <Badge className="bg-muted text-muted-foreground border-transparent">{SOURCE_LABEL[t.sourceModule]}</Badge>
+                </td>
                 <td className="px-4 py-3 font-medium text-foreground">{currency(t.amount)}</td>
                 <td className="px-4 py-3">
                   <NotesCell transactionId={t.id} initialValue={notes[t.id] ?? ""} />
                 </td>
+                <td className="px-4 py-3">
+                  {t.sourceModule === "manual" ? (
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(t)}>
+                      <Pencil className="size-3.5" />
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground" title="Auto-generated from Procurement — edit the Purchase Order instead">—</span>
+                  )}
+                </td>
               </tr>
             ))}
             {transactions.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">No purchase order costs yet.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">No cost transactions yet.</td></tr>
             )}
           </tbody>
           {transactions.length > 0 && (
             <tfoot>
               <tr className="border-t border-border font-medium text-foreground">
-                <td colSpan={5} className="px-4 py-3 text-right">Total</td>
+                <td colSpan={6} className="px-4 py-3 text-right">Total</td>
                 <td className="px-4 py-3">{currency(total)}</td>
+                <td></td>
                 <td></td>
               </tr>
             </tfoot>
           )}
         </table>
       </Card>
+
+      <AddCostTransactionDialog open={adding} onOpenChange={setAdding} />
+      <EditCostTransactionDialog
+        transaction={editing}
+        open={!!editing}
+        onOpenChange={(open) => !open && setEditing(null)}
+      />
     </>
   );
 }

@@ -23,7 +23,6 @@ import { getPropertyForProject } from "@/lib/properties/property-relations";
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
-import { useDailyLogs } from "@/hooks/use-daily-logs";
 import {
   addDailyLog,
   getMostRecentCrew,
@@ -81,7 +80,6 @@ export function DailyLogForm() {
   const allActivities = useActivities();
   const workerRates = useFieldWorkerRates();
   const properties = useProperties();
-  const existingDailyLogs = useDailyLogs();
   const seededRef = React.useRef(false);
 
   const {
@@ -111,24 +109,38 @@ export function DailyLogForm() {
   // Runs once real daily log data has actually loaded from the database
   // (not just once on mount) — otherwise this could fire before the
   // data arrives and seed a single blank row instead of the real crew.
+  // Rows are auto-generated one per known field worker (from Field
+  // Worker Rates — a stable reference list, not dependent on log
+  // history timing), each enriched with their own project/property/
+  // activity carried forward from the last daily log if one exists.
+  // Ella just adjusts whatever changed and deletes anyone not working
+  // today, or adds someone new.
   React.useEffect(() => {
     if (seededRef.current) return;
-    if (existingDailyLogs.length === 0) return;
+    if (workerRates.length === 0) return;
     seededRef.current = true;
-    const recentCrew = getMostRecentCrew(watchedDate || new Date().toISOString().slice(0, 10));
-    if (recentCrew.length > 0) {
-      recentCrew.forEach((entry) => {
-        timeEntryFields.append({ ...entry, activityId: entry.activityId ?? "" });
-      });
-    } else {
-      timeEntryFields.append(emptyTimeEntry(""));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existingDailyLogs]);
 
-  // Safety net: if this is a genuinely brand-new setup with no prior daily
-  // logs at all (not just still loading), make sure at least one blank
-  // row appears so the form is never stuck empty.
+    const recentCrew = getMostRecentCrew(watchedDate || new Date().toISOString().slice(0, 10));
+
+    workerRates.forEach((rate) => {
+      const carriedForward = recentCrew.find((c) => c.employeeId === rate.employeeId);
+      if (carriedForward) {
+        timeEntryFields.append({ ...carriedForward, activityId: carriedForward.activityId ?? "" });
+      } else {
+        timeEntryFields.append({
+          ...emptyTimeEntry(""),
+          employeeId: rate.employeeId,
+          employeeName: rate.employeeName,
+          trade: rate.trade,
+        });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workerRates]);
+
+  // Safety net: if Field Worker Rates itself is genuinely empty (a
+  // brand-new setup with no reference data yet), make sure at least one
+  // blank row appears so the form is never stuck empty.
   React.useEffect(() => {
     const timer = setTimeout(() => {
       if (!seededRef.current) {

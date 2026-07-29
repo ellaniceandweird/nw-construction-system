@@ -77,14 +77,17 @@ export interface CostTransactionInput {
   referenceNumber?: string;
 }
 
-export function createCostTransaction(input: CostTransactionInput) {
+export async function createCostTransaction(input: CostTransactionInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextId();
-  void store.create({ id, sourceModule: "manual", ...input });
-  return id;
+  const result = await store.create({ id, sourceModule: "manual", ...input });
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
 }
 
-export function updateCostTransaction(id: string, input: CostTransactionInput) {
-  void store.update(id, input);
+export async function updateCostTransaction(id: string, input: CostTransactionInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function deleteCostTransaction(id: string) {
