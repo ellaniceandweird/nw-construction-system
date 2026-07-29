@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { HealthScoreGauge } from "@/components/shared/health-score-badge";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 import { ProjectMilestones } from "@/components/projects/project-milestones";
-import { ProjectTeam } from "@/components/projects/project-team";
 import { ProjectSchedulePreview } from "@/components/projects/project-schedule-preview";
 import { ProjectRelatedFiles } from "@/components/projects/project-related-files";
 import { RecordProjectView } from "@/components/projects/record-project-view";
@@ -84,12 +83,6 @@ export default function ProjectDetailsPage() {
                   <span className="text-xs text-muted-foreground">% Complete</span>
                   <p className="font-medium text-foreground">{computeProjectCompletionPercent(project.id, activities)}%</p>
                 </div>
-                <div>
-                  <span className="text-xs text-muted-foreground">Foreman</span>
-                  <p className="font-medium text-foreground">
-                    {project.team.foreman ?? "—"}
-                  </p>
-                </div>
               </div>
             </div>
           </CardContent>
@@ -128,10 +121,9 @@ export default function ProjectDetailsPage() {
         </Card>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ProjectSchedulePreview projectId={project.id} />
         <ProjectMilestones projectId={project.id} />
-        <ProjectTeam projectId={project.id} />
       </div>
 
       <div className="mt-4">

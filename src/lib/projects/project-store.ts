@@ -30,8 +30,8 @@ function fromRow(row: Record<string, any>): Project {
     manualStatus: row.manual_status,
     calculatedStatus: row.calculated_status,
     priority: row.priority,
-    startDate: row.start_date,
-    plannedCompletionDate: row.planned_completion_date,
+    startDate: row.start_date ?? "",
+    plannedCompletionDate: row.planned_completion_date ?? "",
     actualCompletionDate: row.actual_completion_date ?? undefined,
     estimatedContractValue: Number(row.estimated_contract_value ?? 0),
     approvedBudget: Number(row.approved_budget ?? 0),
@@ -77,8 +77,8 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.manualStatus !== undefined) row.manual_status = input.manualStatus;
   if (input.calculatedStatus !== undefined) row.calculated_status = input.calculatedStatus;
   if (input.priority !== undefined) row.priority = input.priority;
-  if (input.startDate !== undefined) row.start_date = input.startDate;
-  if (input.plannedCompletionDate !== undefined) row.planned_completion_date = input.plannedCompletionDate;
+  if (input.startDate !== undefined) row.start_date = input.startDate || null;
+  if (input.plannedCompletionDate !== undefined) row.planned_completion_date = input.plannedCompletionDate || null;
   if (input.actualCompletionDate !== undefined) row.actual_completion_date = input.actualCompletionDate;
   if (input.estimatedContractValue !== undefined) row.estimated_contract_value = input.estimatedContractValue;
   if (input.approvedBudget !== undefined) row.approved_budget = input.approvedBudget;
