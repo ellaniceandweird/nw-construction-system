@@ -11,7 +11,7 @@ import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { DriveUploadButton } from "@/components/shared/drive-upload-button";
 import { useProperties } from "@/hooks/use-properties";
-import { getPropertyForProject } from "@/lib/properties/property-relations";
+import { getPropertyForProject, getPropertyDisplayName } from "@/lib/properties/property-relations";
 import type { DrivePickedFile } from "@/lib/google-drive/use-drive-picker";
 import { useProjects } from "@/hooks/use-projects";
 import type { Drawing, DrawingDiscipline, DocumentStatus } from "@/types/documents";
@@ -95,7 +95,7 @@ export function DrawingEditDialog({ drawing, open, onOpenChange }: Props) {
     const property = proj ? getPropertyForProject(proj, properties) : undefined;
     if (property) {
       setPropertyId(property.id);
-      setPropertyName(property.name);
+      setPropertyName(getPropertyDisplayName(property));
     }
   }
 

@@ -17,8 +17,10 @@ import type { BaseEntity } from "@/types/common";
 
 /** A physical property the company maintains, independent of any construction project. */
 export interface Property extends BaseEntity {
-  name: string; // e.g. "Kitty's/Mr Cat", "391 Main Street"
-  address?: string;
+  /** The street address — the primary identifier for a property. */
+  address: string;
+  /** The business/purpose name, if this property is known by one (e.g. "Cidery", "The Wick") — not all properties have one. */
+  name?: string;
   town?: string;
   billingEntityId?: string;
   relatedProjectId?: string; // set if a construction Project also exists for this property

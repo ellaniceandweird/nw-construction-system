@@ -4,6 +4,16 @@ import type { MaintenanceTask, EquipmentMaintenanceSchedule } from "@/types/main
 import type { MaintenanceLogEntry } from "@/lib/maintenance/maintenance-log-store";
 import type { FieldPhoto } from "@/types/field-operations";
 
+/**
+ * The label to show anywhere a property needs a human-readable name —
+ * combines address and business/purpose name, e.g. "391 Main St - Cidery".
+ * Falls back to whichever of the two is actually set.
+ */
+export function getPropertyDisplayName(property: Pick<Property, "address" | "name">): string {
+  if (property.address && property.name) return `${property.address} - ${property.name}`;
+  return property.address || property.name || "Unnamed Property";
+}
+
 function normalize(s: string): string {
   return s
     .toLowerCase()
@@ -20,7 +30,7 @@ function normalize(s: string): string {
  * even with the street/st spelling difference.
  */
 export function getRelatedProjects(property: Property, projects: Project[]): Project[] {
-  const firstSegment = property.name.split("/")[0].split("(")[0].trim();
+  const firstSegment = (property.name ?? property.address).split("/")[0].split("(")[0].trim();
   const propKey = normalize(firstSegment).replace(/^the/, "");
   if (!propKey) return [];
 
@@ -45,7 +55,7 @@ export interface MaintenanceHistory {
 
 function matchesProperty(property: Property, propertyId?: string, propertyName?: string): boolean {
   if (propertyId) return propertyId === property.id;
-  if (propertyName) return propertyName.toLowerCase() === property.name.toLowerCase();
+  if (propertyName) return propertyName.toLowerCase() === getPropertyDisplayName(property).toLowerCase();
   return false;
 }
 

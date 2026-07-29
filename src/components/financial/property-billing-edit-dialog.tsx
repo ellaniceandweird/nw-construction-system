@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { updateProperty, deleteProperty } from "@/lib/properties/property-store";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { Property } from "@/types/maintenance";
 
@@ -86,7 +87,7 @@ export function PropertyBillingEditDialog({ property, open, onOpenChange }: Prop
           <div>
             <Label>Property</Label>
             <div className="mt-1.5 flex h-9 items-center rounded-lg border border-input bg-muted/40 px-3 text-sm text-foreground">
-              {property.name}
+              {getPropertyDisplayName(property)}
             </div>
           </div>
           <div>

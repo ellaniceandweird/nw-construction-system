@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { DriveUploadButton } from "@/components/shared/drive-upload-button";
 import { useProperties } from "@/hooks/use-properties";
-import { getPropertyForProject } from "@/lib/properties/property-relations";
+import { getPropertyForProject, getPropertyDisplayName } from "@/lib/properties/property-relations";
 import { createPhotos } from "@/lib/documents/photo-store";
 import { showErrorToast } from "@/lib/toast/toast-store";
 import { useProjects } from "@/hooks/use-projects";
@@ -48,7 +48,7 @@ export function AddPhotosDialog({ open, onOpenChange }: Props) {
     const property = proj ? getPropertyForProject(proj, properties) : undefined;
     if (property) {
       setPropertyId(property.id);
-      setPropertyName(property.name);
+      setPropertyName(getPropertyDisplayName(property));
     }
   }
 

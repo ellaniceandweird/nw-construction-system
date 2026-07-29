@@ -3,6 +3,7 @@ import * as React from "react";
 import { Search, ArrowUpDown, Pencil } from "lucide-react";
 import { useProperties } from "@/hooks/use-properties";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,14 +43,14 @@ export function BillingEntitiesTable() {
     const matchesEntity = entityFilter === "all" || p.billingEntityId === entityFilter;
     if (!matchesEntity) return false;
     if (!search) return true;
-    const haystack = `${p.name} ${p.address ?? ""} ${entityName(p.billingEntityId) ?? ""}`.toLowerCase();
+    const haystack = `${getPropertyDisplayName(p)} ${entityName(p.billingEntityId) ?? ""}`.toLowerCase();
     return haystack.includes(search.toLowerCase());
   });
 
   const sorted = [...filtered].sort((a, b) =>
     sortBy === "entity"
       ? (entityName(a.billingEntityId) ?? "").localeCompare(entityName(b.billingEntityId) ?? "")
-      : a.name.localeCompare(b.name)
+      : a.address.localeCompare(b.address)
   );
 
   return (
@@ -95,7 +96,7 @@ export function BillingEntitiesTable() {
           <tbody>
             {sorted.map((p) => (
               <tr key={p.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
-                <td className="px-4 py-3 font-medium text-foreground">{p.name}</td>
+                <td className="px-4 py-3 font-medium text-foreground">{p.name ?? p.address}</td>
                 <td className="px-4 py-3 text-muted-foreground">{p.address ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{entityName(p.billingEntityId) ?? "—"}</td>
                 <td className="px-4 py-3">

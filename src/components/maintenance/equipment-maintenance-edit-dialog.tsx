@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 import { createEquipmentMaintenance, updateEquipmentMaintenance, deleteEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
@@ -88,8 +89,8 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
                 </SelectTrigger>
                 <SelectContent>
                   {properties.map((p) => (
-                    <SelectItem key={p.id} value={p.name}>
-                      {p.name}
+                    <SelectItem key={p.id} value={getPropertyDisplayName(p)}>
+                      {getPropertyDisplayName(p)}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -7,8 +7,8 @@ import type { Property } from "@/types/maintenance";
 function fromRow(row: Record<string, any>): Property {
   return {
     id: row.id,
-    name: row.name,
-    address: row.address ?? undefined,
+    address: row.address ?? "",
+    name: row.name ?? undefined,
     town: row.town ?? undefined,
     billingEntityId: row.billing_entity_id ?? undefined,
     relatedProjectId: row.related_project_id ?? undefined,
@@ -46,7 +46,7 @@ const store = createCollectionStore<Property>({
   seedData: MOCK_PROPERTIES,
   fromRow,
   toRow,
-  orderBy: "name",
+  orderBy: "address",
 });
 
 export const subscribeProperties = store.subscribe;
@@ -54,6 +54,7 @@ export const getPropertiesSnapshot = store.getSnapshot;
 
 export interface PropertyInput {
   address?: string;
+  name?: string;
   town?: string;
   coverPhotoUrl?: string;
   billingEntityId?: string;

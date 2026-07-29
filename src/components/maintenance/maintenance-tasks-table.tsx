@@ -7,6 +7,7 @@ import { Search, Plus, Pencil } from "lucide-react";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { addMaintenanceTask, updateTaskStatus } from "@/lib/maintenance/maintenance-task-store";
 import { useProperties } from "@/hooks/use-properties";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -157,8 +158,8 @@ export function MaintenanceTasksTable() {
               </SelectTrigger>
               <SelectContent>
                 {properties.map((p) => (
-                  <SelectItem key={p.id} value={p.name}>
-                    {p.name}
+                  <SelectItem key={p.id} value={getPropertyDisplayName(p)}>
+                    {getPropertyDisplayName(p)}
                   </SelectItem>
                 ))}
               </SelectContent>

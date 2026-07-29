@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 import { updateTask, deleteMaintenanceTask, restoreMaintenanceTask } from "@/lib/maintenance/maintenance-task-store";
 import { showUndoToast, showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type {
@@ -107,8 +108,8 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
               </SelectTrigger>
               <SelectContent>
                 {properties.map((p) => (
-                  <SelectItem key={p.id} value={p.name}>
-                    {p.name}
+                  <SelectItem key={p.id} value={getPropertyDisplayName(p)}>
+                    {getPropertyDisplayName(p)}
                   </SelectItem>
                 ))}
               </SelectContent>

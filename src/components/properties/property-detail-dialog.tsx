@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DrivePickerButton } from "@/components/shared/drive-picker-button";
 import { updateProperty, deleteProperty } from "@/lib/properties/property-store";
-import { getRelatedProjects, getMaintenanceHistory, getPropertyPhotos } from "@/lib/properties/property-relations";
+import { getRelatedProjects, getMaintenanceHistory, getPropertyPhotos, getPropertyDisplayName } from "@/lib/properties/property-relations";
 import { useProjects } from "@/hooks/use-projects";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
@@ -72,6 +72,7 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
   const allPhotos = useFieldPhotos();
 
   const [address, setAddress] = React.useState("");
+  const [name, setName] = React.useState("");
   const [town, setTown] = React.useState("");
   const [editingInfo, setEditingInfo] = React.useState(false);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
@@ -79,6 +80,7 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
   React.useEffect(() => {
     if (property && open) {
       setAddress(property.address ?? "");
+      setName(property.name ?? "");
       setTown(property.town ?? "");
       setEditingInfo(false);
       setConfirmingDelete(false);
@@ -106,7 +108,7 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
   }
   function handleSaveInfo() {
     if (!property) return;
-    updateProperty(property.id, { address: address || undefined, town: town || undefined });
+    updateProperty(property.id, { address: address || undefined, name: name || undefined, town: town || undefined });
     setEditingInfo(false);
   }
   function handleDelete() {
@@ -120,7 +122,7 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between gap-3 pr-6">
-            <DialogTitle>{property.name}</DialogTitle>
+            <DialogTitle>{getPropertyDisplayName(property)}</DialogTitle>
             {confirmingDelete ? (
               <div className="flex shrink-0 items-center gap-2">
                 <span className="text-xs text-muted-foreground">Delete this property?</span>
@@ -145,7 +147,7 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
             <div className="flex aspect-[16/7] items-center justify-center overflow-hidden rounded-lg bg-muted">
               {property.coverPhotoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={property.coverPhotoUrl} alt={property.name} className="h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+                <img src={property.coverPhotoUrl} alt={getPropertyDisplayName(property)} className="h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
               ) : (
                 <Building2 className="size-12 text-muted-foreground" />
               )}
@@ -163,6 +165,10 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
                   <Input className="mt-1" value={address} onChange={(e) => setAddress(e.target.value)} />
                 </div>
                 <div>
+                  <Label className="text-xs">Property Name (optional)</Label>
+                  <Input className="mt-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Cidery, The Wick" />
+                </div>
+                <div>
                   <Label className="text-xs">Town</Label>
                   <Input className="mt-1" value={town} onChange={(e) => setTown(e.target.value)} />
                 </div>
@@ -174,7 +180,9 @@ export function PropertyDetailDialog({ property, open, onOpenChange }: Props) {
             ) : (
               <button className="flex w-full items-center justify-between rounded-lg border border-dashed border-border p-3 text-left hover:bg-accent/40" onClick={() => setEditingInfo(true)}>
                 <span className="text-sm text-muted-foreground">
-                  {property.address || property.town ? `${property.address ?? ""}${property.address && property.town ? ", " : ""}${property.town ?? ""}` : "Add address / town"}
+                  {property.address || property.name || property.town
+                    ? [property.address, property.name, property.town].filter(Boolean).join(", ")
+                    : "Add address / name / town"}
                 </span>
                 <span className="text-xs text-primary">Edit</span>
               </button>

@@ -1,5 +1,6 @@
 import type { Project } from "@/types/project";
 import type { Property } from "@/types/maintenance";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 import type { ProjectDocument, Drawing } from "@/types/documents";
 import type { Contact } from "@/types/contacts";
 import type { Estimate } from "@/types/estimating";
@@ -41,8 +42,8 @@ export function buildSearchIndex(
   for (const p of properties) {
     items.push({
       id: p.id,
-      title: p.name,
-      subtitle: p.address ?? p.town,
+      title: getPropertyDisplayName(p),
+      subtitle: p.town,
       category: "Property",
       href: `/properties?propertyId=${p.id}`,
     });
