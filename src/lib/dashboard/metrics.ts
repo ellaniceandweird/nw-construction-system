@@ -2,6 +2,7 @@ import type { Project } from "@/types/project";
 import type { Activity } from "@/types/scheduling";
 import type { MaintenanceTask } from "@/types/maintenance";
 import type { DailyLog } from "@/types/field-operations";
+import { computeProjectCompletionPercent } from "@/lib/scheduling/compute-project-completion";
 
 /**
  * All dashboard KPIs are computed here from live data passed in by the
@@ -21,9 +22,9 @@ function daysBetween(a: Date, b: Date) {
   return (a.getTime() - b.getTime()) / (24 * 60 * 60 * 1000);
 }
 
-export function getProjectsBehindSchedule(projects: Project[]) {
+export function getProjectsBehindSchedule(projects: Project[], activities: Activity[]) {
   return projects.filter((p) => {
-    if (p.completionPercent >= 100) return false;
+    if (computeProjectCompletionPercent(p.id, activities) >= 100) return false;
     return new Date(p.plannedCompletionDate) < TODAY;
   });
 }

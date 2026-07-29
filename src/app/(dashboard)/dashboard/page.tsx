@@ -39,7 +39,7 @@ export default function DashboardPage() {
   const maintenanceTasks = useMaintenanceTasks();
   const approvalRequests = useApprovalRequests();
 
-  const behindSchedule = getProjectsBehindSchedule(projects);
+  const behindSchedule = getProjectsBehindSchedule(projects, activities);
   const overBudget = getProjectsOverBudget(projects);
   const pendingApprovals = approvalRequests.filter((a) => a.approvalStatus === "pending");
   const overdueMaintenance = getOverdueMaintenance(maintenanceTasks);

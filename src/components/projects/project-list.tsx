@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Search, ArrowUpDown, Printer, Pencil } from "lucide-react";
 
 import { useProjects } from "@/hooks/use-projects";
+import { useActivities } from "@/hooks/use-activities";
+import { computeProjectCompletionPercent } from "@/lib/scheduling/compute-project-completion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,7 +61,10 @@ function formatCurrency(n: number) {
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  if (!d) return "—";
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 function statusLabel(status: ProjectCalculatedStatus) {
@@ -68,6 +73,7 @@ function statusLabel(status: ProjectCalculatedStatus) {
 
 export function ProjectList() {
   const projects = useProjects();
+  const activities = useActivities();
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<ProjectCalculatedStatus | "all">("all");
   const [sortBy, setSortBy] = React.useState<SortOption | "none">("status");
@@ -89,7 +95,7 @@ export function ProjectList() {
           <td>${escapeHtml(p.projectName)}</td>
           <td>${escapeHtml(p.address.street)}</td>
           <td>${statusLabel(p.calculatedStatus)}</td>
-          <td>${p.completionPercent}%</td>
+          <td>${computeProjectCompletionPercent(p.id, activities)}%</td>
           <td class="right">${formatCurrency(p.approvedBudget)}</td>
           <td>${formatDate(p.startDate)}</td>
           <td>${formatDate(p.plannedCompletionDate)}</td>
@@ -192,7 +198,7 @@ export function ProjectList() {
                 <td className="px-4 py-3">
                   <ProjectStatusBadge status={p.calculatedStatus} />
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{p.completionPercent}%</td>
+                <td className="px-4 py-3 text-muted-foreground">{computeProjectCompletionPercent(p.id, activities)}%</td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {formatCurrency(p.approvedBudget)}
                 </td>
@@ -202,7 +208,7 @@ export function ProjectList() {
                 <td className="px-4 py-3 text-muted-foreground">
                   {formatDate(p.plannedCompletionDate)}
                 </td>
-                <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate" title={p.notes}>
+                <td className="px-4 py-3 text-muted-foreground whitespace-pre-wrap break-words min-w-[200px] max-w-[320px]">
                   {p.notes || "—"}
                 </td>
                 <td className="px-4 py-3 print:hidden">

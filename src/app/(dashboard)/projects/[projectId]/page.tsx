@@ -16,6 +16,8 @@ import { ProjectSchedulePreview } from "@/components/projects/project-schedule-p
 import { ProjectRelatedFiles } from "@/components/projects/project-related-files";
 import { RecordProjectView } from "@/components/projects/record-project-view";
 import { useProjects } from "@/hooks/use-projects";
+import { useActivities } from "@/hooks/use-activities";
+import { computeProjectCompletionPercent } from "@/lib/scheduling/compute-project-completion";
 
 function formatCurrency(n?: number) {
   if (!n) return "—";
@@ -30,6 +32,7 @@ function formatDate(d?: string) {
 export default function ProjectDetailsPage() {
   const params = useParams<{ projectId: string }>();
   const projects = useProjects();
+  const activities = useActivities();
   const project = projects.find((p) => p.id === params.projectId);
 
   if (!project) notFound();
@@ -79,7 +82,7 @@ export default function ProjectDetailsPage() {
                 </div>
                 <div>
                   <span className="text-xs text-muted-foreground">% Complete</span>
-                  <p className="font-medium text-foreground">{project.completionPercent}%</p>
+                  <p className="font-medium text-foreground">{computeProjectCompletionPercent(project.id, activities)}%</p>
                 </div>
                 <div>
                   <span className="text-xs text-muted-foreground">Foreman</span>
