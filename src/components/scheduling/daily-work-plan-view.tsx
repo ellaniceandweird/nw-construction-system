@@ -155,7 +155,7 @@ export function DailyWorkPlanView() {
           <Printer className="size-3.5" /> Print
         </Button>
         <Button variant="outline" size="sm" onClick={handleGenerateImage}>
-          <ImageDown className="size-3.5" /> Generate Image for Pedro &amp; Vinnie
+          <ImageDown className="size-3.5" /> Generate Image for Pedro
         </Button>
         <Button
           variant="outline"

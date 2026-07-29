@@ -11,10 +11,7 @@ function formatShortDate(d: string) {
 }
 
 interface ExecutiveSummaryInput {
-  totalBudget: number;
-  actualCost: number;
-  remaining: number;
-  percentUsed: number;
+  allProjects: Project[];
   behindSchedule: Project[];
   overBudget: Project[];
   pendingApprovalsCount: number;
@@ -61,6 +58,21 @@ export function printExecutiveSummary(input: ExecutiveSummaryInput) {
     ...input.behindSchedule.map((p) => projectRow(p, "Behind Schedule", "oklch(0.78 0.13 65)")),
     ...input.overBudget.map((p) => projectRow(p, "Over Budget", "oklch(0.65 0.18 25)")),
   ].join("");
+
+  function projectBudgetRow(p: Project) {
+    const actual = p.actualCostToDate ?? 0;
+    const overBudget = actual > p.approvedBudget;
+    return `
+      <tr style="border-bottom:1px solid oklch(0.92 0.01 260);">
+        <td style="padding:10px 16px; font-size:12px; font-weight:600; color:oklch(0.24 0.02 265);">${escapeHtml(p.projectName)}</td>
+        <td style="padding:10px 16px; font-size:12px; text-align:right; color:oklch(0.4 0.02 265);">${currency(p.approvedBudget)}</td>
+        <td style="padding:10px 16px; font-size:12px; text-align:right; font-weight:600; color:${overBudget ? "oklch(0.55 0.2 25)" : "oklch(0.4 0.02 265)"};">${currency(actual)}</td>
+      </tr>`;
+  }
+
+  const projectBudgetRows = input.allProjects.map(projectBudgetRow).join("");
+  const totalBudget = input.allProjects.reduce((sum, p) => sum + p.approvedBudget, 0);
+  const totalActual = input.allProjects.reduce((sum, p) => sum + (p.actualCostToDate ?? 0), 0);
 
   const workByProject = new Map<string, { projectName: string; items: UpcomingWorkItem[] }>();
   for (const item of input.upcomingWork) {
@@ -144,24 +156,28 @@ export function printExecutiveSummary(input: ExecutiveSummaryInput) {
           ${kpiTile("Pending Approvals", input.pendingApprovalsCount, "oklch(0.62 0.11 250 / 0.25)")}
         </div>
 
-        <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:oklch(0.55 0.02 265); margin-bottom:10px;">Financial Snapshot</div>
-        <div style="background:oklch(0.985 0.003 247.86); border:1px solid oklch(0.9 0.01 260); border-radius:14px; padding:18px; margin-bottom:28px;">
-          <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:13px;">
-            <span style="color:oklch(0.55 0.02 265);">Total Budget (all active projects)</span>
-            <span style="font-weight:600;">${currency(input.totalBudget)}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:13px;">
-            <span style="color:oklch(0.55 0.02 265);">Actual Cost to Date</span>
-            <span style="font-weight:600;">${currency(input.actualCost)}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:13px; border-top:1px solid oklch(0.9 0.01 260); margin-top:4px; padding-top:10px;">
-            <span style="color:oklch(0.55 0.02 265);">Remaining Budget</span>
-            <span style="font-weight:600;">${currency(input.remaining)}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:10px 0 0; font-size:15px; font-weight:700;">
-            <span>% of Budget Used</span>
-            <span>${input.percentUsed}%</span>
-          </div>
+        <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:oklch(0.55 0.02 265); margin-bottom:10px;">Project Budgets — Estimate vs. Actual Running Cost</div>
+        <div style="background:oklch(0.985 0.003 247.86); border:1px solid oklch(0.9 0.01 260); border-radius:14px; overflow:hidden; margin-bottom:28px;">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="border-bottom:1px solid oklch(0.9 0.01 260);">
+                <th style="padding:8px 16px; text-align:left; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; color:oklch(0.55 0.02 265);">Project</th>
+                <th style="padding:8px 16px; text-align:right; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; color:oklch(0.55 0.02 265);">Budget (Estimate)</th>
+                <th style="padding:8px 16px; text-align:right; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; color:oklch(0.55 0.02 265);">Actual Running Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${projectBudgetRows || `<tr><td colspan="3" style="padding:16px; font-size:13px; color:oklch(0.55 0.02 265);">No projects yet.</td></tr>`}
+            </tbody>
+            ${input.allProjects.length > 0 ? `
+            <tfoot>
+              <tr style="border-top:2px solid oklch(0.85 0.01 260);">
+                <td style="padding:10px 16px; font-size:12px; font-weight:700;">Total</td>
+                <td style="padding:10px 16px; font-size:12px; font-weight:700; text-align:right;">${currency(totalBudget)}</td>
+                <td style="padding:10px 16px; font-size:12px; font-weight:700; text-align:right;">${currency(totalActual)}</td>
+              </tr>
+            </tfoot>` : ""}
+          </table>
         </div>
 
         <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:oklch(0.55 0.02 265); margin-bottom:10px;">Needs Your Attention</div>

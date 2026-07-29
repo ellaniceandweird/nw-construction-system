@@ -30,7 +30,6 @@ import {
   getOverdueMaintenance,
   getMaintenanceDueThisWeek,
   getProcurementRequiringAttention,
-  getBudgetOverview,
   getUpcomingWorkNext2Weeks,
 } from "@/lib/dashboard/metrics";
 
@@ -48,12 +47,8 @@ export default function DashboardPage() {
   const procurementAttention = getProcurementRequiringAttention(activities);
 
   function handlePrintExecutiveSummary() {
-    const { totalBudget, actualCost, remaining, percentUsed } = getBudgetOverview(projects);
     printExecutiveSummary({
-      totalBudget,
-      actualCost,
-      remaining,
-      percentUsed,
+      allProjects: projects,
       behindSchedule,
       overBudget,
       pendingApprovalsCount: pendingApprovals.length,

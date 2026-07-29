@@ -33,7 +33,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 /**
  * Draws a clean, pastel-toned summary card per project (date, activity,
  * manpower) onto a canvas and triggers a PNG download — a quick visual
- * to text/share with Pedro and Vinnie each morning, no screenshotting
+ * to text/share with Pedro each morning, no screenshotting
  * required.
  */
 export function generateDailyWorkPlanImage(date: Date, scheduled: WorkItem[], projects: Project[]) {

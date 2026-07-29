@@ -124,7 +124,6 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: "Cost Ledger", href: "/financial?tab=costledger" },
       { label: "Budgets", href: "/financial?tab=budgets" },
-      { label: "Invoices", href: "/financial?tab=invoices" },
       { label: "Financial Rollup", href: "/financial?tab=rollup" },
     ],
   },
