@@ -86,13 +86,9 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
   const costCodes = useCostCodes();
 
   const [projectId, setProjectId] = React.useState("");
-  const [client, setClient] = React.useState("");
   const [address, setAddress] = React.useState("");
-  const [revision, setRevision] = React.useState(1);
   const [estimateDate, setEstimateDate] = React.useState("");
   const [estimateStatus, setEstimateStatus] = React.useState<EstimateStatus>("draft");
-  const [proposalNumber, setProposalNumber] = React.useState("");
-  const [taxMethod, setTaxMethod] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [lineItems, setLineItems] = React.useState<Omit<EstimateLineItem, "totalCost">[]>([emptyLineItem()]);
   const [indirectCosts, setIndirectCosts] = React.useState<IndirectCosts>({});
@@ -103,13 +99,9 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
   React.useEffect(() => {
     if (!open) return;
     setProjectId(estimate?.projectId ?? "");
-    setClient(estimate?.client ?? "");
     setAddress(estimate?.address ?? "");
-    setRevision(estimate?.revision ?? 1);
     setEstimateDate(estimate?.estimateDate ?? new Date().toISOString().slice(0, 10));
     setEstimateStatus(estimate?.estimateStatus ?? "draft");
-    setProposalNumber(estimate?.proposalNumber ?? "");
-    setTaxMethod(estimate?.taxMethod ?? "");
     setNotes(estimate?.notes ?? "");
     setLineItems(estimate?.lineItems.length ? estimate.lineItems : [emptyLineItem()]);
     setIndirectCosts(estimate?.indirectCosts ?? {});
@@ -146,8 +138,8 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
   async function handleSave() {
     if (!projectId || !estimateDate || lineItems.some((li) => !li.description)) return;
     const input = {
-      projectId, client: client || undefined, address: address || undefined, estimateDate,
-      estimateStatus, revision, proposalNumber: proposalNumber || undefined, taxMethod: taxMethod || undefined,
+      projectId, address: address || undefined, estimateDate,
+      estimateStatus,
       notes: notes || undefined, lineItems: computedLineItems, indirectCosts, contingency,
     };
     setSaving(true);
@@ -206,35 +198,15 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="revision">Revision</Label>
-              <Input id="revision" type="number" min={1} className="mt-1.5" value={revision} onChange={(e) => setRevision(parseInt(e.target.value, 10) || 1)} />
-            </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="estimateDate">Estimate Date</Label>
               <Input id="estimateDate" type="date" className="mt-1.5" value={estimateDate} onChange={(e) => setEstimateDate(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="proposalNumber">Proposal Number</Label>
-              <Input id="proposalNumber" className="mt-1.5" value={proposalNumber} onChange={(e) => setProposalNumber(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="client">Owner (optional)</Label>
-              <Input id="client" className="mt-1.5" value={client} onChange={(e) => setClient(e.target.value)} />
-            </div>
-            <div>
               <Label htmlFor="address">Address (optional)</Label>
               <Input id="address" className="mt-1.5" value={address} onChange={(e) => setAddress(e.target.value)} />
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="taxMethod">Tax Method (optional)</Label>
-            <Input id="taxMethod" className="mt-1.5" placeholder="e.g. Sales tax on materials" value={taxMethod} onChange={(e) => setTaxMethod(e.target.value)} />
           </div>
 
           <div>

@@ -165,10 +165,12 @@ export function createCollectionStore<T extends { id: string }>(
 
       if (error) {
         console.error(`[${config.table}] delete failed:`, error.message);
+        lastError = error.message;
         items = previous;
         emit();
         return false;
       }
+      lastError = null;
       return true;
     },
   };

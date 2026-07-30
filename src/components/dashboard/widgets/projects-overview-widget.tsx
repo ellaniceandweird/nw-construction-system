@@ -19,13 +19,6 @@ const COLORS: Record<string, string> = {
   Completed: "var(--color-primary-soft)",
 };
 
-const TEXT_COLORS: Record<string, string> = {
-  "On Track": "var(--color-success)",
-  "At Risk": "var(--color-warning)",
-  Behind: "var(--color-destructive)",
-  Completed: "var(--color-primary)",
-};
-
 export function ProjectsOverviewWidget() {
   const projects = useProjects();
   const breakdown = getProjectHealthBreakdown(projects);
@@ -74,7 +67,7 @@ export function ProjectsOverviewWidget() {
                 <span className="flex items-center gap-1.5 text-muted-foreground">
                   <span
                     className="size-2 rounded-full"
-                    style={{ background: TEXT_COLORS[b.label] }}
+                    style={{ background: COLORS[b.label] }}
                   />
                   {b.label}
                 </span>

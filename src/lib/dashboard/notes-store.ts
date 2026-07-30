@@ -73,6 +73,7 @@ export async function addNote(message: string, author: string): Promise<{ ok: bo
   return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
-export function deleteNote(id: string) {
-  void store.remove(id);
+export async function deleteNote(id: string): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.remove(id);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }

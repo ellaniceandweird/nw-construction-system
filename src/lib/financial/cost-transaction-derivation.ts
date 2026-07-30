@@ -11,6 +11,10 @@ import type { PurchaseOrder } from "@/types/procurement";
 export function derivePurchaseOrderTransactions(purchaseOrders: PurchaseOrder[]): CostTransaction[] {
   const rows: CostTransaction[] = [];
   for (const po of purchaseOrders) {
+    // Only committed costs belong in the ledger — a cancelled PO was
+    // never actually spent, and one still pending approval isn't a
+    // confirmed cost yet.
+    if (po.poStatus === "cancelled" || po.poStatus === "pending_approval") continue;
     for (const li of po.lineItems) {
       rows.push({
         id: `POTX-${po.id}-${li.description.slice(0, 10).replace(/\s+/g, "")}`,

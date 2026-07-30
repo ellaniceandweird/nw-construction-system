@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useManagementNotes } from "@/hooks/use-management-notes";
 import { deleteNote } from "@/lib/dashboard/notes-store";
+import { showErrorToast } from "@/lib/toast/toast-store";
 import { AddNoteDialog } from "@/components/dashboard/widgets/add-note-dialog";
 
 function formatDate(d: string) {
@@ -14,6 +15,13 @@ function formatDate(d: string) {
 export function NotesFromManagementWidget() {
   const notes = useManagementNotes();
   const [adding, setAdding] = React.useState(false);
+
+  async function handleDelete(id: string) {
+    const result = await deleteNote(id);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't delete: ${result.error}` : "Couldn't delete this note — check your connection and try again.");
+    }
+  }
 
   return (
     <Card className="bg-info-soft/70 border-info/30">
@@ -35,7 +43,7 @@ export function NotesFromManagementWidget() {
                 — {note.author}, {formatDate(note.createdDate)}
               </span>
             </div>
-            <Button variant="ghost" size="icon" className="size-6 shrink-0" onClick={() => deleteNote(note.id)}>
+            <Button variant="ghost" size="icon" className="size-6 shrink-0" onClick={() => handleDelete(note.id)}>
               <Trash2 className="size-3 text-destructive" />
             </Button>
           </div>
