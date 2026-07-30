@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Search, ArrowUpDown, Plus } from "lucide-react";
+import { Pencil, Search, ArrowUpDown, Plus, Table2 } from "lucide-react";
 
 import { useVendors } from "@/hooks/use-vendors";
 import { toggleVendorRecommended } from "@/lib/procurement/vendor-store";
@@ -17,14 +17,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { VendorEditDialog } from "@/components/procurement/vendor-edit-dialog";
+import { BulkAddVendorsDialog } from "@/components/procurement/bulk-add-vendors-dialog";
 import { CopyableText } from "@/components/shared/copyable-text";
 import type { Vendor } from "@/types/procurement";
+
+function formatVendorAddress(v: Vendor): string {
+  const parts = [v.address, v.city, [v.state, v.zip].filter(Boolean).join(" ")].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "—";
+}
 
 /** Vendors tab: suppliers only — subcontractors live on their own tab. */
 export function VendorsTable() {
   const vendors = useVendors();
   const [editingVendor, setEditingVendor] = React.useState<Vendor | null>(null);
   const [creating, setCreating] = React.useState(false);
+  const [bulkAdding, setBulkAdding] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<"name" | "category">("name");
@@ -47,6 +54,9 @@ export function VendorsTable() {
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <Button size="sm" onClick={() => setCreating(true)}>
           <Plus className="size-3.5" /> Add Vendor
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setBulkAdding(true)}>
+          <Table2 className="size-3.5" /> Bulk Add
         </Button>
         <div className="relative flex-1 min-w-[12rem]">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -78,6 +88,7 @@ export function VendorsTable() {
               <th className="px-4 py-3 font-medium">Contact Person</th>
               <th className="px-4 py-3 font-medium">Contact Number</th>
               <th className="px-4 py-3 font-medium">Email Address</th>
+              <th className="px-4 py-3 font-medium">Address</th>
               <th className="px-4 py-3 font-medium">Website</th>
               <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium text-center">Recommended</th>
@@ -92,6 +103,7 @@ export function VendorsTable() {
                 <td className="px-4 py-3 text-muted-foreground">{v.primaryContact ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{v.phone ? <CopyableText value={v.phone} href={`tel:${v.phone}`} /> : "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{v.email ? <CopyableText value={v.email} href={`mailto:${v.email}`} /> : "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-xs">{formatVendorAddress(v)}</td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {v.website ? (
                     <a
@@ -134,6 +146,7 @@ export function VendorsTable() {
         open={creating}
         onOpenChange={setCreating}
       />
+      <BulkAddVendorsDialog open={bulkAdding} onOpenChange={setBulkAdding} />
     </>
   );
 }

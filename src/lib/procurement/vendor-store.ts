@@ -63,6 +63,10 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.email !== undefined) row.email = input.email;
   if (input.phone !== undefined) row.phone = input.phone;
   if (input.website !== undefined) row.website = input.website;
+  if (input.address !== undefined) row.address = input.address;
+  if (input.city !== undefined) row.city = input.city;
+  if (input.state !== undefined) row.state = input.state;
+  if (input.zip !== undefined) row.zip = input.zip;
   if (input.notes !== undefined) row.notes = input.notes;
   if (input.isPreferredVendor !== undefined) row.is_preferred_vendor = input.isPreferredVendor;
   row.last_modified_date = new Date().toISOString();
@@ -89,6 +93,10 @@ export interface VendorEditInput {
   phone?: string;
   email?: string;
   website?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
   notes?: string;
 }
 
@@ -124,6 +132,18 @@ export async function createVendor(input: VendorEditInput): Promise<{ ok: boolea
     ...input,
   });
   return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
+}
+
+/** Bulk import — e.g. rows pasted from Google Sheets. Creates one at a time so a bad row doesn't block the rest; reports which failed. */
+export async function createVendorsBulk(inputs: VendorEditInput[]): Promise<{ succeeded: number; failed: { row: number; error?: string }[] }> {
+  const failed: { row: number; error?: string }[] = [];
+  let succeeded = 0;
+  for (let i = 0; i < inputs.length; i++) {
+    const result = await createVendor(inputs[i]);
+    if (result.ok) succeeded++;
+    else failed.push({ row: i + 1, error: result.error });
+  }
+  return { succeeded, failed };
 }
 
 /** Toggles the "Recommended" checkbox column on the Vendors / Subcontractor tabs. */

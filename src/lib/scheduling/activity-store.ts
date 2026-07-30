@@ -130,10 +130,10 @@ function computeDurationDays(start: string, finish: string): number {
   return Math.max(1, Math.round((f.getTime() - s.getTime()) / (24 * 60 * 60 * 1000)) + 1);
 }
 
-export function addActivity(input: ActivityInput, projectName: string) {
+export async function addActivity(input: ActivityInput, projectName: string): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextActivityId();
   const duration = computeDurationDays(input.plannedStart, input.plannedFinish);
-  void store.create({
+  const result = await store.create({
     id,
     activityCode: id,
     wbsPath: `${projectName} > ${input.name}`,
@@ -143,16 +143,20 @@ export function addActivity(input: ActivityInput, projectName: string) {
     percentComplete: input.status === "completed" ? 100 : 0,
     ...input,
   });
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
 }
 
-export function updateActivity(id: string, input: ActivityInput) {
+export async function updateActivity(id: string, input: ActivityInput): Promise<{ ok: boolean; error?: string }> {
   const duration = computeDurationDays(input.plannedStart, input.plannedFinish);
   const existing = store.getSnapshot().find((a) => a.id === id);
-  void store.update(id, {
+  const ok = await store.update(id, {
     ...input,
     originalDurationDays: duration,
     percentComplete: input.status === "completed" ? 100 : existing?.percentComplete,
   });
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 export function deleteActivity(id: string) {

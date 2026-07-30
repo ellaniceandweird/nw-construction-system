@@ -200,7 +200,9 @@ export function CostLedgerTable() {
                       <Pencil className="size-3.5" />
                     </Button>
                   ) : (
-                    <span className="text-xs text-muted-foreground" title="Auto-generated from Procurement — edit the Purchase Order instead">—</span>
+                    <Button variant="ghost" size="icon" disabled className="opacity-30" title="Auto-generated from a Purchase Order — edit the PO itself in Procurement instead">
+                      <Pencil className="size-3.5" />
+                    </Button>
                   )}
                 </td>
               </tr>

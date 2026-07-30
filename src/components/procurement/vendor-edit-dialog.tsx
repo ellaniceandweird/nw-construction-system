@@ -48,6 +48,10 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
   const [phone, setPhone] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [website, setWebsite] = React.useState("");
+  const [address, setAddress] = React.useState("");
+  const [city, setCity] = React.useState("");
+  const [state, setState] = React.useState("");
+  const [zip, setZip] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -64,6 +68,10 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
       setPhone(vendor.phone ?? "");
       setEmail(vendor.email ?? "");
       setWebsite(vendor.website ?? "");
+      setAddress(vendor.address ?? "");
+      setCity(vendor.city ?? "");
+      setState(vendor.state ?? "");
+      setZip(vendor.zip ?? "");
       setNotes(vendor.notes ?? "");
     } else {
       setVendorName("");
@@ -74,6 +82,10 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
       setPhone("");
       setEmail("");
       setWebsite("");
+      setAddress("");
+      setCity("");
+      setState("");
+      setZip("");
       setNotes("");
     }
   }, [vendor, open]);
@@ -88,6 +100,10 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
       phone,
       email,
       website,
+      address: address || undefined,
+      city: city || undefined,
+      state: state || undefined,
+      zip: zip || undefined,
       notes,
     };
     setSaving(true);
@@ -173,6 +189,25 @@ export function VendorEditDialog({ vendor, open, onOpenChange, defaultSupplierTy
             <div>
               <Label htmlFor="website">Website</Label>
               <Input id="website" className="mt-1.5" value={website} onChange={(e) => setWebsite(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="address">Address</Label>
+            <Input id="address" className="mt-1.5" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street address" />
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="city">City</Label>
+              <Input id="city" className="mt-1.5" value={city} onChange={(e) => setCity(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="state">State</Label>
+              <Input id="state" className="mt-1.5" value={state} onChange={(e) => setState(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="zip">Zip</Label>
+              <Input id="zip" className="mt-1.5" value={zip} onChange={(e) => setZip(e.target.value)} />
             </div>
           </div>
 

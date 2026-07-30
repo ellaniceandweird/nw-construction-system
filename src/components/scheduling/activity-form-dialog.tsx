@@ -30,6 +30,7 @@ import {
   type ActivityFormValues,
 } from "@/lib/validation/activity-schema";
 import { addActivity, updateActivity, deleteActivity } from "@/lib/scheduling/activity-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { Activity } from "@/types/scheduling";
 
 function fieldError(message?: string) {
@@ -60,6 +61,7 @@ export function ActivityFormDialog({
 }: ActivityFormDialogProps) {
   const projects = useProjects();
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
   const {
     register,
     handleSubmit,
@@ -109,13 +111,18 @@ export function ActivityFormDialog({
     }
   }, [open, existingActivity, reset]);
 
-  function onSubmit(values: ActivityFormValues) {
+  async function onSubmit(values: ActivityFormValues) {
     const project = projects.find((p) => p.id === values.projectId);
-    if (existingActivity) {
-      updateActivity(existingActivity.id, values);
-    } else {
-      addActivity(values, project?.projectName ?? "Unknown Project");
+    setSaving(true);
+    const result = existingActivity
+      ? await updateActivity(existingActivity.id, values)
+      : await addActivity(values, project?.projectName ?? "Unknown Project");
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this activity — check your connection and try again.");
+      return;
     }
+    showSuccessToast(existingActivity ? "Activity updated" : "Activity added");
     onOpenChange(false);
   }
 
@@ -271,8 +278,8 @@ export function ActivityFormDialog({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {existingActivity ? "Save Changes" : "Add Activity"}
+              <Button type="submit" disabled={isSubmitting || saving}>
+                {saving ? "Saving…" : existingActivity ? "Save Changes" : "Add Activity"}
               </Button>
             </div>
           </DialogFooter>
