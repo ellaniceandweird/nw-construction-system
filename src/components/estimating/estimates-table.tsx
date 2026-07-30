@@ -120,6 +120,7 @@ export function EstimatesTable() {
               <th className="px-4 py-3 font-medium">Rev</th>
               <th className="px-4 py-3 font-medium">Total</th>
               <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium">Edit</th>
             </tr>
           </thead>
@@ -147,6 +148,7 @@ export function EstimatesTable() {
                         {e.estimateStatus.replace(/_/g, " ")}
                       </Badge>
                     </td>
+                    <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate" title={e.notes}>{e.notes || "—"}</td>
                     <td className="px-4 py-3">
                       <Button variant="ghost" size="icon" onClick={() => setEditing(e)}>
                         <Pencil className="size-3.5" />
@@ -155,7 +157,7 @@ export function EstimatesTable() {
                   </tr>
                   {isExpanded && (
                     <tr>
-                      <td colSpan={7} className="bg-muted/20 px-4 pb-4 pt-1">
+                      <td colSpan={8} className="bg-muted/20 px-4 pb-4 pt-1">
                         <div className="mb-2 flex justify-end">
                           <Button size="sm" variant="outline" onClick={() => handlePrintEstimate(e)}>
                             <Printer className="size-3.5" /> Print Estimate
@@ -170,7 +172,7 @@ export function EstimatesTable() {
             })}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
                   No estimates yet — create one above.
                 </td>
               </tr>

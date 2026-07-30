@@ -90,9 +90,10 @@ export interface EstimateEditInput {
   projectId: string;
   client?: string;
   address?: string;
-  estimator: string;
+  estimator?: string;
   estimateDate: string;
   estimateStatus: EstimateStatus;
+  revision?: number;
   approvedBy?: string;
   approvalDate?: string;
   proposalNumber?: string;
@@ -137,7 +138,7 @@ export async function updateEstimate(id: string, input: EstimateEditInput): Prom
   const existing = store.getSnapshot().find((e) => e.id === id);
   const ok = await store.update(id, {
     ...input,
-    revision: (existing?.revision ?? 1) + 1,
+    revision: input.revision ?? (existing?.revision ?? 1) + 1,
     totalEstimatedCost: computeEstimateTotal(input.lineItems, input.indirectCosts, input.contingency),
   });
   return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };

@@ -175,7 +175,7 @@ export interface Estimate extends BaseEntity {
   estimateNumber: string;
   client?: string;
   address?: string;
-  estimator: string;
+  estimator?: string;
   estimateDate: string;
   revision: number;
   estimateStatus: EstimateStatus;

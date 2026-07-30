@@ -53,7 +53,7 @@ export function useAutoConsolidateApprovals(
         title: e.estimateNumber,
         projectName: projectName(e.projectId),
         amount: e.totalEstimatedCost,
-        requestedBy: e.estimator,
+        requestedBy: e.estimator ?? "—",
         requestedDate: e.estimateDate,
         requiredApprovers: computeRequiredApprovers("estimate", e.totalEstimatedCost),
       });

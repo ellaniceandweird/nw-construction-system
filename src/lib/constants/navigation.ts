@@ -98,7 +98,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Calculator,
     children: [
       { label: "Estimates", href: "/estimating?tab=estimates" },
-      { label: "Takeoff", href: "/estimating?tab=takeoff" },
       { label: "Cost Database", href: "/estimating?tab=costdatabase" },
       { label: "Cost Tracking", href: "/estimating?tab=costtracking" },
       { label: "Change Orders", href: "/estimating?tab=changeorders" },

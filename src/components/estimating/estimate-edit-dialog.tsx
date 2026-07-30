@@ -88,7 +88,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
   const [projectId, setProjectId] = React.useState("");
   const [client, setClient] = React.useState("");
   const [address, setAddress] = React.useState("");
-  const [estimator, setEstimator] = React.useState("");
+  const [revision, setRevision] = React.useState(1);
   const [estimateDate, setEstimateDate] = React.useState("");
   const [estimateStatus, setEstimateStatus] = React.useState<EstimateStatus>("draft");
   const [proposalNumber, setProposalNumber] = React.useState("");
@@ -105,7 +105,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
     setProjectId(estimate?.projectId ?? "");
     setClient(estimate?.client ?? "");
     setAddress(estimate?.address ?? "");
-    setEstimator(estimate?.estimator ?? "");
+    setRevision(estimate?.revision ?? 1);
     setEstimateDate(estimate?.estimateDate ?? new Date().toISOString().slice(0, 10));
     setEstimateStatus(estimate?.estimateStatus ?? "draft");
     setProposalNumber(estimate?.proposalNumber ?? "");
@@ -144,10 +144,10 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
   const previewTotal = computeEstimateTotal(computedLineItems, indirectCosts, contingency);
 
   async function handleSave() {
-    if (!projectId || !estimator || !estimateDate || lineItems.some((li) => !li.description)) return;
+    if (!projectId || !estimateDate || lineItems.some((li) => !li.description)) return;
     const input = {
-      projectId, client: client || undefined, address: address || undefined, estimator, estimateDate,
-      estimateStatus, proposalNumber: proposalNumber || undefined, taxMethod: taxMethod || undefined,
+      projectId, client: client || undefined, address: address || undefined, estimateDate,
+      estimateStatus, revision, proposalNumber: proposalNumber || undefined, taxMethod: taxMethod || undefined,
       notes: notes || undefined, lineItems: computedLineItems, indirectCosts, contingency,
     };
     setSaving(true);
@@ -167,7 +167,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
     onOpenChange(false);
   }
 
-  const canSave = !!projectId && !!estimator && !!estimateDate && lineItems.every((li) => li.description);
+  const canSave = !!projectId && !!estimateDate && lineItems.every((li) => li.description);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -208,8 +208,8 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="estimator">Estimator</Label>
-              <Input id="estimator" className="mt-1.5" value={estimator} onChange={(e) => setEstimator(e.target.value)} />
+              <Label htmlFor="revision">Revision</Label>
+              <Input id="revision" type="number" min={1} className="mt-1.5" value={revision} onChange={(e) => setRevision(parseInt(e.target.value, 10) || 1)} />
             </div>
             <div>
               <Label htmlFor="estimateDate">Estimate Date</Label>

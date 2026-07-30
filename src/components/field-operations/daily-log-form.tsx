@@ -250,6 +250,8 @@ export function DailyLogForm() {
         </CardContent>
       </Card>
 
+      <PreviousDayLogEditor currentDate={watchedDate} />
+
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <div>
@@ -407,8 +409,6 @@ export function DailyLogForm() {
           {fieldError(errors.timeEntries?.message)}
         </CardContent>
       </Card>
-
-      <PreviousDayLogEditor currentDate={watchedDate} />
 
       <Card>
         <CardHeader>
