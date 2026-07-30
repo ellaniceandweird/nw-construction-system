@@ -25,10 +25,10 @@ export function ProjectsOverviewWidget() {
   const total = projects.length;
 
   const statusCounts = [
-    { label: "Upcoming", count: projects.filter((p) => p.calculatedStatus === "planning").length, className: "bg-primary-soft text-primary" },
-    { label: "Active", count: projects.filter((p) => p.calculatedStatus === "active").length, className: "bg-success-soft text-success" },
-    { label: "On Hold", count: projects.filter((p) => p.calculatedStatus === "on_hold").length, className: "bg-warning-soft text-warning-foreground" },
-    { label: "Cancelled", count: projects.filter((p) => p.calculatedStatus === "archived").length, className: "bg-muted text-muted-foreground" },
+    { label: "Upcoming", count: projects.filter((p) => p.calculatedStatus === "planning").length, bg: "#ede9fe", text: "#6d28d9" },
+    { label: "Active", count: projects.filter((p) => p.calculatedStatus === "active").length, bg: "#cffafe", text: "#0e7490" },
+    { label: "On Hold", count: projects.filter((p) => p.calculatedStatus === "on_hold").length, bg: "#fce7f3", text: "#be185d" },
+    { label: "Cancelled", count: projects.filter((p) => p.calculatedStatus === "archived").length, bg: "#f1f5f9", text: "#475569" },
   ];
 
   return (
@@ -81,7 +81,7 @@ export function ProjectsOverviewWidget() {
 
         <div className="grid grid-cols-4 gap-2 border-t border-border pt-3">
           {statusCounts.map((s) => (
-            <div key={s.label} className={`rounded-lg px-2 py-1.5 text-center ${s.className}`}>
+            <div key={s.label} className="rounded-lg px-2 py-1.5 text-center" style={{ background: s.bg, color: s.text }}>
               <div className="text-base font-semibold leading-none">{s.count}</div>
               <div className="mt-1 text-[10px] leading-none">{s.label}</div>
             </div>
