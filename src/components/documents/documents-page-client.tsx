@@ -7,8 +7,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DocumentsTable } from "@/components/documents/documents-table";
 import { DrawingsTable } from "@/components/documents/drawings-table";
 import { PhotosTable } from "@/components/documents/photos-table";
+import { MaterialReferenceTable } from "@/components/documents/material-reference-table";
 
-const VALID_TABS = ["documents", "drawings", "photos"];
+const VALID_TABS = ["documents", "drawings", "photos", "materials"];
 
 export function DocumentsPageClient() {
   const searchParams = useSearchParams();
@@ -34,6 +35,7 @@ export function DocumentsPageClient() {
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="drawings">Drawings</TabsTrigger>
           <TabsTrigger value="photos">Photos</TabsTrigger>
+          <TabsTrigger value="materials">Material Reference</TabsTrigger>
         </TabsList>
         <TabsContent value="documents">
           <DocumentsTable />
@@ -43,6 +45,9 @@ export function DocumentsPageClient() {
         </TabsContent>
         <TabsContent value="photos">
           <PhotosTable />
+        </TabsContent>
+        <TabsContent value="materials">
+          <MaterialReferenceTable />
         </TabsContent>
       </Tabs>
 

@@ -135,6 +135,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "Documents", href: "/documents?tab=documents" },
       { label: "Drawings", href: "/documents?tab=drawings" },
       { label: "Photos", href: "/documents?tab=photos" },
+      { label: "Material Reference", href: "/documents?tab=materials" },
     ],
   },
   { label: "Contacts", href: "/contacts", icon: Users },

@@ -48,17 +48,23 @@ export function createCollectionStore<T extends { id: string }>(
   const listeners = new Set<Listener>();
   let initialized = false;
   let lastError: string | null = null;
+  // Guards against an older, slower fetch resolving *after* a newer one
+  // (or after a delete/update already changed local state) and clobbering
+  // the correct data with stale results — a real bug this fixed.
+  let fetchSequence = 0;
 
   function emit() {
     listeners.forEach((l) => l());
   }
 
   async function refetch() {
+    const sequence = ++fetchSequence;
     const supabase = createClient();
     const { data, error } = await supabase
       .from(config.table)
       .select("*")
       .order(config.orderBy ?? "created_at", { ascending: true });
+    if (sequence !== fetchSequence) return; // a newer fetch has since started — discard this stale result
     if (error) {
       console.error(`[${config.table}] fetch failed:`, error.message);
       return;
@@ -105,6 +111,7 @@ export function createCollectionStore<T extends { id: string }>(
     refetch,
     async create(input) {
       // Optimistic: show it immediately, reconcile with the real row once the insert confirms.
+      fetchSequence++; // invalidate any in-flight fetch older than this mutation
       const optimistic = config.fromRow(config.toRow(input));
       items = [...items, optimistic];
       emit();
@@ -128,6 +135,7 @@ export function createCollectionStore<T extends { id: string }>(
       return data.id as string;
     },
     async update(id, input) {
+      fetchSequence++; // invalidate any in-flight fetch older than this mutation
       const previous = items;
       items = items.map((i) => (i.id === id ? { ...i, ...config.fromRow({ ...config.toRow(i), ...config.toRow(input) }) } : i));
       emit();
@@ -147,6 +155,7 @@ export function createCollectionStore<T extends { id: string }>(
       return true;
     },
     async remove(id) {
+      fetchSequence++; // invalidate any in-flight fetch older than this mutation
       const previous = items;
       items = items.filter((i) => i.id !== id);
       emit();
