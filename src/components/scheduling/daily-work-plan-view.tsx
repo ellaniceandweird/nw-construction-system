@@ -15,8 +15,9 @@ import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-upda
 import { openPrintWindow } from "@/lib/estimating/print-window";
 import { buildDailyWorkPlanHtml } from "@/lib/scheduling/print-daily-work-plan";
 import { generateDailyWorkPlanImage } from "@/lib/scheduling/generate-daily-work-plan-image";
+import { getTodayInNewYork } from "@/lib/date/today";
 
-const TODAY = new Date("2026-07-10");
+const TODAY = getTodayInNewYork();
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function formatDate(d: Date) {

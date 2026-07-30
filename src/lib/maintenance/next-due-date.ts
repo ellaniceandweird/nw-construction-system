@@ -3,6 +3,8 @@
  * "2-months (monitor in spring)") into a number of months. Returns null
  * for text that doesn't contain a parseable interval rather than guessing.
  */
+import { getTodayInNewYork } from "@/lib/date/today";
+
 export function parseFrequencyMonths(frequency?: string): number | null {
   if (!frequency) return null;
   const match = frequency.match(/(\d+)\s*-?\s*month/i);
@@ -22,5 +24,5 @@ export function computeNextDueDate(lastCompleted?: string, frequency?: string): 
 
 export function isOverdue(lastCompleted?: string, frequency?: string): boolean {
   const date = computeNextDueDate(lastCompleted, frequency);
-  return date !== null && date < new Date("2026-07-10");
+  return date !== null && date < getTodayInNewYork();
 }

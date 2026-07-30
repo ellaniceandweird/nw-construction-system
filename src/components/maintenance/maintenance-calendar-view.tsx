@@ -10,6 +10,7 @@ import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { computeNextDueDate } from "@/lib/maintenance/next-due-date";
 import { cn } from "@/lib/utils";
+import { getTodayInNewYork } from "@/lib/date/today";
 
 interface CalendarEvent {
   date: string; // yyyy-mm-dd
@@ -19,7 +20,7 @@ interface CalendarEvent {
   overdue: boolean;
 }
 
-const TODAY = new Date("2026-07-10");
+const TODAY = getTodayInNewYork();
 
 function toISODate(d: Date) {
   return d.toISOString().slice(0, 10);

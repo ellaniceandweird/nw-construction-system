@@ -12,8 +12,9 @@ import { generateWeeklySchedule } from "@/lib/scheduling/generate";
 import { openPrintWindow } from "@/lib/estimating/print-window";
 import { buildWeeklyScheduleHtml } from "@/lib/scheduling/print-weekly-schedule";
 import type { WeeklyScheduleColor } from "@/types/scheduling";
+import { getTodayInNewYork } from "@/lib/date/today";
 
-const TODAY = new Date("2026-07-10");
+const TODAY = getTodayInNewYork();
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;

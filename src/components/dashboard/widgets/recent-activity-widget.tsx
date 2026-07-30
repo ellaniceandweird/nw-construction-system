@@ -9,6 +9,7 @@ import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { useProjects } from "@/hooks/use-projects";
 import { cn } from "@/lib/utils";
+import { getTodayInNewYork } from "@/lib/date/today";
 
 const ICONS = { log: ClipboardList, maintenance: Wrench, project: FolderKanban };
 const ICON_TONE = {
@@ -30,7 +31,7 @@ export function RecentActivityWidget() {
   const maintenanceTasks = useMaintenanceTasks();
   const projects = useProjects();
   const items = getRecentActivityFeed(dailyLogs, maintenanceTasks, projects, 6);
-  const now = new Date("2026-07-10");
+  const now = getTodayInNewYork();
 
   return (
     <Card>

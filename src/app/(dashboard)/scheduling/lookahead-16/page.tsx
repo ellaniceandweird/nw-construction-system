@@ -1,8 +1,9 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { SchedulingTabs } from "@/components/scheduling/scheduling-tabs";
 import { SixteenWeekGanttChart } from "@/components/scheduling/sixteen-week-gantt-chart";
+import { getTodayInNewYork } from "@/lib/date/today";
 
-const TODAY = new Date("2026-07-10");
+const TODAY = getTodayInNewYork();
 
 export default function Lookahead16Page() {
   return (

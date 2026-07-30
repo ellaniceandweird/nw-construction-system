@@ -3,6 +3,7 @@ import type { Activity } from "@/types/scheduling";
 import type { MaintenanceTask } from "@/types/maintenance";
 import type { DailyLog } from "@/types/field-operations";
 import { computeProjectCompletionPercent } from "@/lib/scheduling/compute-project-completion";
+import { getTodayInNewYork } from "@/lib/date/today";
 
 /**
  * All dashboard KPIs are computed here from live data passed in by the
@@ -15,7 +16,7 @@ import { computeProjectCompletionPercent } from "@/lib/scheduling/compute-projec
  * Maintenance records rather than an invented figure.
  */
 
-const TODAY = new Date("2026-07-10");
+const TODAY = getTodayInNewYork();
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function daysBetween(a: Date, b: Date) {
