@@ -17,6 +17,8 @@ import { deleteFieldWorkerInvoice } from "@/lib/field-operations/field-worker-in
 import { exportToExcel } from "@/lib/financial/export-excel";
 import { openPrintWindow } from "@/lib/estimating/print-window";
 import { useProjects } from "@/hooks/use-projects";
+import { useProperties } from "@/hooks/use-properties";
+import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
 import { GenerateInvoicesDialog } from "@/components/field-operations/generate-invoices-dialog";
 import type { Project } from "@/types/project";
 
@@ -32,6 +34,7 @@ function projectName(id: string, projects: Project[]) {
 
 export function FieldWorkerInvoicesTable() {
   const projects = useProjects();
+  const properties = useProperties();
   const allInvoices = useFieldWorkerInvoices();
   const billingEntities = useBillingEntities();
   const [generating, setGenerating] = React.useState(false);
@@ -55,9 +58,14 @@ export function FieldWorkerInvoicesTable() {
     }
   });
 
-  function billingEntityName(id?: string) {
-    if (!id) return "—";
-    return billingEntities.find((b) => b.id === id)?.companyName ?? "—";
+  function billingEntityName(id: string | undefined, projectId: string) {
+    let resolvedId = id;
+    if (!resolvedId) {
+      const project = projects.find((p) => p.id === projectId);
+      resolvedId = project ? getBillingEntityIdForProject(project, properties) : undefined;
+    }
+    if (!resolvedId) return "—";
+    return billingEntities.find((b) => b.id === resolvedId)?.companyName ?? "—";
   }
 
   function handleExport() {
@@ -71,7 +79,7 @@ export function FieldWorkerInvoicesTable() {
           Trade: inv.trade,
           "Pay Period": `${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}`,
           Date: formatDate(li.date),
-          "Billing Entity": billingEntityName(li.billingEntityId),
+          "Billing Entity": billingEntityName(li.billingEntityId, li.projectId),
           Project: projectName(li.projectId, projects),
           "Cost Code": li.costCode ?? "",
           "Work Performed": li.activity,
@@ -92,7 +100,7 @@ export function FieldWorkerInvoicesTable() {
         (li) => `
         <tr>
           <td>${formatDate(li.date)}</td>
-          <td>${billingEntityName(li.billingEntityId)}</td>
+          <td>${billingEntityName(li.billingEntityId, li.projectId)}</td>
           <td>${projectName(li.projectId, projects)}</td>
           <td>${li.costCode ?? "—"}</td>
           <td>${li.activity}</td>
@@ -207,7 +215,7 @@ export function FieldWorkerInvoicesTable() {
                               {inv.lineItems.map((li, i) => (
                                 <tr key={i} className="border-b border-border/60 last:border-0">
                                   <td className="px-4 py-2.5 text-muted-foreground">{formatDate(li.date)}</td>
-                                  <td className="px-4 py-2.5 text-muted-foreground">{billingEntityName(li.billingEntityId)}</td>
+                                  <td className="px-4 py-2.5 text-muted-foreground">{billingEntityName(li.billingEntityId, li.projectId)}</td>
                                   <td className="px-4 py-2.5 text-foreground">{projectName(li.projectId, projects)}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.costCode ?? "—"}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.activity}</td>

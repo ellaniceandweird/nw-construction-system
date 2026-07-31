@@ -17,15 +17,12 @@ interface Props {
 }
 
 const COLUMNS = [
-  { key: "vendorName", label: "Name" },
-  { key: "vendorCategory", label: "Category / Trade" },
+  { key: "vendorName", label: "Vendor" },
+  { key: "vendorCategory", label: "Category" },
   { key: "primaryContact", label: "Contact Person" },
-  { key: "phone", label: "Phone" },
-  { key: "email", label: "Email" },
+  { key: "phone", label: "Contact Number" },
+  { key: "email", label: "Email Address" },
   { key: "address", label: "Address" },
-  { key: "city", label: "City" },
-  { key: "state", label: "State" },
-  { key: "zip", label: "Zip" },
   { key: "website", label: "Website" },
   { key: "notes", label: "Notes" },
 ] as const;
@@ -35,7 +32,7 @@ type RowData = Record<(typeof COLUMNS)[number]["key"], string>;
 function emptyRow(): RowData {
   return {
     vendorName: "", vendorCategory: "", primaryContact: "", phone: "", email: "",
-    address: "", city: "", state: "", zip: "", website: "", notes: "",
+    address: "", website: "", notes: "",
   };
 }
 
@@ -101,9 +98,6 @@ export function BulkAddVendorsDialog({ open, onOpenChange, defaultSupplierType }
         phone: r.phone || undefined,
         email: r.email || undefined,
         address: r.address || undefined,
-        city: r.city || undefined,
-        state: r.state || undefined,
-        zip: r.zip || undefined,
         website: r.website || undefined,
         notes: r.notes || undefined,
         supplierType: defaultSupplierType,

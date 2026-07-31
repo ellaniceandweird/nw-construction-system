@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProjects } from "@/hooks/use-projects";
-import { getPropertyForProject } from "@/lib/properties/property-relations";
+import { getPropertyForProject, getPropertyDisplayName } from "@/lib/properties/property-relations";
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
@@ -180,7 +180,7 @@ export function DailyLogForm() {
     }
     const property = properties.find((p) => p.id === propertyId);
     setValue(`timeEntries.${index}.propertyId`, propertyId);
-    setValue(`timeEntries.${index}.propertyName`, property?.name ?? "");
+    setValue(`timeEntries.${index}.propertyName`, property ? getPropertyDisplayName(property) : "");
   }
 
   function handleProjectChange(index: number, projectId: string) {
@@ -198,7 +198,7 @@ export function DailyLogForm() {
     const property = project ? getPropertyForProject(project, properties) : undefined;
     if (property) {
       setValue(`timeEntries.${index}.propertyId`, property.id);
-      setValue(`timeEntries.${index}.propertyName`, property.name);
+      setValue(`timeEntries.${index}.propertyName`, getPropertyDisplayName(property));
     } else {
       setValue(`timeEntries.${index}.propertyId`, "");
       setValue(`timeEntries.${index}.propertyName`, "");
@@ -319,7 +319,7 @@ export function DailyLogForm() {
                         <SelectTrigger className="w-full"><SelectValue placeholder="Select property" /></SelectTrigger>
                         <SelectContent>
                           {properties.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                            <SelectItem key={p.id} value={p.id}>{getPropertyDisplayName(p)}</SelectItem>
                           ))}
                           <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
                         </SelectContent>
