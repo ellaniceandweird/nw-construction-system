@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight, Search, Plus, Pencil, Upload, Table2, Printe
 
 import { useActivities } from "@/hooks/use-activities";
 import { useProjects } from "@/hooks/use-projects";
-import { addActivity } from "@/lib/scheduling/activity-store";
+import { addActivity, updateActivity } from "@/lib/scheduling/activity-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -84,6 +84,43 @@ export function MasterScheduleTable() {
       }
     }, 1500); // give the real activities fetch a head start before assuming a project truly has none
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects, activities]);
+
+  // Keeps the auto-generated "Overall Project Schedule" entry's dates in
+  // sync whenever the project's own Start Date / Target Completion Date
+  // change in Project Management — so editing a project's dates there is
+  // reflected here too, not just at creation time. Only touches that one
+  // specific auto-generated entry; real sub-activities you've added are
+  // never modified by this.
+  const lastSyncedDatesRef = React.useRef<Map<string, string>>(new Map());
+  React.useEffect(() => {
+    for (const project of projects) {
+      if (!project.startDate || !project.plannedCompletionDate) continue;
+      const overallEntry = activities.find(
+        (a) => a.projectId === project.id && a.name === "Overall Project Schedule"
+      );
+      if (!overallEntry) continue;
+      const currentDatesKey = `${project.startDate}|${project.plannedCompletionDate}`;
+      const lastSynced = lastSyncedDatesRef.current.get(project.id);
+      if (lastSynced === currentDatesKey) continue; // already matches what we last synced to
+      const alreadyMatches =
+        overallEntry.plannedStart === project.startDate &&
+        overallEntry.plannedFinish === project.plannedCompletionDate;
+      lastSyncedDatesRef.current.set(project.id, currentDatesKey);
+      if (alreadyMatches) continue;
+      void updateActivity(overallEntry.id, {
+        projectId: overallEntry.projectId,
+        name: overallEntry.name,
+        plannedStart: project.startDate,
+        plannedFinish: project.plannedCompletionDate,
+        actualStart: overallEntry.actualStart,
+        actualFinish: overallEntry.actualFinish,
+        status: overallEntry.status,
+        isCritical: overallEntry.isCritical,
+        requiredManpower: overallEntry.requiredManpower,
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects, activities]);
 

@@ -172,6 +172,7 @@ export interface EstimateLineItem {
 /** SDS §9.5 — Estimate header + full estimate. */
 export interface Estimate extends BaseEntity {
   projectId: string;
+  propertyId?: string;
   estimateNumber: string;
   client?: string;
   address?: string;

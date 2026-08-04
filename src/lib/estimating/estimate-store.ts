@@ -9,6 +9,7 @@ function fromRow(row: Record<string, any>): Estimate {
   return {
     id: row.id,
     projectId: row.project_id,
+    propertyId: row.property_id ?? undefined,
     estimateNumber: row.estimate_number,
     client: row.client ?? undefined,
     address: row.address ?? undefined,
@@ -44,6 +45,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   const row: Record<string, any> = {};
   if (input.id !== undefined) row.id = input.id;
   if (input.projectId !== undefined) row.project_id = input.projectId;
+  if (input.propertyId !== undefined) row.property_id = input.propertyId;
   if (input.estimateNumber !== undefined) row.estimate_number = input.estimateNumber;
   if (input.client !== undefined) row.client = input.client;
   if (input.address !== undefined) row.address = input.address;
@@ -88,6 +90,7 @@ export function withComputedLineItemTotals(
 
 export interface EstimateEditInput {
   projectId: string;
+  propertyId?: string;
   client?: string;
   address?: string;
   estimator?: string;

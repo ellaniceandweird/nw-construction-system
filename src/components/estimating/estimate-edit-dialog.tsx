@@ -27,6 +27,8 @@ import { findRateForCostCode } from "@/lib/estimating/cost-database-store";
 import { computeEstimateTotal, computeLineItemTotal } from "@/lib/estimating/estimate-calculations";
 import { useCostCodes } from "@/hooks/use-cost-codes";
 import { useProjects } from "@/hooks/use-projects";
+import { useProperties } from "@/hooks/use-properties";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 import type { Estimate, EstimateLineItem, EstimateStatus } from "@/types/estimating";
 
 interface Props {
@@ -48,64 +50,36 @@ const STATUS_OPTIONS: { value: EstimateStatus; label: string }[] = [
 const NONE = "none";
 
 function emptyLineItem(): Omit<EstimateLineItem, "totalCost"> {
-  return { costCode: "", description: "", quantity: 1, unit: "each", laborCost: 0, materialCost: 0, equipmentCost: 0, subcontractCost: 0, markupPercent: 15 };
+  return { costCode: "", description: "", quantity: 1, unit: "each", laborCost: 0, materialCost: 0, equipmentCost: 0, subcontractCost: 0, markupPercent: 0 };
 }
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-type IndirectCosts = NonNullable<Estimate["indirectCosts"]>;
-type Contingency = NonNullable<Estimate["contingency"]>;
-
-const INDIRECT_FIELDS: { key: keyof IndirectCosts; label: string }[] = [
-  { key: "generalConditions", label: "General Conditions" },
-  { key: "temporaryFacilities", label: "Temporary Facilities" },
-  { key: "permits", label: "Permits" },
-  { key: "insurance", label: "Insurance" },
-  { key: "projectManagement", label: "Project Management" },
-  { key: "mobilization", label: "Mobilization" },
-  { key: "demobilization", label: "Demobilization" },
-  { key: "utilities", label: "Utilities" },
-  { key: "cleanup", label: "Cleanup" },
-  { key: "officeOverhead", label: "Office Overhead" },
-];
-const CONTINGENCY_FIELDS: { key: keyof Contingency; label: string }[] = [
-  { key: "designContingencyPercent", label: "Design Contingency %" },
-  { key: "constructionContingencyPercent", label: "Construction Contingency %" },
-  { key: "escalationPercent", label: "Escalation %" },
-  { key: "profitPercent", label: "Profit %" },
-  { key: "corporateOverheadPercent", label: "Corporate Overhead %" },
-  { key: "salesTaxPercent", label: "Sales Tax %" },
-  { key: "bondPercent", label: "Bond %" },
-  { key: "insurancePercent", label: "Insurance %" },
-  { key: "retainagePercent", label: "Retainage %" },
-];
-
 export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
   const projects = useProjects();
+  const properties = useProperties();
   const costCodes = useCostCodes();
 
   const [projectId, setProjectId] = React.useState("");
+  const [propertyId, setPropertyId] = React.useState("");
   const [address, setAddress] = React.useState("");
   const [estimateDate, setEstimateDate] = React.useState("");
   const [estimateStatus, setEstimateStatus] = React.useState<EstimateStatus>("draft");
   const [notes, setNotes] = React.useState("");
   const [lineItems, setLineItems] = React.useState<Omit<EstimateLineItem, "totalCost">[]>([emptyLineItem()]);
-  const [indirectCosts, setIndirectCosts] = React.useState<IndirectCosts>({});
-  const [contingency, setContingency] = React.useState<Contingency>({});
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
     setProjectId(estimate?.projectId ?? "");
+    setPropertyId(estimate?.propertyId ?? "");
     setAddress(estimate?.address ?? "");
     setEstimateDate(estimate?.estimateDate ?? new Date().toISOString().slice(0, 10));
     setEstimateStatus(estimate?.estimateStatus ?? "draft");
     setNotes(estimate?.notes ?? "");
     setLineItems(estimate?.lineItems.length ? estimate.lineItems : [emptyLineItem()]);
-    setIndirectCosts(estimate?.indirectCosts ?? {});
-    setContingency(estimate?.contingency ?? {});
     setConfirmingDelete(false);
   }, [estimate, open]);
 
@@ -125,22 +99,26 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
     updateLineItem(index, {
       laborCost: rate.laborCost * li.quantity,
       materialCost: rate.materialCost * li.quantity,
-      equipmentCost: rate.equipmentCost * li.quantity,
       subcontractCost: rate.subcontractCost * li.quantity,
-      markupPercent: rate.profitPercent ?? li.markupPercent,
       unit: rate.unit,
     });
   }
 
   const computedLineItems = withComputedLineItemTotals(lineItems);
-  const previewTotal = computeEstimateTotal(computedLineItems, indirectCosts, contingency);
+  const previewTotal = computeEstimateTotal(computedLineItems);
+
+  function handlePropertyChange(value: string) {
+    setPropertyId(value);
+    const property = properties.find((p) => p.id === value);
+    if (property) setAddress(property.address);
+  }
 
   async function handleSave() {
     if (!projectId || !estimateDate || lineItems.some((li) => !li.description)) return;
     const input = {
-      projectId, address: address || undefined, estimateDate,
+      projectId, propertyId: propertyId || undefined, address: address || undefined, estimateDate,
       estimateStatus,
-      notes: notes || undefined, lineItems: computedLineItems, indirectCosts, contingency,
+      notes: notes || undefined, lineItems: computedLineItems,
     };
     setSaving(true);
     const result = estimate ? await updateEstimate(estimate.id, input) : await createEstimate(input);
@@ -198,6 +176,16 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
             </div>
           </div>
 
+          <div>
+            <Label>Property</Label>
+            <Select value={propertyId} onValueChange={handlePropertyChange}>
+              <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select property" /></SelectTrigger>
+              <SelectContent>
+                {properties.map((p) => (<SelectItem key={p.id} value={p.id}>{getPropertyDisplayName(p)}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="estimateDate">Estimate Date</Label>
@@ -226,10 +214,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
                     <th className="min-w-[70px] px-2 py-2 font-medium">Unit</th>
                     <th className="min-w-[90px] px-2 py-2 font-medium">Labor</th>
                     <th className="min-w-[90px] px-2 py-2 font-medium">Material</th>
-                    <th className="min-w-[90px] px-2 py-2 font-medium">Equipment</th>
                     <th className="min-w-[100px] px-2 py-2 font-medium">Subcontract</th>
-                    <th className="min-w-[80px] px-2 py-2 font-medium">Markup %</th>
-                    <th className="min-w-[80px] px-2 py-2 font-medium">Tax ($)</th>
                     <th className="min-w-[100px] px-2 py-2 font-medium">Total</th>
                     <th className="px-2 py-2 font-medium">Actions</th>
                   </tr>
@@ -266,16 +251,7 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
                         <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.materialCost} onChange={(e) => updateLineItem(index, { materialCost: parseFloat(e.target.value) || 0 })} />
                       </td>
                       <td className="p-1">
-                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.equipmentCost} onChange={(e) => updateLineItem(index, { equipmentCost: parseFloat(e.target.value) || 0 })} />
-                      </td>
-                      <td className="p-1">
                         <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.subcontractCost} onChange={(e) => updateLineItem(index, { subcontractCost: parseFloat(e.target.value) || 0 })} />
-                      </td>
-                      <td className="p-1">
-                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.markupPercent ?? 0} onChange={(e) => updateLineItem(index, { markupPercent: parseFloat(e.target.value) || 0 })} />
-                      </td>
-                      <td className="p-1">
-                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.tax ?? 0} onChange={(e) => updateLineItem(index, { tax: parseFloat(e.target.value) || 0 })} />
                       </td>
                       <td className="whitespace-nowrap p-1 px-2 text-right font-medium text-foreground">{currency(computeLineItemTotal(li))}</td>
                       <td className="p-1">
@@ -300,30 +276,6 @@ export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          <div>
-            <Label>Indirect Costs (optional)</Label>
-            <div className="mt-1.5 grid grid-cols-2 gap-3 rounded-md border border-border p-3 sm:grid-cols-5">
-              {INDIRECT_FIELDS.map((f) => (
-                <div key={f.key}>
-                  <Label className="text-xs">{f.label}</Label>
-                  <Input type="number" className="mt-1" value={indirectCosts[f.key] ?? ""} onChange={(e) => setIndirectCosts((prev) => ({ ...prev, [f.key]: e.target.value ? parseFloat(e.target.value) : undefined }))} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label>Contingency &amp; Markup (optional)</Label>
-            <div className="mt-1.5 grid grid-cols-2 gap-3 rounded-md border border-border p-3 sm:grid-cols-5">
-              {CONTINGENCY_FIELDS.map((f) => (
-                <div key={f.key}>
-                  <Label className="text-xs">{f.label}</Label>
-                  <Input type="number" className="mt-1" value={contingency[f.key] ?? ""} onChange={(e) => setContingency((prev) => ({ ...prev, [f.key]: e.target.value ? parseFloat(e.target.value) : undefined }))} />
-                </div>
-              ))}
             </div>
           </div>
 
