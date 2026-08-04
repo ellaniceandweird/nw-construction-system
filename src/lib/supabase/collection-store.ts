@@ -175,3 +175,36 @@ export function createCollectionStore<T extends { id: string }>(
     },
   };
 }
+
+/**
+ * Every store generates its next sequential ID (e.g. "PRJ-000012") from
+ * `Math.max(existing ids) + 1` against its local snapshot — which can be
+ * briefly stale (another save just landed, a slow network, a double
+ * click), causing two records to compute the *same* next ID and the
+ * second insert to fail with "duplicate key value violates unique
+ * constraint". This wraps any store's create call so that specific
+ * failure just retries with the next number along, instead of surfacing
+ * a confusing database error to the person saving the record.
+ *
+ * `buildInput(id)` should return the full row to insert for a given id.
+ * `bumpId(id)` should return the next candidate id after a collision
+ * (e.g. incrementing the numeric suffix by 1).
+ */
+export async function createWithIdRetry<T extends { id: string }>(
+  store: CollectionStore<T>,
+  initialId: string,
+  buildInput: (id: string) => T,
+  bumpId: (id: string) => string,
+  maxAttempts = 5
+): Promise<{ ok: boolean; error?: string; id: string }> {
+  let id = initialId;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const result = await store.create(buildInput(id));
+    if (result !== null) return { ok: true, id };
+    const error = store.getLastError();
+    const isDuplicateKey = !!error && /duplicate key value violates unique constraint/i.test(error);
+    if (!isDuplicateKey) return { ok: false, error: error ?? undefined, id };
+    id = bumpId(id);
+  }
+  return { ok: false, error: "Couldn't find an available ID after several attempts.", id };
+}

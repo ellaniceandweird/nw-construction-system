@@ -1,6 +1,6 @@
 "use client";
 
-import { createCollectionStore } from "@/lib/supabase/collection-store";
+import { createCollectionStore, createWithIdRetry } from "@/lib/supabase/collection-store";
 import { MOCK_PROJECTS } from "@/lib/data/mock/projects";
 import type { Project } from "@/types/project";
 
@@ -143,19 +143,25 @@ function nextId(): string {
   return `PRJ-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
+function bumpId(id: string): string {
+  const n = parseInt(id.replace("PRJ-", ""), 10);
+  return `PRJ-${String((Number.isFinite(n) ? n : 0) + 1).padStart(6, "0")}`;
+}
+
 export async function createProject(input: ProjectInput): Promise<{ ok: boolean; error?: string; id: string }> {
-  const id = nextId();
-  const result = await store.create({
-    id,
-    calculatedStatus: input.manualStatus,
-    team: input.team ?? {},
-    healthScore: 100,
-    completionPercent: 0,
-    ...input,
-  });
-  return result !== null
-    ? { ok: true, id }
-    : { ok: false, error: store.getLastError() ?? undefined, id };
+  return createWithIdRetry(
+    store,
+    nextId(),
+    (id) => ({
+      id,
+      calculatedStatus: input.manualStatus,
+      team: input.team ?? {},
+      healthScore: 100,
+      completionPercent: 0,
+      ...input,
+    }),
+    bumpId
+  );
 }
 
 export async function updateProject(id: string, input: Partial<ProjectInput>): Promise<{ ok: boolean; error?: string }> {

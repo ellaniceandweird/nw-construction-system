@@ -1,6 +1,6 @@
 "use client";
 
-import { createCollectionStore } from "@/lib/supabase/collection-store";
+import { createCollectionStore, createWithIdRetry } from "@/lib/supabase/collection-store";
 import { MOCK_VENDORS } from "@/lib/data/mock/vendors";
 import type { Vendor } from "@/types/procurement";
 
@@ -114,24 +114,32 @@ function nextVendorId(): string {
   return `VEN-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
+function bumpVendorId(id: string): string {
+  const n = parseInt(id.replace("VEN-", ""), 10);
+  return `VEN-${String((Number.isFinite(n) ? n : 0) + 1).padStart(6, "0")}`;
+}
+
 export async function createVendor(input: VendorEditInput): Promise<{ ok: boolean; error?: string }> {
-  const id = nextVendorId();
-  const result = await store.create({
-    id,
-    isPreferredVendor: false,
-    isApprovedVendor: true,
-    performance: {
-      totalPurchaseOrders: 0,
-      onTimeDeliveryPercent: 0,
-      averageDeliveryDays: 0,
-      qualityRating: 0,
-      priceRating: 0,
-      communicationRating: 0,
-      overallVendorScore: 0,
-    },
-    ...input,
-  });
-  return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
+  return createWithIdRetry(
+    store,
+    nextVendorId(),
+    (id) => ({
+      id,
+      isPreferredVendor: false,
+      isApprovedVendor: true,
+      performance: {
+        totalPurchaseOrders: 0,
+        onTimeDeliveryPercent: 0,
+        averageDeliveryDays: 0,
+        qualityRating: 0,
+        priceRating: 0,
+        communicationRating: 0,
+        overallVendorScore: 0,
+      },
+      ...input,
+    }),
+    bumpVendorId
+  );
 }
 
 /** Bulk import — e.g. rows pasted from Google Sheets. Creates one at a time so a bad row doesn't block the rest; reports which failed. */
