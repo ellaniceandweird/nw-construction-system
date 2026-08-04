@@ -33,9 +33,9 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.projectId !== undefined) row.project_id = input.projectId;
   if (input.name !== undefined) row.name = input.name;
   if (input.description !== undefined) row.description = input.description;
-  if (input.plannedDate !== undefined) row.planned_date = input.plannedDate;
-  if (input.forecastDate !== undefined) row.forecast_date = input.forecastDate;
-  if (input.actualDate !== undefined) row.actual_date = input.actualDate;
+  if (input.plannedDate !== undefined) row.planned_date = input.plannedDate || null;
+  if (input.forecastDate !== undefined) row.forecast_date = input.forecastDate || null;
+  if (input.actualDate !== undefined) row.actual_date = input.actualDate || null;
   if (input.responsiblePerson !== undefined) row.responsible_person = input.responsiblePerson;
   if (input.dependencyIds !== undefined) row.dependency_ids = input.dependencyIds;
   if (input.completionPercent !== undefined) row.completion_percent = input.completionPercent;

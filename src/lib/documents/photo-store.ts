@@ -39,7 +39,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.propertyId !== undefined) row.property_id = input.propertyId;
   if (input.propertyName !== undefined) row.property_name = input.propertyName;
   if (input.activityId !== undefined) row.activity_id = input.activityId;
-  if (input.dateTaken !== undefined) row.date_taken = input.dateTaken;
+  if (input.dateTaken !== undefined) row.date_taken = input.dateTaken || null;
   if (input.uploadedBy !== undefined) row.uploaded_by = input.uploadedBy;
   if (input.location !== undefined) row.location = input.location;
   if (input.caption !== undefined) row.caption = input.caption;

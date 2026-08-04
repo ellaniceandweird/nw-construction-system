@@ -9,18 +9,18 @@ function todayStr(d: Date) {
 }
 
 /**
- * Short, copy-pasteable text reminder for Vinnie — just what's due
+ * Short, copy-pasteable text reminder for Vinny — just what's due
  * today, same idea as Pedro's update but scoped to Maintenance since
- * Vinnie won't look at the dashboard either (2026-07-20 meeting).
+ * Vinny won't look at the dashboard either (2026-07-20 meeting).
  */
-export function generateVinnieDailyReminderText(date: Date, tasks: MaintenanceTask[]): string {
+export function generateVinnyDailyReminderText(date: Date, tasks: MaintenanceTask[]): string {
   const today = todayStr(date);
   const dueToday = tasks.filter(
     (t) => t.taskStatus !== "complete" && t.plannedCompletionDate === today
   );
 
   const lines: string[] = [];
-  lines.push(`Good morning Vinnie! Here's what's due ${formatShortDate(date)}:`);
+  lines.push(`Good morning Vinny! Here's what's due ${formatShortDate(date)}:`);
   lines.push("");
 
   if (dueToday.length === 0) {

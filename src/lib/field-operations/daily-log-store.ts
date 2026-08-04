@@ -41,7 +41,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.id !== undefined) row.id = input.id;
   if (input.projectId !== undefined) row.project_id = input.projectId;
   if (input.dailyLogNumber !== undefined) row.daily_log_number = input.dailyLogNumber;
-  if (input.date !== undefined) row.date = input.date;
+  if (input.date !== undefined) row.date = input.date || null;
   if (input.dayOfWeek !== undefined) row.day_of_week = input.dayOfWeek;
   if (input.preparedBy !== undefined) row.prepared_by = input.preparedBy;
   if (input.weatherCondition !== undefined) row.weather_condition = input.weatherCondition;

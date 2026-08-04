@@ -13,9 +13,11 @@ import { MaintenanceLogView } from "@/components/maintenance/maintenance-log-vie
 import { PaintLogTable } from "@/components/maintenance/paint-log-table";
 import { KeyCodesTable } from "@/components/maintenance/key-codes-table";
 import { MaintenanceCalendarView } from "@/components/maintenance/maintenance-calendar-view";
+import { AlarmVerbalPasscodeTable } from "@/components/maintenance/alarm-verbal-passcode-table";
 import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-update-dialog";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
-import { generateVinnieDailyReminderText } from "@/lib/maintenance/vinnie-daily-reminder";
+import { generateVinnyDailyReminderText } from "@/lib/maintenance/vinnie-daily-reminder";
+import { getTodayInNewYork } from "@/lib/date/today";
 
 export function MaintenancePageClient() {
   const searchParams = useSearchParams();
@@ -24,7 +26,7 @@ export function MaintenancePageClient() {
   const tasks = useMaintenanceTasks();
   const [reminderOpen, setReminderOpen] = React.useState(false);
 
-  const validTabs = ["general", "recurring", "paint", "keys", "calendar", "log"];
+  const validTabs = ["general", "recurring", "paint", "keys", "alarm", "calendar", "log"];
   const tabParam = searchParams.get("tab");
   const activeTab = validTabs.includes(tabParam ?? "") ? tabParam! : "general";
 
@@ -32,7 +34,7 @@ export function MaintenancePageClient() {
     router.push(`${pathname}?tab=${value}`, { scroll: false });
   }
 
-  const reminderText = generateVinnieDailyReminderText(new Date(), tasks);
+  const reminderText = generateVinnyDailyReminderText(getTodayInNewYork(), tasks);
 
   return (
     <>
@@ -41,7 +43,7 @@ export function MaintenancePageClient() {
         description="Real maintenance tickets and recurring equipment schedules across every company property."
         actions={
           <Button variant="outline" size="sm" onClick={() => setReminderOpen(true)}>
-            <MessageSquare className="size-3.5" /> Generate Reminder for Vinnie
+            <MessageSquare className="size-3.5" /> Generate Reminder for Vinny
           </Button>
         }
       />
@@ -52,6 +54,7 @@ export function MaintenancePageClient() {
           <TabsTrigger value="recurring">Recurring Maintenance</TabsTrigger>
           <TabsTrigger value="paint">Paint Log</TabsTrigger>
           <TabsTrigger value="keys">Key Codes</TabsTrigger>
+          <TabsTrigger value="alarm">Alarm Verbal Passcode</TabsTrigger>
           <TabsTrigger value="calendar">Maintenance Calendar</TabsTrigger>
           <TabsTrigger value="log">Maintenance Log</TabsTrigger>
         </TabsList>
@@ -66,6 +69,9 @@ export function MaintenancePageClient() {
         </TabsContent>
         <TabsContent value="keys">
           <KeyCodesTable />
+        </TabsContent>
+        <TabsContent value="alarm">
+          <AlarmVerbalPasscodeTable />
         </TabsContent>
         <TabsContent value="calendar">
           <MaintenanceCalendarView />

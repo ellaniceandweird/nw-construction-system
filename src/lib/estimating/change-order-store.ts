@@ -44,9 +44,9 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.relatedItem !== undefined) row.related_item = input.relatedItem;
   if (input.changeOrderStatus !== undefined) row.change_order_status = input.changeOrderStatus;
   if (input.requestedBy !== undefined) row.requested_by = input.requestedBy;
-  if (input.requestedDate !== undefined) row.requested_date = input.requestedDate;
+  if (input.requestedDate !== undefined) row.requested_date = input.requestedDate || null;
   if (input.approvedBy !== undefined) row.approved_by = input.approvedBy;
-  if (input.approvedDate !== undefined) row.approved_date = input.approvedDate;
+  if (input.approvedDate !== undefined) row.approved_date = input.approvedDate || null;
   if (input.notes !== undefined) row.notes = input.notes;
   row.last_modified_date = new Date().toISOString();
   return row;

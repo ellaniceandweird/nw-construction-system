@@ -24,7 +24,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   const row: Record<string, any> = {};
   if (input.id !== undefined) row.id = input.id;
   if (input.name !== undefined) row.name = input.name;
-  if (input.date !== undefined) row.date = input.date;
+  if (input.date !== undefined) row.date = input.date || null;
   if (input.notes !== undefined) row.notes = input.notes;
   row.last_modified_date = new Date().toISOString();
   return row;

@@ -37,7 +37,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.revision !== undefined) row.revision = input.revision;
   if (input.preparedBy !== undefined) row.prepared_by = input.preparedBy;
   if (input.approvedBy !== undefined) row.approved_by = input.approvedBy;
-  if (input.approvalDate !== undefined) row.approval_date = input.approvalDate;
+  if (input.approvalDate !== undefined) row.approval_date = input.approvalDate || null;
   if (input.budgetStatus !== undefined) row.budget_status = input.budgetStatus;
   if (input.originalBudget !== undefined) row.original_budget = input.originalBudget;
   if (input.currentBudget !== undefined) row.current_budget = input.currentBudget;

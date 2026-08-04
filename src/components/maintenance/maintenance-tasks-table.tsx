@@ -206,6 +206,7 @@ export function MaintenanceTasksTable() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <th className="px-4 py-3 font-medium">Date of Entry</th>
               <th className="px-4 py-3 font-medium">Property</th>
               <th className="px-4 py-3 font-medium">Task</th>
               <th className="px-4 py-3 font-medium">Priority</th>
@@ -213,6 +214,7 @@ export function MaintenanceTasksTable() {
               <th className="px-4 py-3 font-medium">Responsible</th>
               <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium">Target Completion</th>
+              <th className="px-4 py-3 font-medium">Actual Completion Date</th>
               <th className="px-4 py-3 font-medium print:hidden">Edit</th>
             </tr>
           </thead>
@@ -223,8 +225,9 @@ export function MaintenanceTasksTable() {
                 ref={task.id === highlightId ? highlightRef : undefined}
                 className={`border-b border-border/60 last:border-0 hover:bg-accent/40 ${task.id === highlightId ? "bg-warning-soft" : ""}`}
               >
-                <td className="px-4 py-3 font-medium text-foreground">{task.propertyName ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-sm">{task.taskDescription}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(task.dateEntered)}</td>
+                <td className="px-4 py-3 font-medium text-foreground whitespace-pre-wrap break-words">{task.propertyName ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-pre-wrap break-words">{task.taskDescription}</td>
                 <td className="px-4 py-3">
                   {task.priority && (
                     <Badge className={`${PRIORITY_CLASS[task.priority]} border-transparent`}>
@@ -256,9 +259,10 @@ export function MaintenanceTasksTable() {
                     {STATUS_OPTIONS.find((o) => o.value === task.taskStatus)?.label}
                   </Badge>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{task.responsibleParty ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-xs">{task.comments ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{formatDate(task.plannedCompletionDate)}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-pre-wrap break-words">{task.responsibleParty ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-pre-wrap break-words">{task.comments ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatDate(task.plannedCompletionDate)}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{task.dateCompleted ? formatDate(task.dateCompleted) : "—"}</td>
                 <td className="px-4 py-3 print:hidden">
                   <Button variant="ghost" size="icon" onClick={() => setEditingTask(task)}>
                     <Pencil className="size-3.5" />
@@ -268,7 +272,7 @@ export function MaintenanceTasksTable() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">
                   No maintenance tasks match your search.
                 </td>
               </tr>

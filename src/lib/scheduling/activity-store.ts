@@ -32,8 +32,8 @@ function fromRow(row: Record<string, any>): Activity {
     assignedCrew: row.assigned_crew ?? undefined,
     assignedForeman: row.assigned_foreman ?? undefined,
     assignedProjectEngineer: row.assigned_project_engineer ?? undefined,
-    plannedStart: row.planned_start,
-    plannedFinish: row.planned_finish,
+    plannedStart: row.planned_start ?? "",
+    plannedFinish: row.planned_finish ?? "",
     actualStart: row.actual_start ?? undefined,
     actualFinish: row.actual_finish ?? undefined,
     originalDurationDays: row.original_duration_days ?? 1,
@@ -77,10 +77,10 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.activityCode !== undefined) row.activity_code = input.activityCode;
   if (input.wbsPath !== undefined) row.wbs_path = input.wbsPath;
   if (input.name !== undefined) row.name = input.name;
-  if (input.plannedStart !== undefined) row.planned_start = input.plannedStart;
-  if (input.plannedFinish !== undefined) row.planned_finish = input.plannedFinish;
-  if (input.actualStart !== undefined) row.actual_start = input.actualStart;
-  if (input.actualFinish !== undefined) row.actual_finish = input.actualFinish;
+  if (input.plannedStart !== undefined) row.planned_start = input.plannedStart || null;
+  if (input.plannedFinish !== undefined) row.planned_finish = input.plannedFinish || null;
+  if (input.actualStart !== undefined) row.actual_start = input.actualStart || null;
+  if (input.actualFinish !== undefined) row.actual_finish = input.actualFinish || null;
   if (input.originalDurationDays !== undefined) row.original_duration_days = input.originalDurationDays;
   if (input.remainingDurationDays !== undefined) row.remaining_duration_days = input.remainingDurationDays;
   if (input.calendarId !== undefined) row.calendar_id = input.calendarId;

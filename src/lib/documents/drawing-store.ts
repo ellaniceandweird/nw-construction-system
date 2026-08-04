@@ -48,7 +48,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.sheetNumber !== undefined) row.sheet_number = input.sheetNumber;
   if (input.revision !== undefined) row.revision = input.revision;
   if (input.scale !== undefined) row.scale = input.scale;
-  if (input.issueDate !== undefined) row.issue_date = input.issueDate;
+  if (input.issueDate !== undefined) row.issue_date = input.issueDate || null;
   if (input.currentRevisionUrl !== undefined) row.current_revision_url = input.currentRevisionUrl;
   if (input.previousRevisionUrls !== undefined) row.previous_revision_urls = input.previousRevisionUrls;
   if (input.drawingStatus !== undefined) row.drawing_status = input.drawingStatus;

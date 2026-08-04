@@ -88,6 +88,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "Recurring Maintenance", href: "/maintenance?tab=recurring" },
       { label: "Paint Log", href: "/maintenance?tab=paint" },
       { label: "Key Codes", href: "/maintenance?tab=keys" },
+      { label: "Alarm Verbal Passcode", href: "/maintenance?tab=alarm" },
       { label: "Maintenance Calendar", href: "/maintenance?tab=calendar" },
       { label: "Maintenance Log", href: "/maintenance?tab=log" },
     ],

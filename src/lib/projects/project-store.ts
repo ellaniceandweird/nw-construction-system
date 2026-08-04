@@ -79,7 +79,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.priority !== undefined) row.priority = input.priority;
   if (input.startDate !== undefined) row.start_date = input.startDate || null;
   if (input.plannedCompletionDate !== undefined) row.planned_completion_date = input.plannedCompletionDate || null;
-  if (input.actualCompletionDate !== undefined) row.actual_completion_date = input.actualCompletionDate;
+  if (input.actualCompletionDate !== undefined) row.actual_completion_date = input.actualCompletionDate || null;
   if (input.estimatedContractValue !== undefined) row.estimated_contract_value = input.estimatedContractValue;
   if (input.approvedBudget !== undefined) row.approved_budget = input.approvedBudget;
   if (input.actualCostToDate !== undefined) row.actual_cost_to_date = input.actualCostToDate;

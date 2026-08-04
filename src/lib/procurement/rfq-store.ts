@@ -38,8 +38,8 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.rfqNumber !== undefined) row.rfq_number = input.rfqNumber;
   if (input.materialRequestId !== undefined) row.material_request_id = input.materialRequestId;
   if (input.vendorIds !== undefined) row.vendor_ids = input.vendorIds;
-  if (input.issueDate !== undefined) row.issue_date = input.issueDate;
-  if (input.dueDate !== undefined) row.due_date = input.dueDate;
+  if (input.issueDate !== undefined) row.issue_date = input.issueDate || null;
+  if (input.dueDate !== undefined) row.due_date = input.dueDate || null;
   if (input.scope !== undefined) row.scope = input.scope;
   if (input.materialList !== undefined) row.material_list = input.materialList;
   if (input.notes !== undefined) row.notes = input.notes;

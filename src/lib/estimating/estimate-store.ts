@@ -48,11 +48,11 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.client !== undefined) row.client = input.client;
   if (input.address !== undefined) row.address = input.address;
   if (input.estimator !== undefined) row.estimator = input.estimator;
-  if (input.estimateDate !== undefined) row.estimate_date = input.estimateDate;
+  if (input.estimateDate !== undefined) row.estimate_date = input.estimateDate || null;
   if (input.revision !== undefined) row.revision = input.revision;
   if (input.estimateStatus !== undefined) row.estimate_status = input.estimateStatus;
   if (input.approvedBy !== undefined) row.approved_by = input.approvedBy;
-  if (input.approvalDate !== undefined) row.approval_date = input.approvalDate;
+  if (input.approvalDate !== undefined) row.approval_date = input.approvalDate || null;
   if (input.proposalNumber !== undefined) row.proposal_number = input.proposalNumber;
   if (input.currency !== undefined) row.currency = input.currency;
   if (input.taxMethod !== undefined) row.tax_method = input.taxMethod;

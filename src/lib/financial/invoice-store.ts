@@ -35,8 +35,8 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.invoiceNumber !== undefined) row.invoice_number = input.invoiceNumber;
   if (input.billingEntityId !== undefined) row.billing_entity_id = input.billingEntityId;
   if (input.client !== undefined) row.client = input.client;
-  if (input.invoiceDate !== undefined) row.invoice_date = input.invoiceDate;
-  if (input.dueDate !== undefined) row.due_date = input.dueDate;
+  if (input.invoiceDate !== undefined) row.invoice_date = input.invoiceDate || null;
+  if (input.dueDate !== undefined) row.due_date = input.dueDate || null;
   if (input.paymentTerms !== undefined) row.payment_terms = input.paymentTerms;
   if (input.preparedBy !== undefined) row.prepared_by = input.preparedBy;
   if (input.invoiceStatus !== undefined) row.invoice_status = input.invoiceStatus;

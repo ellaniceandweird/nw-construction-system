@@ -38,8 +38,8 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.department !== undefined) row.department = input.department;
   if (input.email !== undefined) row.email = input.email;
   if (input.phone !== undefined) row.phone = input.phone;
-  if (input.assignmentStartDate !== undefined) row.assignment_start_date = input.assignmentStartDate;
-  if (input.assignmentEndDate !== undefined) row.assignment_end_date = input.assignmentEndDate;
+  if (input.assignmentStartDate !== undefined) row.assignment_start_date = input.assignmentStartDate || null;
+  if (input.assignmentEndDate !== undefined) row.assignment_end_date = input.assignmentEndDate || null;
   if (input.availability !== undefined) row.availability = input.availability;
   if (input.isActive !== undefined) row.is_active = input.isActive;
   row.last_modified_date = new Date().toISOString();

@@ -40,9 +40,9 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.taskDescription !== undefined) row.task_description = input.taskDescription;
   if (input.priority !== undefined) row.priority = input.priority;
   if (input.taskStatus !== undefined) row.task_status = input.taskStatus;
-  if (input.dateEntered !== undefined) row.date_entered = input.dateEntered;
-  if (input.plannedCompletionDate !== undefined) row.planned_completion_date = input.plannedCompletionDate;
-  if (input.dateCompleted !== undefined) row.date_completed = input.dateCompleted;
+  if (input.dateEntered !== undefined) row.date_entered = input.dateEntered || null;
+  if (input.plannedCompletionDate !== undefined) row.planned_completion_date = input.plannedCompletionDate || null;
+  if (input.dateCompleted !== undefined) row.date_completed = input.dateCompleted || null;
   if (input.responsibleParty !== undefined) row.responsible_party = input.responsibleParty;
   if (input.comments !== undefined) row.comments = input.comments;
   row.last_modified_date = new Date().toISOString();

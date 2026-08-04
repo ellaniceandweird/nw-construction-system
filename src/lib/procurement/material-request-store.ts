@@ -38,8 +38,8 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.mrNumber !== undefined) row.mr_number = input.mrNumber;
   if (input.requestedBy !== undefined) row.requested_by = input.requestedBy;
   if (input.priority !== undefined) row.priority = input.priority;
-  if (input.requestDate !== undefined) row.request_date = input.requestDate;
-  if (input.requiredOnSiteDate !== undefined) row.required_on_site_date = input.requiredOnSiteDate;
+  if (input.requestDate !== undefined) row.request_date = input.requestDate || null;
+  if (input.requiredOnSiteDate !== undefined) row.required_on_site_date = input.requiredOnSiteDate || null;
   if (input.approvalStatus !== undefined) row.approval_status = input.approvalStatus;
   if (input.notes !== undefined) row.notes = input.notes;
   if (input.referenceUrl !== undefined) row.reference_url = input.referenceUrl;

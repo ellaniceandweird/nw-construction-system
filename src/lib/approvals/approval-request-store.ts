@@ -38,11 +38,11 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.projectName !== undefined) row.project_name = input.projectName;
   if (input.amount !== undefined) row.amount = input.amount;
   if (input.requestedBy !== undefined) row.requested_by = input.requestedBy;
-  if (input.requestedDate !== undefined) row.requested_date = input.requestedDate;
+  if (input.requestedDate !== undefined) row.requested_date = input.requestedDate || null;
   if (input.requiredApprovers !== undefined) row.required_approvers = input.requiredApprovers;
-  if (input.sjaakApprovedDate !== undefined) row.sjaak_approved_date = input.sjaakApprovedDate;
-  if (input.carloApprovedDate !== undefined) row.carlo_approved_date = input.carloApprovedDate;
-  if (input.benApprovedDate !== undefined) row.ben_approved_date = input.benApprovedDate;
+  if (input.sjaakApprovedDate !== undefined) row.sjaak_approved_date = input.sjaakApprovedDate || null;
+  if (input.carloApprovedDate !== undefined) row.carlo_approved_date = input.carloApprovedDate || null;
+  if (input.benApprovedDate !== undefined) row.ben_approved_date = input.benApprovedDate || null;
   if (input.approvalStatus !== undefined) row.approval_status = input.approvalStatus;
   if (input.notes !== undefined) row.notes = input.notes;
   row.last_modified_date = new Date().toISOString();

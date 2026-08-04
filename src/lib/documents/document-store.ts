@@ -56,7 +56,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.revision !== undefined) row.revision = input.revision;
   if (input.documentStatus !== undefined) row.document_status = input.documentStatus;
   if (input.author !== undefined) row.author = input.author;
-  if (input.issueDate !== undefined) row.issue_date = input.issueDate;
+  if (input.issueDate !== undefined) row.issue_date = input.issueDate || null;
   if (input.fileType !== undefined) row.file_type = input.fileType;
   if (input.fileUrl !== undefined) row.file_url = input.fileUrl;
   if (input.tags !== undefined) row.tags = input.tags;

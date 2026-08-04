@@ -37,7 +37,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.category !== undefined) row.category = input.category;
   if (input.description !== undefined) row.description = input.description;
   if (input.vendorId !== undefined) row.vendor_id = input.vendorId;
-  if (input.date !== undefined) row.date = input.date;
+  if (input.date !== undefined) row.date = input.date || null;
   if (input.amount !== undefined) row.amount = input.amount;
   if (input.billingEntityId !== undefined) row.billing_entity_id = input.billingEntityId;
   if (input.referenceNumber !== undefined) row.reference_number = input.referenceNumber;

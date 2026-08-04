@@ -40,7 +40,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.poNumber !== undefined) row.po_number = input.poNumber;
   if (input.vendorId !== undefined) row.vendor_id = input.vendorId;
   if (input.billingEntityId !== undefined) row.billing_entity_id = input.billingEntityId;
-  if (input.orderDate !== undefined) row.order_date = input.orderDate;
+  if (input.orderDate !== undefined) row.order_date = input.orderDate || null;
   if (input.expectedDelivery !== undefined) row.expected_delivery = input.expectedDelivery;
   if (input.poStatus !== undefined) row.po_status = input.poStatus;
   if (input.terms !== undefined) row.terms = input.terms;

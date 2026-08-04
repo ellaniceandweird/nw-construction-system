@@ -35,12 +35,12 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.employeeName !== undefined) row.employee_name = input.employeeName;
   if (input.trade !== undefined) row.trade = input.trade;
   if (input.billingEntityId !== undefined) row.billing_entity_id = input.billingEntityId;
-  if (input.payPeriodStart !== undefined) row.pay_period_start = input.payPeriodStart;
+  if (input.payPeriodStart !== undefined) row.pay_period_start = input.payPeriodStart || null;
   if (input.payPeriodEnd !== undefined) row.pay_period_end = input.payPeriodEnd;
   if (input.lineItems !== undefined) row.line_items = input.lineItems;
   if (input.totalHours !== undefined) row.total_hours = input.totalHours;
   if (input.totalAmount !== undefined) row.total_amount = input.totalAmount;
-  if (input.generatedDate !== undefined) row.generated_date = input.generatedDate;
+  if (input.generatedDate !== undefined) row.generated_date = input.generatedDate || null;
   row.last_modified_date = new Date().toISOString();
   return row;
 }
