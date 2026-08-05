@@ -28,7 +28,7 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
   windowStart.setHours(0, 0, 0, 0);
   const windowEnd = new Date(windowStart.getTime() + WINDOW_DAYS * DAY_MS);
 
-  const items = generateLookahead4(activities, referenceDate);
+  const items = generateLookahead4(activities, referenceDate).filter((item) => item.description !== "Overall Project Schedule");
 
   // Week column markers for the header ruler
   const weekMarkers = Array.from({ length: 4 }, (_, i) => {

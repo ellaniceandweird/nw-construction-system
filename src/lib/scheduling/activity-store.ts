@@ -2,6 +2,8 @@
 
 import { createCollectionStore } from "@/lib/supabase/collection-store";
 import { MOCK_ACTIVITIES } from "@/lib/data/mock/activities";
+import { getUSHolidaysSnapshot } from "@/lib/references/us-holiday-store";
+import { countWorkingDays } from "@/lib/scheduling/working-calendar";
 import type { Activity, ActivityStatus } from "@/types/scheduling";
 
 /**
@@ -125,9 +127,7 @@ export interface ActivityInput {
 }
 
 function computeDurationDays(start: string, finish: string): number {
-  const s = new Date(start + "T00:00:00");
-  const f = new Date(finish + "T00:00:00");
-  return Math.max(1, Math.round((f.getTime() - s.getTime()) / (24 * 60 * 60 * 1000)) + 1);
+  return Math.max(1, countWorkingDays(start, finish, getUSHolidaysSnapshot()));
 }
 
 export async function addActivity(input: ActivityInput, projectName: string): Promise<{ ok: boolean; error?: string; id: string }> {

@@ -29,7 +29,7 @@ export function SixteenWeekGanttChart({ referenceDate }: { referenceDate: Date }
   windowStart.setHours(0, 0, 0, 0);
   const windowEnd = new Date(windowStart.getTime() + WINDOW_DAYS * DAY_MS);
 
-  const items = generateLookahead16(activities, referenceDate);
+  const items = generateLookahead16(activities, referenceDate).filter((item) => item.description !== "Overall Project Schedule");
 
   const weekMarkers = Array.from({ length: WINDOW_WEEKS }, (_, i) => {
     const weekStart = new Date(windowStart.getTime() + i * 7 * DAY_MS);
