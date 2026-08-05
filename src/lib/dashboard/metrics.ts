@@ -16,7 +16,6 @@ import { getTodayInNewYork } from "@/lib/date/today";
  * Maintenance records rather than an invented figure.
  */
 
-const TODAY = getTodayInNewYork();
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function daysBetween(a: Date, b: Date) {
@@ -24,9 +23,10 @@ function daysBetween(a: Date, b: Date) {
 }
 
 export function getProjectsBehindSchedule(projects: Project[], activities: Activity[]) {
+  const today = getTodayInNewYork();
   return projects.filter((p) => {
     if (computeProjectCompletionPercent(p.id, activities) >= 100) return false;
-    return new Date(p.plannedCompletionDate) < TODAY;
+    return new Date(p.plannedCompletionDate) < today;
   });
 }
 
@@ -45,17 +45,19 @@ export function getPendingApprovals(maintenanceTasks: MaintenanceTask[]) {
 }
 
 export function getOverdueMaintenance(maintenanceTasks: MaintenanceTask[]) {
+  const today = getTodayInNewYork();
   return maintenanceTasks.filter((t) => {
     if (t.taskStatus === "complete" || !t.plannedCompletionDate) return false;
-    return new Date(t.plannedCompletionDate) < TODAY;
+    return new Date(t.plannedCompletionDate) < today;
   });
 }
 
 export function getMaintenanceDueThisWeek(maintenanceTasks: MaintenanceTask[]) {
+  const today = getTodayInNewYork();
   return maintenanceTasks.filter((t) => {
     if (t.taskStatus === "complete" || !t.plannedCompletionDate) return false;
     const due = new Date(t.plannedCompletionDate);
-    const diff = due.getTime() - TODAY.getTime();
+    const diff = due.getTime() - today.getTime();
     return diff >= 0 && diff <= ONE_WEEK_MS;
   });
 }
@@ -207,14 +209,15 @@ export interface UpcomingWorkItem {
  * "what's coming up" snapshot.
  */
 export function getUpcomingWorkNext2Weeks(activities: Activity[], projects: Project[]): UpcomingWorkItem[] {
-  const twoWeeksOut = new Date(TODAY.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const today = getTodayInNewYork();
+  const twoWeeksOut = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
   return activities.filter((a) => {
     if (a.status === "completed" || a.status === "cancelled") return false;
     const start = new Date(a.plannedStart);
     const finish = new Date(a.plannedFinish);
     // Overlaps the next 14 days if it starts before the window closes
     // and finishes after today.
-    return start <= twoWeeksOut && finish >= TODAY;
+    return start <= twoWeeksOut && finish >= today;
   })
     .map((a) => {
       const project = projects.find((p) => p.id === a.projectId);
@@ -236,13 +239,14 @@ export function getUpcomingDeadlines(
   projects: Project[],
   limit = 6
 ): UpcomingDeadline[] {
+  const today = getTodayInNewYork();
   const items: UpcomingDeadline[] = [];
 
   for (const a of activities) {
     if (a.status === "completed") continue;
     const project = projects.find((p) => p.id === a.projectId);
     const due = new Date(a.plannedFinish);
-    const diffDays = daysBetween(due, TODAY); // negative = due date already passed
+    const diffDays = daysBetween(due, today); // negative = due date already passed
     items.push({
       id: a.id,
       type: "Activity",
@@ -256,7 +260,7 @@ export function getUpcomingDeadlines(
   for (const t of maintenanceTasks) {
     if (t.taskStatus === "complete" || !t.plannedCompletionDate) continue;
     const due = new Date(t.plannedCompletionDate);
-    const diffDays = daysBetween(due, TODAY); // negative = due date already passed
+    const diffDays = daysBetween(due, today); // negative = due date already passed
     items.push({
       id: t.id,
       type: "Maintenance",
@@ -268,7 +272,7 @@ export function getUpcomingDeadlines(
   }
 
   return items
-    .filter((i) => daysBetween(i.dueDate, TODAY) >= -14) // drop stale overdue items >2 weeks old
+    .filter((i) => daysBetween(i.dueDate, today) >= -14) // drop stale overdue items >2 weeks old
     .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
     .slice(0, limit);
 }

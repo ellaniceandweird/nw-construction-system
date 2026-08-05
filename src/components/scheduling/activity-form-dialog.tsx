@@ -82,6 +82,7 @@ export function ActivityFormDialog({
           requiredManpower: existingActivity.requiredManpower,
           status: existingActivity.status,
           isCritical: existingActivity.isCritical,
+          percentComplete: existingActivity.percentComplete,
         }
       : {
           status: "not_started",
@@ -105,6 +106,7 @@ export function ActivityFormDialog({
               requiredManpower: existingActivity.requiredManpower,
               status: existingActivity.status,
               isCritical: existingActivity.isCritical,
+              percentComplete: existingActivity.percentComplete,
             }
           : { status: "not_started", isCritical: false }
       );
@@ -255,6 +257,18 @@ export function ActivityFormDialog({
             <Label htmlFor="isCritical" className="font-normal">
               This is a critical-path activity
             </Label>
+          </div>
+
+          <div>
+            <Label htmlFor="percentComplete">% Complete</Label>
+            <Input
+              id="percentComplete"
+              type="number"
+              min={0}
+              max={100}
+              className="mt-1.5"
+              {...register("percentComplete")}
+            />
           </div>
 
           <DialogFooter className="justify-between">

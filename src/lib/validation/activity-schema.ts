@@ -19,6 +19,7 @@ export const activityFormSchema = z
       "cancelled",
     ]),
     isCritical: z.boolean(),
+    percentComplete: z.coerce.number().min(0).max(100).optional(),
   })
   .refine((data) => data.plannedFinish >= data.plannedStart, {
     message: "Finish date must be on or after the start date",

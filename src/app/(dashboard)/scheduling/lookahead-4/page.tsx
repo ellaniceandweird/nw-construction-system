@@ -3,9 +3,8 @@ import { SchedulingTabs } from "@/components/scheduling/scheduling-tabs";
 import { FourWeekGanttChart } from "@/components/scheduling/four-week-gantt-chart";
 import { getTodayInNewYork } from "@/lib/date/today";
 
-const TODAY = getTodayInNewYork();
-
 export default function Lookahead4Page() {
+  const TODAY = getTodayInNewYork();
   return (
     <>
       <PageHeader

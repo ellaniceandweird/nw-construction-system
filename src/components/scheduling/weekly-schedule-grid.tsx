@@ -14,7 +14,6 @@ import { buildWeeklyScheduleHtml } from "@/lib/scheduling/print-weekly-schedule"
 import type { WeeklyScheduleColor } from "@/types/scheduling";
 import { getTodayInNewYork } from "@/lib/date/today";
 
-const TODAY = getTodayInNewYork();
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
@@ -51,6 +50,7 @@ function formatDate(d: Date) {
 }
 
 export function WeeklyScheduleGrid() {
+  const TODAY = getTodayInNewYork();
   const projects = useProjects();
   const activities = useActivities();
   const [weekOffset, setWeekOffset] = React.useState(0);

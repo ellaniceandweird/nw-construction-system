@@ -140,7 +140,7 @@ export function EditableTimeEntriesTable({ log }: Props) {
                     <SelectTrigger className="w-full"><SelectValue placeholder="Select worker" /></SelectTrigger>
                     <SelectContent>
                       {workerRates.map((r) => (
-                        <SelectItem key={r.employeeId} value={r.employeeId}>{r.employeeName} — {r.trade}</SelectItem>
+                        <SelectItem key={r.employeeId} value={r.employeeId}>{r.employeeName}</SelectItem>
                       ))}
                       <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
                     </SelectContent>

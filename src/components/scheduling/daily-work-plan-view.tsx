@@ -17,7 +17,6 @@ import { buildDailyWorkPlanHtml } from "@/lib/scheduling/print-daily-work-plan";
 import { generateDailyWorkPlanImage } from "@/lib/scheduling/generate-daily-work-plan-image";
 import { getTodayInNewYork } from "@/lib/date/today";
 
-const TODAY = getTodayInNewYork();
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function formatDate(d: Date) {
@@ -90,6 +89,7 @@ function JobCard({
 }
 
 export function DailyWorkPlanView() {
+  const TODAY = getTodayInNewYork();
   const projects = useProjects();
   const activities = useActivities();
   const [dayOffset, setDayOffset] = React.useState(0);

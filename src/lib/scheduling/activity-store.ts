@@ -124,6 +124,7 @@ export interface ActivityInput {
   requiredManpower?: number;
   status: ActivityStatus;
   isCritical: boolean;
+  percentComplete?: number;
 }
 
 function computeDurationDays(start: string, finish: string): number {
@@ -154,7 +155,7 @@ export async function updateActivity(id: string, input: ActivityInput): Promise<
   const ok = await store.update(id, {
     ...input,
     originalDurationDays: duration,
-    percentComplete: input.status === "completed" ? 100 : existing?.percentComplete,
+    percentComplete: input.percentComplete ?? (input.status === "completed" ? 100 : existing?.percentComplete),
   });
   return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }

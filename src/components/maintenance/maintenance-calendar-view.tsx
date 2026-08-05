@@ -20,13 +20,12 @@ interface CalendarEvent {
   overdue: boolean;
 }
 
-const TODAY = getTodayInNewYork();
-
 function toISODate(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
 export function MaintenanceCalendarView() {
+  const TODAY = getTodayInNewYork();
   const tasks = useMaintenanceTasks();
   const equipment = useEquipmentMaintenance();
   const [monthOffset, setMonthOffset] = React.useState(0);
