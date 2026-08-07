@@ -23,6 +23,7 @@ import { getPropertyForProject, getPropertyDisplayName } from "@/lib/properties/
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
+import { showErrorToast } from "@/lib/toast/toast-store";
 import {
   addDailyLog,
   getMostRecentCrew,
@@ -152,11 +153,15 @@ export function DailyLogForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function onSubmit(values: DailyLogFormValues) {
+  async function onSubmit(values: DailyLogFormValues) {
     const primaryProjectId = values.timeEntries[0]?.projectId || "";
-    const id = addDailyLog({ ...values, projectId: primaryProjectId });
+    const result = await addDailyLog({ ...values, projectId: primaryProjectId });
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this daily log — check your connection and try again.");
+      return;
+    }
     setSubmitted(true);
-    setTimeout(() => router.push(`/field-operations/${id}`), 800);
+    setTimeout(() => router.push(`/field-operations/${result.id}`), 800);
   }
 
   function handleEmployeeChange(index: number, employeeId: string) {

@@ -1,13 +1,16 @@
 "use client";
 
+import * as React from "react";
 import { useParams, notFound } from "next/navigation";
-import { Cloud, Users, ClipboardList, Package } from "lucide-react";
+import { Cloud, Users, ClipboardList, Package, Pencil, MapPin } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useProjects } from "@/hooks/use-projects";
 import { EditableTimeEntriesTable } from "@/components/field-operations/editable-time-entries-table";
+import { EditDailyLogDateDialog } from "@/components/field-operations/edit-daily-log-date-dialog";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", {
@@ -23,23 +26,41 @@ export default function DailyLogDetailPage() {
   const params = useParams<{ logId: string }>();
   const logs = useDailyLogs();
   const log = logs.find((l) => l.id === params.logId);
+  const [editingDate, setEditingDate] = React.useState(false);
 
   if (!log) notFound();
 
-  const project = projects.find((p) => p.id === log.projectId);
+  const projectNames = Array.from(
+    new Set(
+      log.timeEntries
+        .map((e) => projects.find((p) => p.id === e.projectId)?.projectName)
+        .filter((n): n is string => !!n)
+    )
+  );
   const totalHours = log.timeEntries.reduce((s, e) => s + e.regularHours + e.overtimeHours, 0);
   const totalOvertime = log.timeEntries.reduce((s, e) => s + e.overtimeHours, 0);
   const crewCount = new Set(log.timeEntries.map((e) => e.employeeId)).size;
 
   return (
     <>
-      <PageHeader
-        title={`Daily Log — ${formatDate(log.date)}`}
-        description={project?.projectName ?? "—"}
-      />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PageHeader
+          title={`Daily Log — ${formatDate(log.date)}`}
+          description={
+            projectNames.length > 0
+              ? projectNames.join(", ")
+              : "No projects logged yet"
+          }
+        />
+        <Button variant="outline" size="sm" onClick={() => setEditingDate(true)}>
+          <Pencil className="size-3.5" /> Edit Date
+        </Button>
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card>
+      <EditDailyLogDateDialog logId={log.id} currentDate={log.date} open={editingDate} onOpenChange={setEditingDate} />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-info/20 bg-info-soft">
           <CardContent className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Weather</span>
             <span className="flex items-center gap-1.5 font-medium text-foreground">
@@ -48,7 +69,7 @@ export default function DailyLogDetailPage() {
             </span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-primary/20 bg-primary-soft">
           <CardContent className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Crew Present</span>
             <span className="flex items-center gap-1.5 font-medium text-foreground">
@@ -57,11 +78,20 @@ export default function DailyLogDetailPage() {
             </span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-success/20 bg-success-soft">
           <CardContent className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Total Hours</span>
             <span className="font-medium text-foreground">
               {totalHours}h {totalOvertime > 0 && `(+${totalOvertime}h OT)`}
+            </span>
+          </CardContent>
+        </Card>
+        <Card className="border-warning/20 bg-warning-soft">
+          <CardContent className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Projects Worked</span>
+            <span className="flex items-center gap-1.5 font-medium text-foreground">
+              <MapPin className="size-4" />
+              {projectNames.length}
             </span>
           </CardContent>
         </Card>

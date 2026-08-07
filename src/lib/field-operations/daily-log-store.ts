@@ -124,9 +124,9 @@ export function getMostRecentCrew(beforeDate: string): DailyTimeEntry[] {
   return result;
 }
 
-export function addDailyLog(input: DailyLogInput) {
+export async function addDailyLog(input: DailyLogInput): Promise<{ ok: boolean; error?: string; id: string }> {
   const id = nextLogId();
-  void store.create({
+  const result = await store.create({
     id,
     dailyLogNumber: id,
     dayOfWeek: DAY_NAMES[new Date(input.date + "T00:00:00").getDay()],
@@ -134,7 +134,18 @@ export function addDailyLog(input: DailyLogInput) {
     materialConsumption: [],
     ...input,
   });
-  return id;
+  return result !== null
+    ? { ok: true, id }
+    : { ok: false, error: store.getLastError() ?? undefined, id };
+}
+
+/** Corrects the date on an existing daily log (e.g. picked the wrong day by mistake) — recalculates the day-of-week to match. */
+export async function updateDailyLogDate(id: string, newDate: string): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, {
+    date: newDate,
+    dayOfWeek: DAY_NAMES[new Date(newDate + "T00:00:00").getDay()],
+  });
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
 /** Updates one time entry's hours/notes on an existing log. */
