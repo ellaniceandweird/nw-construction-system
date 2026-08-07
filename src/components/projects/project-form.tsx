@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { useProperties } from "@/hooks/use-properties";
+import { getPropertyForProject } from "@/lib/properties/property-relations";
 import { createProject, updateProject, deleteProject } from "@/lib/projects/project-store";
 import { showErrorToast } from "@/lib/toast/toast-store";
 import {
@@ -69,6 +70,29 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
         },
   });
 
+  // If this project's stored propertyId doesn't resolve to a real
+  // property (missing link, predates Properties existing, etc.), fall
+  // back to matching by address — same logic "Related Projects" uses
+  // elsewhere — so the Property field (and therefore Billing Entity)
+  // fills in correctly instead of silently staying blank/stale. Runs
+  // once properties has actually loaded, not before.
+  const fuzzyMatchedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!existingProject || properties.length === 0 || fuzzyMatchedRef.current) return;
+    const currentPropertyId = watch("propertyId");
+    const resolvesToRealProperty = properties.some((p) => p.id === currentPropertyId);
+    if (resolvesToRealProperty) {
+      fuzzyMatchedRef.current = true;
+      return;
+    }
+    const matched = getPropertyForProject(existingProject, properties);
+    fuzzyMatchedRef.current = true;
+    if (matched) {
+      setValue("propertyId", matched.id, { shouldValidate: true });
+      setValue("billingEntityId", matched.billingEntityId ?? "", { shouldValidate: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingProject, properties]);
 
   function handlePropertyChange(propertyId: string) {
     setValue("propertyId", propertyId, { shouldValidate: true });

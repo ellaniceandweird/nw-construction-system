@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useProjects } from "@/hooks/use-projects";
+import { useProperties } from "@/hooks/use-properties";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", {
@@ -20,6 +22,7 @@ function formatDate(d: string) {
 
 export default function DailyRollupPage() {
   const projects = useProjects();
+  const properties = useProperties();
   const params = useParams<{ date: string }>();
   const logs = useDailyLogs();
 
@@ -69,7 +72,7 @@ export default function DailyRollupPage() {
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-4 py-3 font-medium">Worker</th>
-              <th className="px-4 py-3 font-medium">Trade</th>
+              <th className="px-4 py-3 font-medium">Property</th>
               <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Task</th>
               <th className="px-4 py-3 font-medium">Hours</th>
@@ -80,11 +83,13 @@ export default function DailyRollupPage() {
             {logsForDay.flatMap((log) => {
               return log.timeEntries.map((entry, i) => {
                 const entryProject = projects.find((p) => p.id === entry.projectId);
+                const entryProperty = properties.find((p) => p.id === entry.propertyId);
+                const projectLabel = entryProject?.projectName ?? entry.projectName ?? "—";
                 return (
                   <tr key={`${log.id}-${i}`} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                     <td className="px-4 py-3 font-medium text-foreground">{entry.employeeName}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{entry.trade}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{entryProject?.projectName ?? entry.projectName ?? "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{entryProperty ? getPropertyDisplayName(entryProperty) : entry.propertyName || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{projectLabel}</td>
                     <td className="px-4 py-3 text-muted-foreground max-w-xs">{entry.activityDescription || "—"}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {entry.regularHours}h{entry.overtimeHours > 0 ? ` (+${entry.overtimeHours}h OT)` : ""}

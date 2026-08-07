@@ -73,28 +73,19 @@ function nextId(): string {
 }
 
 export interface SaveInvoicesOptions {
-  /** If provided, invoices in this batch get sequential numbers starting here instead of the auto FWI-YYYY-#### scheme. */
-  startingInvoiceNumber?: string;
+  /** If provided, every invoice in this batch (all employees, all coverage dates in this pay period) shares this same number. */
+  invoiceNumber?: string;
   /** Applied to every invoice in this batch. */
   paymentDueDate?: string;
 }
 
 export async function saveFieldWorkerInvoices(drafts: FieldWorkerInvoiceDraft[], options: SaveInvoicesOptions = {}): Promise<{ ok: boolean; error?: string }> {
   const year = new Date().getFullYear();
-  // Only the *trailing* run of digits increments — e.g. "FWI-2026-0100"
-  // keeps "FWI-2026-" as the prefix and counts up from 100, so the next
-  // invoice becomes "FWI-2026-0101", not something mangled.
-  const trailingNumberMatch = options.startingInvoiceNumber?.match(/^(.*?)(\d+)$/);
-  const startPrefix = trailingNumberMatch?.[1] ?? "";
-  const startNum = trailingNumberMatch ? parseInt(trailingNumberMatch[2], 10) : null;
-  const startDigits = trailingNumberMatch?.[2].length ?? 0;
   for (let i = 0; i < drafts.length; i++) {
     const draft = drafts[i];
     const id = nextId();
     const invoiceNumber =
-      options.startingInvoiceNumber && startNum !== null
-        ? `${startPrefix}${String(startNum + i).padStart(startDigits, "0")}`
-        : `FWI-${year}-${String(store.getSnapshot().length + 1).padStart(4, "0")}`;
+      options.invoiceNumber || `FWI-${year}-${String(store.getSnapshot().length + 1).padStart(4, "0")}`;
     const result = await store.create({
       id,
       invoiceNumber,

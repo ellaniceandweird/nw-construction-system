@@ -35,7 +35,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
 
   const [payPeriodStart, setPayPeriodStart] = React.useState("");
   const [payPeriodEnd, setPayPeriodEnd] = React.useState("");
-  const [startingInvoiceNumber, setStartingInvoiceNumber] = React.useState("");
+  const [invoiceNumberInput, setInvoiceNumberInput] = React.useState("");
   const [paymentDueDate, setPaymentDueDate] = React.useState("");
   const [preview, setPreview] = React.useState<FieldWorkerInvoiceDraft[] | null>(null);
   const [saved, setSaved] = React.useState(false);
@@ -44,7 +44,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
   function reset() {
     setPayPeriodStart("");
     setPayPeriodEnd("");
-    setStartingInvoiceNumber("");
+    setInvoiceNumberInput("");
     setPaymentDueDate("");
     setPreview(null);
     setSaved(false);
@@ -63,7 +63,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
     if (!preview) return;
     setSaving(true);
     const result = await saveFieldWorkerInvoices(preview, {
-      startingInvoiceNumber: startingInvoiceNumber || undefined,
+      invoiceNumber: invoiceNumberInput || undefined,
       paymentDueDate: paymentDueDate || undefined,
     });
     setSaving(false);
@@ -115,9 +115,9 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
                     <p className="text-sm text-muted-foreground">{preview.length} invoice{preview.length === 1 ? "" : "s"} will be created:</p>
                     <div className="grid grid-cols-2 gap-4 rounded-md border border-border p-3">
                       <div>
-                        <Label htmlFor="startingInvoiceNumber">Starting Invoice # (optional)</Label>
-                        <Input id="startingInvoiceNumber" className="mt-1.5" placeholder="e.g. FWI-2026-0100" value={startingInvoiceNumber} onChange={(e) => setStartingInvoiceNumber(e.target.value)} />
-                        <p className="mt-1 text-xs text-muted-foreground">Leave blank to auto-number as usual. If set, each invoice in this batch gets the next number in sequence.</p>
+                        <Label htmlFor="invoiceNumberInput">Invoice # (optional)</Label>
+                        <Input id="invoiceNumberInput" className="mt-1.5" placeholder="e.g. FWI-2026-0100" value={invoiceNumberInput} onChange={(e) => setInvoiceNumberInput(e.target.value)} />
+                        <p className="mt-1 text-xs text-muted-foreground">Leave blank to auto-number as usual. If set, every invoice in this batch — every worker, every coverage date in this pay period — shares this exact number.</p>
                       </div>
                       <div>
                         <Label htmlFor="paymentDueDate">Payment Due Date (optional)</Label>
