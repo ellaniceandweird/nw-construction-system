@@ -93,7 +93,9 @@ export interface MaterialRequestLineItem {
 
 /** SDS §8.7 — Material Request (MR). */
 export interface MaterialRequest extends BaseEntity {
-  projectId: string;
+  projectId?: string;
+  propertyId?: string;
+  propertyName?: string;
   mrNumber: string;
   activityId?: string;
   requestedBy: string;

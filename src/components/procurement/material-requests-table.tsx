@@ -93,6 +93,7 @@ export function MaterialRequestsTable() {
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-4 py-3 font-medium">MR Number</th>
+              <th className="px-4 py-3 font-medium">Property</th>
               <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Description</th>
               <th className="px-4 py-3 font-medium">Quantity</th>
@@ -109,6 +110,7 @@ export function MaterialRequestsTable() {
               return (
                 <tr key={mr.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                   <td className="px-4 py-3 font-medium text-foreground">{mr.mrNumber}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{mr.propertyName ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{project?.projectName ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {mr.lineItems[0]?.description}
@@ -165,7 +167,7 @@ export function MaterialRequestsTable() {
               );
             })}
             {sorted.length === 0 && (
-              <tr><td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">No material requests yet — click &quot;Add Entry&quot; above.</td></tr>
+              <tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">No material requests yet — click &quot;Add Entry&quot; above.</td></tr>
             )}
           </tbody>
         </table>

@@ -11,6 +11,7 @@ import { ForecastTable } from "@/components/procurement/forecast-table";
 import { MaterialRequestsTable } from "@/components/procurement/material-requests-table";
 import { RfqsTable } from "@/components/procurement/rfqs-table";
 import { QuotesTable } from "@/components/procurement/quotes-table";
+import { SubcontractorSourcingTable } from "@/components/procurement/subcontractor-sourcing-table";
 import { QuoteComparison } from "@/components/procurement/quote-comparison";
 import { PurchaseOrdersTable } from "@/components/procurement/purchase-orders-table";
 import { VendorsTable } from "@/components/procurement/vendors-table";
@@ -26,6 +27,7 @@ const VALID_TABS = [
 
 const SOURCING_SUB_TABS = [
   { value: "mrs", label: "Material Request" },
+  { value: "subcontractor-sourcing", label: "Subcontractor Sourcing" },
   { value: "rfqs", label: "RFQs" },
   { value: "quotes", label: "Quotes" },
   { value: "comparison", label: "Quote Comparison" },
@@ -91,6 +93,7 @@ export function ProcurementPageClient() {
             ))}
           </div>
           {activeSourcingTab === "mrs" && <MaterialRequestsTable />}
+          {activeSourcingTab === "subcontractor-sourcing" && <SubcontractorSourcingTable />}
           {activeSourcingTab === "rfqs" && <RfqsTable />}
           {activeSourcingTab === "quotes" && <QuotesTable />}
           {activeSourcingTab === "comparison" && <QuoteComparison />}

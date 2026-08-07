@@ -23,6 +23,8 @@ import {
 import { createMaterialRequest } from "@/lib/procurement/material-request-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { useProjects } from "@/hooks/use-projects";
+import { useProperties } from "@/hooks/use-properties";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
 
 interface Props {
   open: boolean;
@@ -31,7 +33,9 @@ interface Props {
 
 export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
   const projects = useProjects();
+  const properties = useProperties();
   const [projectId, setProjectId] = React.useState("");
+  const [propertyId, setPropertyId] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [quantity, setQuantity] = React.useState("1");
   const [unit, setUnit] = React.useState("ea");
@@ -43,6 +47,7 @@ export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
   React.useEffect(() => {
     if (open) {
       setProjectId("");
+      setPropertyId("");
       setDescription("");
       setQuantity("1");
       setUnit("ea");
@@ -53,14 +58,16 @@ export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
     }
   }, [open]);
 
-  const canSave = !!projectId && !!description && !!requestedBy;
+  const canSave = !!description && !!requestedBy;
   const [saving, setSaving] = React.useState(false);
 
   async function handleSave() {
     if (!canSave) return;
     setSaving(true);
     const result = await createMaterialRequest({
-      projectId,
+      projectId: projectId || undefined,
+      propertyId: propertyId || undefined,
+      propertyName: propertyId ? getPropertyDisplayName(properties.find((p) => p.id === propertyId)!) : undefined,
       description,
       quantity: Number(quantity) || 1,
       unit,
@@ -87,7 +94,17 @@ export function MaterialRequestCreateDialog({ open, onOpenChange }: Props) {
 
         <div className="flex flex-col gap-4">
           <div>
-            <Label>Project</Label>
+            <Label>Property</Label>
+            <Select value={propertyId} onValueChange={setPropertyId}>
+              <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select a property" /></SelectTrigger>
+              <SelectContent>
+                {properties.map((p) => (<SelectItem key={p.id} value={p.id}>{getPropertyDisplayName(p)}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label>Project (optional)</Label>
             <Select value={projectId} onValueChange={setProjectId}>
               <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select a project" /></SelectTrigger>
               <SelectContent>

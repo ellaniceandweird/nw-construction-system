@@ -7,7 +7,9 @@ import type { MaterialRequest, MaterialRequestStatus } from "@/types/procurement
 function fromRow(row: Record<string, any>): MaterialRequest {
   return {
     id: row.id,
-    projectId: row.project_id,
+    projectId: row.project_id ?? undefined,
+    propertyId: row.property_id ?? undefined,
+    propertyName: row.property_name ?? undefined,
     mrNumber: row.mr_number,
     activityId: row.activity_id ?? undefined,
     requestedBy: row.requested_by,
@@ -35,6 +37,8 @@ function toRow(input: Record<string, any>): Record<string, any> {
   const row: Record<string, any> = {};
   if (input.id !== undefined) row.id = input.id;
   if (input.projectId !== undefined) row.project_id = input.projectId;
+  if (input.propertyId !== undefined) row.property_id = input.propertyId;
+  if (input.propertyName !== undefined) row.property_name = input.propertyName;
   if (input.mrNumber !== undefined) row.mr_number = input.mrNumber;
   if (input.requestedBy !== undefined) row.requested_by = input.requestedBy;
   if (input.priority !== undefined) row.priority = input.priority;
@@ -72,7 +76,9 @@ export async function updateMaterialRequest(id: string, input: MaterialRequestEd
 }
 
 export interface MaterialRequestCreateInput {
-  projectId: string;
+  projectId?: string;
+  propertyId?: string;
+  propertyName?: string;
   description: string;
   quantity: number;
   unit: string;
@@ -96,6 +102,8 @@ export async function createMaterialRequest(input: MaterialRequestCreateInput): 
   const result = await store.create({
     id: mrNumber,
     projectId: input.projectId,
+    propertyId: input.propertyId,
+    propertyName: input.propertyName,
     mrNumber,
     requestedBy: input.requestedBy,
     priority: "medium",
