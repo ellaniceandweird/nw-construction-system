@@ -49,6 +49,7 @@ export function generateFieldWorkerInvoices(
       const lineItem: FieldWorkerInvoiceLineItem = {
         date: log.date,
         projectId: entry.projectId,
+        projectName: entry.projectName,
         billingEntityId,
         activity: entry.activityDescription || "General Work",
         costCode: entry.activityId === MANUAL_ACTIVITY_ID ? MANUAL_ENTRY_COST_CODE : rate?.defaultCostCode,

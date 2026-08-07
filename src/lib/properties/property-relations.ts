@@ -32,10 +32,13 @@ function normalize(s: string): string {
 export function getRelatedProjects(property: Property, projects: Project[]): Project[] {
   const firstSegment = (property.name ?? property.address).split("/")[0].split("(")[0].trim();
   const propKey = normalize(firstSegment).replace(/^the/, "");
-  if (!propKey) return [];
 
   return projects.filter((p) => {
+    // Direct ID links are the most reliable match — check these first,
+    // regardless of whether the fuzzy text keys below would even work.
     if (property.relatedProjectId === p.id) return true;
+    if (p.propertyId === property.id) return true;
+    if (!propKey) return false;
     const nameKey = normalize(p.projectName);
     const streetKey = normalize(p.address.street);
     return (

@@ -28,8 +28,8 @@ function currency(n: number) {
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
-function projectName(id: string, projects: Project[]) {
-  return projects.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[], fallbackName?: string) {
+  return projects.find((p) => p.id === id)?.projectName ?? fallbackName ?? "—";
 }
 
 export function FieldWorkerInvoicesTable() {
@@ -80,7 +80,7 @@ export function FieldWorkerInvoicesTable() {
           "Pay Period": `${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}`,
           Date: formatDate(li.date),
           "Billing Entity": billingEntityName(li.billingEntityId, li.projectId),
-          Project: projectName(li.projectId, projects),
+          Project: projectName(li.projectId, projects, li.projectName),
           "Cost Code": li.costCode ?? "",
           "Work Performed": li.activity,
           "Regular Hours": li.regularHours,
@@ -101,7 +101,7 @@ export function FieldWorkerInvoicesTable() {
         <tr>
           <td>${formatDate(li.date)}</td>
           <td>${billingEntityName(li.billingEntityId, li.projectId)}</td>
-          <td>${projectName(li.projectId, projects)}</td>
+          <td>${projectName(li.projectId, projects, li.projectName)}</td>
           <td>${li.costCode ?? "—"}</td>
           <td>${li.activity}</td>
           <td>${li.regularHours}</td>
@@ -218,7 +218,7 @@ export function FieldWorkerInvoicesTable() {
                                 <tr key={i} className="border-b border-border/60 last:border-0">
                                   <td className="px-4 py-2.5 text-muted-foreground">{formatDate(li.date)}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{billingEntityName(li.billingEntityId, li.projectId)}</td>
-                                  <td className="px-4 py-2.5 text-foreground">{projectName(li.projectId, projects)}</td>
+                                  <td className="px-4 py-2.5 text-foreground">{projectName(li.projectId, projects, li.projectName)}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.costCode ?? "—"}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.activity}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.regularHours}</td>

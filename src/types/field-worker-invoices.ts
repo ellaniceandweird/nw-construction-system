@@ -9,6 +9,8 @@ import type { BaseEntity } from "@/types/common";
 export interface FieldWorkerInvoiceLineItem {
   date: string;
   projectId: string;
+  /** What was actually typed for a manual (non-schedule-linked) project entry — the display fallback whenever projectId doesn't resolve to a real Project. */
+  projectName?: string;
   /** Derived from the project's property's billing entity — per line item, since one worker can cross projects/billing entities within a pay period. */
   billingEntityId?: string;
   activity: string;
