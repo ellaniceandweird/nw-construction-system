@@ -118,7 +118,9 @@ export function FieldWorkerInvoicesTable() {
       <div class="header">
         <h1>Nice &amp; Weird Group</h1>
         <p>Field Worker Invoice — ${inv.employeeName}${inv.trade ? ` (${inv.trade})` : ""}</p>
+        <p>Invoice #: ${inv.invoiceNumber}</p>
         <p>Pay Period: ${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}</p>
+        ${inv.paymentDueDate ? `<p>Payment Due: ${formatDate(inv.paymentDueDate)}</p>` : ""}
       </div>
       <table>
         <thead><tr><th>Date</th><th>Billing Entity</th><th>Project</th><th>Cost Code</th><th>Work Performed</th><th>Reg Hrs</th><th>OT Hrs</th><th class="right">Rate</th><th class="right">Amount</th></tr></thead>

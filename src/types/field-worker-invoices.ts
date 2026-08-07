@@ -28,6 +28,7 @@ export interface FieldWorkerInvoice extends BaseEntity {
   billingEntityId?: string;
   payPeriodStart: string;
   payPeriodEnd: string;
+  paymentDueDate?: string;
   lineItems: FieldWorkerInvoiceLineItem[];
   totalHours: number;
   totalAmount: number;

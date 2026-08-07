@@ -2,6 +2,7 @@
 
 import { createCollectionStore } from "@/lib/supabase/collection-store";
 import { MOCK_DAILY_LOGS } from "@/lib/data/mock/daily-logs";
+import { getActivitiesSnapshot, updateActivity } from "@/lib/scheduling/activity-store";
 import type { DailyLog, DailyTimeEntry, WeatherCondition } from "@/types/field-operations";
 
 function fromRow(row: Record<string, any>): DailyLog {
@@ -94,6 +95,43 @@ export interface DailyLogInput {
 
 export const GENERAL_WORK_ACTIVITY_ID = "GENERAL_WORK";
 export const MANUAL_ACTIVITY_ID = "MANUAL_ENTRY";
+
+/**
+ * When a daily log time entry references a real Activity from Planning's
+ * schedule (not the General Work or Manual Entry sentinels), that
+ * activity gets marked "in_progress" automatically — logging real field
+ * hours against it means work has genuinely started. This is the sync
+ * point that will eventually drive live % Complete once that's built.
+ * Only moves activities forward (not_started/ready -> in_progress);
+ * never overwrites a status someone already set further along
+ * (delayed, completed, etc.) or backward.
+ */
+async function syncActivityStatusFromTimeEntries(timeEntries: DailyTimeEntry[]) {
+  const realActivityIds = new Set(
+    timeEntries
+      .map((e) => e.activityId)
+      .filter((id): id is string => !!id && id !== GENERAL_WORK_ACTIVITY_ID && id !== MANUAL_ACTIVITY_ID)
+  );
+  if (realActivityIds.size === 0) return;
+  const activities = getActivitiesSnapshot();
+  for (const activityId of realActivityIds) {
+    const activity = activities.find((a) => a.id === activityId);
+    if (!activity) continue;
+    if (activity.status !== "not_started" && activity.status !== "ready") continue;
+    void updateActivity(activity.id, {
+      projectId: activity.projectId,
+      name: activity.name,
+      plannedStart: activity.plannedStart,
+      plannedFinish: activity.plannedFinish,
+      actualStart: activity.actualStart,
+      actualFinish: activity.actualFinish,
+      status: "in_progress",
+      isCritical: activity.isCritical,
+      requiredManpower: activity.requiredManpower,
+      percentComplete: activity.percentComplete,
+    });
+  }
+}
 export const MANUAL_ENTRY = "__manual__";
 
 /** Returns the most recent daily log strictly before the given date, if any. */
@@ -134,6 +172,7 @@ export async function addDailyLog(input: DailyLogInput): Promise<{ ok: boolean; 
     materialConsumption: [],
     ...input,
   });
+  if (result !== null) void syncActivityStatusFromTimeEntries(input.timeEntries);
   return result !== null
     ? { ok: true, id }
     : { ok: false, error: store.getLastError() ?? undefined, id };
@@ -154,6 +193,7 @@ export function updateTimeEntry(logId: string, entryIndex: number, patch: Partia
   if (!log) return;
   const timeEntries = log.timeEntries.map((e, i) => (i === entryIndex ? { ...e, ...patch } : e));
   void store.update(logId, { timeEntries });
+  if (patch.activityId !== undefined) void syncActivityStatusFromTimeEntries(timeEntries);
 }
 
 /** Adds a new time entry row to an existing log. */
@@ -161,6 +201,7 @@ export function addTimeEntry(logId: string, entry: DailyTimeEntry) {
   const log = store.getSnapshot().find((l) => l.id === logId);
   if (!log) return;
   void store.update(logId, { timeEntries: [...log.timeEntries, entry] });
+  void syncActivityStatusFromTimeEntries([entry]);
 }
 
 export function removeTimeEntry(logId: string, entryIndex: number) {

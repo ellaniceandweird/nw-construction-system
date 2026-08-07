@@ -78,14 +78,20 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
 
   async function onSubmit(values: ProjectFormValues) {
     const property = properties.find((p) => p.id === values.propertyId);
-    const entity = billingEntities.find((b) => b.id === values.billingEntityId);
+    // Always re-derive billing entity fresh from whatever property is
+    // currently selected — a project's stored billingEntityId can go
+    // stale (e.g. if it predates this auto-fill, or the property's own
+    // billing entity changed since), so this is the single source of
+    // truth at save time rather than trusting old form/stored values.
+    const derivedBillingEntityId = property?.billingEntityId || values.billingEntityId || existingProject?.billingEntityId || "";
+    const entity = billingEntities.find((b) => b.id === derivedBillingEntityId);
     const input = {
       projectNumber: existingProject?.projectNumber ?? `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
       projectName: values.projectName || existingProject?.projectName || "Untitled Project",
       propertyId: values.propertyId || existingProject?.propertyId || "",
       propertyName: property?.name ?? property?.address ?? existingProject?.propertyName ?? "",
       clientName: entity?.companyName ?? existingProject?.clientName ?? "",
-      billingEntityId: values.billingEntityId || existingProject?.billingEntityId || "",
+      billingEntityId: derivedBillingEntityId,
       address: {
         street: property?.address ?? existingProject?.address.street ?? "",
         city: property?.town ?? existingProject?.address.city ?? "",

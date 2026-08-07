@@ -17,6 +17,7 @@ function fromRow(row: Record<string, any>): FieldWorkerInvoice {
     totalHours: Number(row.total_hours ?? 0),
     totalAmount: Number(row.total_amount ?? 0),
     generatedDate: row.generated_date ?? new Date().toISOString(),
+    paymentDueDate: row.payment_due_date ?? undefined,
     createdBy: row.created_by ?? "system",
     createdDate: row.created_date ?? new Date().toISOString(),
     lastModifiedBy: row.last_modified_by ?? "system",
@@ -41,6 +42,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.totalHours !== undefined) row.total_hours = input.totalHours;
   if (input.totalAmount !== undefined) row.total_amount = input.totalAmount;
   if (input.generatedDate !== undefined) row.generated_date = input.generatedDate || null;
+  if (input.paymentDueDate !== undefined) row.payment_due_date = input.paymentDueDate || null;
   row.last_modified_date = new Date().toISOString();
   return row;
 }
@@ -70,13 +72,38 @@ function nextId(): string {
   return `FWI-${String(maxNum + 1).padStart(6, "0")}`;
 }
 
-export function saveFieldWorkerInvoices(drafts: FieldWorkerInvoiceDraft[]) {
+export interface SaveInvoicesOptions {
+  /** If provided, invoices in this batch get sequential numbers starting here instead of the auto FWI-YYYY-#### scheme. */
+  startingInvoiceNumber?: string;
+  /** Applied to every invoice in this batch. */
+  paymentDueDate?: string;
+}
+
+export async function saveFieldWorkerInvoices(drafts: FieldWorkerInvoiceDraft[], options: SaveInvoicesOptions = {}): Promise<{ ok: boolean; error?: string }> {
   const year = new Date().getFullYear();
-  for (const draft of drafts) {
+  // Only the *trailing* run of digits increments — e.g. "FWI-2026-0100"
+  // keeps "FWI-2026-" as the prefix and counts up from 100, so the next
+  // invoice becomes "FWI-2026-0101", not something mangled.
+  const trailingNumberMatch = options.startingInvoiceNumber?.match(/^(.*?)(\d+)$/);
+  const startPrefix = trailingNumberMatch?.[1] ?? "";
+  const startNum = trailingNumberMatch ? parseInt(trailingNumberMatch[2], 10) : null;
+  const startDigits = trailingNumberMatch?.[2].length ?? 0;
+  for (let i = 0; i < drafts.length; i++) {
+    const draft = drafts[i];
     const id = nextId();
-    const invoiceNumber = `FWI-${year}-${String(store.getSnapshot().length + 1).padStart(4, "0")}`;
-    void store.create({ id, invoiceNumber, ...draft });
+    const invoiceNumber =
+      options.startingInvoiceNumber && startNum !== null
+        ? `${startPrefix}${String(startNum + i).padStart(startDigits, "0")}`
+        : `FWI-${year}-${String(store.getSnapshot().length + 1).padStart(4, "0")}`;
+    const result = await store.create({
+      id,
+      invoiceNumber,
+      paymentDueDate: options.paymentDueDate || undefined,
+      ...draft,
+    });
+    if (result === null) return { ok: false, error: store.getLastError() ?? undefined };
   }
+  return { ok: true };
 }
 
 export function deleteFieldWorkerInvoice(id: string) {

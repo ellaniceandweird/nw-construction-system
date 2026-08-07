@@ -18,6 +18,7 @@ import { useProperties } from "@/hooks/use-properties";
 import { useProjects } from "@/hooks/use-projects";
 import { generateFieldWorkerInvoices } from "@/lib/field-operations/field-worker-invoice-generation";
 import { saveFieldWorkerInvoices } from "@/lib/field-operations/field-worker-invoice-store";
+import { showErrorToast } from "@/lib/toast/toast-store";
 import type { FieldWorkerInvoiceDraft } from "@/lib/field-operations/field-worker-invoice-store";
 
 interface Props { open: boolean; onOpenChange: (open: boolean) => void; }
@@ -34,12 +35,17 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
 
   const [payPeriodStart, setPayPeriodStart] = React.useState("");
   const [payPeriodEnd, setPayPeriodEnd] = React.useState("");
+  const [startingInvoiceNumber, setStartingInvoiceNumber] = React.useState("");
+  const [paymentDueDate, setPaymentDueDate] = React.useState("");
   const [preview, setPreview] = React.useState<FieldWorkerInvoiceDraft[] | null>(null);
   const [saved, setSaved] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
 
   function reset() {
     setPayPeriodStart("");
     setPayPeriodEnd("");
+    setStartingInvoiceNumber("");
+    setPaymentDueDate("");
     setPreview(null);
     setSaved(false);
   }
@@ -53,9 +59,18 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
     setPreview(drafts);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!preview) return;
-    saveFieldWorkerInvoices(preview);
+    setSaving(true);
+    const result = await saveFieldWorkerInvoices(preview, {
+      startingInvoiceNumber: startingInvoiceNumber || undefined,
+      paymentDueDate: paymentDueDate || undefined,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save these invoices — check your connection and try again.");
+      return;
+    }
     setSaved(true);
   }
 
@@ -98,6 +113,18 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
                       </p>
                     )}
                     <p className="text-sm text-muted-foreground">{preview.length} invoice{preview.length === 1 ? "" : "s"} will be created:</p>
+                    <div className="grid grid-cols-2 gap-4 rounded-md border border-border p-3">
+                      <div>
+                        <Label htmlFor="startingInvoiceNumber">Starting Invoice # (optional)</Label>
+                        <Input id="startingInvoiceNumber" className="mt-1.5" placeholder="e.g. FWI-2026-0100" value={startingInvoiceNumber} onChange={(e) => setStartingInvoiceNumber(e.target.value)} />
+                        <p className="mt-1 text-xs text-muted-foreground">Leave blank to auto-number as usual. If set, each invoice in this batch gets the next number in sequence.</p>
+                      </div>
+                      <div>
+                        <Label htmlFor="paymentDueDate">Payment Due Date (optional)</Label>
+                        <Input id="paymentDueDate" type="date" className="mt-1.5" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} />
+                        <p className="mt-1 text-xs text-muted-foreground">Applied to every invoice in this batch, and shown when printed.</p>
+                      </div>
+                    </div>
                     <div className="flex max-h-72 flex-col gap-2 overflow-y-auto">
                       {preview.map((inv) => (
                         <div key={inv.employeeId} className="flex items-center justify-between rounded-md border border-border p-2.5 text-sm">
@@ -127,7 +154,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter>
           {!saved && preview && preview.length > 0 && (
-            <Button onClick={handleSave}>Save {preview.length} Invoice{preview.length === 1 ? "" : "s"}</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving…" : `Save ${preview.length} Invoice${preview.length === 1 ? "" : "s"}`}</Button>
           )}
           {saved && <Button onClick={() => onOpenChange(false)}>Done</Button>}
         </DialogFooter>

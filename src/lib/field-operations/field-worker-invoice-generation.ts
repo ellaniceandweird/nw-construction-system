@@ -4,6 +4,10 @@ import type { Property } from "@/types/maintenance";
 import type { FieldWorkerInvoice, FieldWorkerInvoiceLineItem } from "@/types/field-worker-invoices";
 import type { Project } from "@/types/project";
 import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
+import { MANUAL_ACTIVITY_ID } from "@/lib/field-operations/daily-log-store";
+
+/** Standing cost code for any daily log entry logged as a manual (not schedule-linked) activity. */
+const MANUAL_ENTRY_COST_CODE = "01090";
 
 interface GenerateOptions {
   payPeriodStart: string;
@@ -47,7 +51,7 @@ export function generateFieldWorkerInvoices(
         projectId: entry.projectId,
         billingEntityId,
         activity: entry.activityDescription || "General Work",
-        costCode: rate?.defaultCostCode,
+        costCode: entry.activityId === MANUAL_ACTIVITY_ID ? MANUAL_ENTRY_COST_CODE : rate?.defaultCostCode,
         regularHours: entry.regularHours,
         overtimeHours: entry.overtimeHours,
         regularRate,
