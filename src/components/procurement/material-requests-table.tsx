@@ -98,6 +98,7 @@ export function MaterialRequestsTable() {
               <th className="px-4 py-3 font-medium">Description</th>
               <th className="px-4 py-3 font-medium">Quantity</th>
               <th className="px-4 py-3 font-medium">Needed By</th>
+              <th className="px-4 py-3 font-medium">Budget</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Reference</th>
               <th className="px-4 py-3 font-medium">Notes</th>
@@ -121,6 +122,9 @@ export function MaterialRequestsTable() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatDate(mr.requiredOnSiteDate)}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                    {mr.estimatedCost != null ? mr.estimatedCost.toLocaleString("en-US", { style: "currency", currency: "USD" }) : "—"}
                   </td>
                   <td className="px-4 py-3">
                     <Select
@@ -167,7 +171,7 @@ export function MaterialRequestsTable() {
               );
             })}
             {sorted.length === 0 && (
-              <tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">No material requests yet — click &quot;Add Entry&quot; above.</td></tr>
+              <tr><td colSpan={11} className="px-4 py-6 text-center text-muted-foreground">No material requests yet — click &quot;Add Entry&quot; above.</td></tr>
             )}
           </tbody>
         </table>

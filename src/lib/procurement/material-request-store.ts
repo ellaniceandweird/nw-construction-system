@@ -46,6 +46,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.requiredOnSiteDate !== undefined) row.required_on_site_date = input.requiredOnSiteDate || null;
   if (input.approvalStatus !== undefined) row.approval_status = input.approvalStatus;
   if (input.notes !== undefined) row.notes = input.notes;
+  if (input.estimatedCost !== undefined) row.estimated_cost = input.estimatedCost;
   if (input.referenceUrl !== undefined) row.reference_url = input.referenceUrl;
   if (input.requestStatus !== undefined) row.request_status = input.requestStatus;
   if (input.lineItems !== undefined) row.line_items = input.lineItems;
@@ -65,9 +66,18 @@ export const subscribeMaterialRequests = store.subscribe;
 export const getMaterialRequestsSnapshot = store.getSnapshot;
 
 export interface MaterialRequestEditInput {
+  projectId?: string;
+  propertyId?: string;
+  propertyName?: string;
+  requestedBy?: string;
+  priority?: MaterialRequest["priority"];
+  requestDate?: string;
+  requiredOnSiteDate?: string;
+  estimatedCost?: number;
   requestStatus: MaterialRequestStatus;
   notes?: string;
   referenceUrl?: string;
+  lineItems?: MaterialRequest["lineItems"];
 }
 
 export async function updateMaterialRequest(id: string, input: MaterialRequestEditInput): Promise<{ ok: boolean; error?: string }> {
