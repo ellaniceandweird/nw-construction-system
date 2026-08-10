@@ -110,6 +110,7 @@ export function FieldWorkerInvoicesTable() {
           <td class="right">${li.regularHours}</td>
           <td class="right">${li.overtimeHours}</td>
           <td class="right">${currency(li.regularRate)}</td>
+          <td class="right">${currency(li.overtimeRate)}</td>
           <td class="right">${currency(li.amount)}</td>
         </tr>`
       )
@@ -128,7 +129,6 @@ export function FieldWorkerInvoicesTable() {
         </div>
         <div style="text-align:right; font-size:13px; color:#374151;">
           <p style="margin:0; font-size:16px; font-weight:700; color:#111827;">${escapeHtml(inv.invoiceNumber)}</p>
-          <p style="margin:2px 0 0;">Generated ${formatDate(inv.generatedDate)}</p>
         </div>
       </div>
 
@@ -148,7 +148,7 @@ export function FieldWorkerInvoicesTable() {
       </div>
 
       <table style="border:1px solid #e5e7eb; border-radius:6px; overflow:hidden;">
-        <thead><tr><th>Date</th><th>Billing Entity</th><th>Project</th><th>Cost Code</th><th>Work Performed</th><th class="right">Reg Hrs</th><th class="right">OT Hrs</th><th class="right">Rate</th><th class="right">Amount</th></tr></thead>
+        <thead><tr><th>Date</th><th>Billing Entity</th><th>Project</th><th>Cost Code</th><th>Work Performed</th><th class="right">Reg Hrs</th><th class="right">OT Hrs</th><th class="right">Reg Rate</th><th class="right">OT Rate</th><th class="right">Amount</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
 

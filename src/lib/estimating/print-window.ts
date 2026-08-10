@@ -44,6 +44,7 @@ export function openPrintWindow(title: string, bodyHtml: string) {
           .total-row td { border-top: 2px solid #111827; border-bottom: none; font-weight: 700; font-size: 13px; padding-top: 8px; }
           .subtotal-row td { color: #4b5563; }
           .header { border-bottom: 1px solid #111827; padding-bottom: 12px; margin-bottom: 16px; }
+          @page { margin: 0.5in; }
           @media print {
             body { padding: 0; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
