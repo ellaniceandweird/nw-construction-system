@@ -75,8 +75,10 @@ function nextId(): string {
 }
 
 export interface SaveInvoicesOptions {
-  /** If provided, every invoice in this batch (all employees, all coverage dates in this pay period) shares this same number. */
+  /** If provided, every invoice in this batch (all employees, all coverage dates in this pay period) shares this same number, unless overridden per-worker below. */
   invoiceNumber?: string;
+  /** Per-worker overrides, keyed by employeeId — takes priority over invoiceNumber above. Lets each crew member's invoice follow their own numbering sequence (e.g. based on hire date). */
+  invoiceNumbersByEmployeeId?: Record<string, string>;
   /** Applied to every invoice in this batch. */
   paymentDueDate?: string;
   /** Applied to every invoice in this batch. Undefined means "decide automatically per invoice." */
@@ -89,7 +91,9 @@ export async function saveFieldWorkerInvoices(drafts: FieldWorkerInvoiceDraft[],
     const draft = drafts[i];
     const id = nextId();
     const invoiceNumber =
-      options.invoiceNumber || `FWI-${year}-${String(store.getSnapshot().length + 1).padStart(4, "0")}`;
+      options.invoiceNumbersByEmployeeId?.[draft.employeeId] ||
+      options.invoiceNumber ||
+      `FWI-${year}-${String(store.getSnapshot().length + 1).padStart(4, "0")}`;
     const result = await store.create({
       id,
       invoiceNumber,

@@ -37,6 +37,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
   const [payPeriodStart, setPayPeriodStart] = React.useState("");
   const [payPeriodEnd, setPayPeriodEnd] = React.useState("");
   const [invoiceNumberInput, setInvoiceNumberInput] = React.useState("");
+  const [perWorkerInvoiceNumbers, setPerWorkerInvoiceNumbers] = React.useState<Record<string, string>>({});
   const [paymentDueDate, setPaymentDueDate] = React.useState("");
   const [showOvertimeColumns, setShowOvertimeColumns] = React.useState(true);
   const [preview, setPreview] = React.useState<FieldWorkerInvoiceDraft[] | null>(null);
@@ -47,6 +48,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
     setPayPeriodStart("");
     setPayPeriodEnd("");
     setInvoiceNumberInput("");
+    setPerWorkerInvoiceNumbers({});
     setPaymentDueDate("");
     setPreview(null);
     setSaved(false);
@@ -69,6 +71,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
     setSaving(true);
     const result = await saveFieldWorkerInvoices(preview, {
       invoiceNumber: invoiceNumberInput || undefined,
+      invoiceNumbersByEmployeeId: perWorkerInvoiceNumbers,
       paymentDueDate: paymentDueDate || undefined,
       showOvertimeColumns,
     });
@@ -121,9 +124,9 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
                     <p className="text-sm text-muted-foreground">{preview.length} invoice{preview.length === 1 ? "" : "s"} will be created:</p>
                     <div className="grid grid-cols-2 gap-4 rounded-md border border-border p-3">
                       <div>
-                        <Label htmlFor="invoiceNumberInput">Invoice # (optional)</Label>
+                        <Label htmlFor="invoiceNumberInput">Invoice # for everyone (optional)</Label>
                         <Input id="invoiceNumberInput" className="mt-1.5" placeholder="e.g. FWI-2026-0100" value={invoiceNumberInput} onChange={(e) => setInvoiceNumberInput(e.target.value)} />
-                        <p className="mt-1 text-xs text-muted-foreground">Leave blank to auto-number as usual. If set, every invoice in this batch — every worker, every coverage date in this pay period — shares this exact number.</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Leave blank to auto-number as usual, or set a shared number here. Either way, you can still set a different number for an individual worker below — that takes priority over this.</p>
                       </div>
                       <div>
                         <Label htmlFor="paymentDueDate">Payment Due Date (optional)</Label>
@@ -139,12 +142,18 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
                     </div>
                     <div className="flex max-h-72 flex-col gap-2 overflow-y-auto">
                       {preview.map((inv) => (
-                        <div key={inv.employeeId} className="flex items-center justify-between rounded-md border border-border p-2.5 text-sm">
-                          <div>
+                        <div key={inv.employeeId} className="flex items-center justify-between gap-3 rounded-md border border-border p-2.5 text-sm">
+                          <div className="min-w-0 flex-1">
                             <p className="font-medium text-foreground">{inv.employeeName}</p>
                             <p className="text-xs text-muted-foreground">{inv.trade} · {inv.lineItems.length} day{inv.lineItems.length === 1 ? "" : "s"} · {inv.totalHours.toFixed(1)} hrs</p>
                           </div>
-                          <span className={`font-medium ${inv.lineItems.some((li) => li.regularRate === 0) ? "text-warning-foreground" : "text-foreground"}`}>
+                          <Input
+                            className="h-8 w-36 shrink-0 text-xs"
+                            placeholder="Invoice #"
+                            value={perWorkerInvoiceNumbers[inv.employeeId] ?? ""}
+                            onChange={(e) => setPerWorkerInvoiceNumbers((prev) => ({ ...prev, [inv.employeeId]: e.target.value }))}
+                          />
+                          <span className={`shrink-0 font-medium ${inv.lineItems.some((li) => li.regularRate === 0) ? "text-warning-foreground" : "text-foreground"}`}>
                             {currency(inv.totalAmount)}
                           </span>
                         </div>

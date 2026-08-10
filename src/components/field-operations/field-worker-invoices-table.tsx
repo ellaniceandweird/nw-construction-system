@@ -128,7 +128,13 @@ export function FieldWorkerInvoicesTable() {
       <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #111827; padding-bottom:16px; margin-bottom:20px;">
         <div>
           <h1 style="font-size:20px; margin:0 0 2px;">Nice &amp; Weird Group</h1>
-          <p style="margin:0; color:#6b7280;">Field Worker Invoice</p>
+          <p style="margin:0 0 12px; color:#6b7280;">Field Worker Invoice</p>
+          <div>
+            <p style="margin:0; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:#9ca3af;">Bill To</p>
+            <p style="margin:2px 0 0; font-size:13px; color:#111827;">Nice and Weird Construction LLC</p>
+            <p style="margin:0; font-size:13px; color:#111827;">335 Main Street, Suite 13</p>
+            <p style="margin:0; font-size:13px; color:#111827;">Catskill, NY 12414</p>
+          </div>
         </div>
         <div style="text-align:right; font-size:13px; color:#374151;">
           <p style="margin:0; font-size:16px; font-weight:700; color:#111827;">${escapeHtml(inv.invoiceNumber)}</p>
