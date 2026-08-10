@@ -10,6 +10,8 @@ const BAR_COLOR: Record<string, string> = {
   cancelled: "#9ca3af",
 };
 
+const LABEL_COLUMN_WIDTH = 180; // px — must match on every row, including the header
+
 export interface GanttPrintItem {
   label: string;
   sublabel: string;
@@ -31,22 +33,37 @@ export interface WeekMarker {
 }
 
 /**
- * Builds a real bar-chart lookahead print document (not just a data
- * table) — every bar is an absolutely-positioned inline-styled <div>
- * inside a relatively-positioned row, exactly matching the percentages
- * used by the on-screen chart. Self-contained HTML for openPrintWindow,
- * so nothing depends on the app's own CSS bundle.
+ * Builds a real bar-chart lookahead print document. Every row — including
+ * the week-header row itself — uses the exact same two-column layout: a
+ * fixed LABEL_COLUMN_WIDTH title column on the left, then a flexible bar
+ * area on the right where week gridlines and activity bars share the same
+ * percentage coordinate space. This is what keeps the header dates,
+ * gridlines, and bars all lined up with each other — previously the week
+ * header ignored the label column's width entirely, so every date was
+ * shifted left of where its gridline/bars actually were.
  */
+function buildWeekHeaderRow(weekMarkers: WeekMarker[]): string {
+  return `
+    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:4px;">
+      <div style="width:${LABEL_COLUMN_WIDTH}px;flex-shrink:0;font-size:10px;font-weight:600;color:#374151;">Activities</div>
+      <div style="position:relative;flex:1;height:16px;border-left:1px solid #d1d5db;border-bottom:1px solid #d1d5db;">
+        ${weekMarkers
+          .map(
+            (w) =>
+              `<div style="position:absolute;top:0;left:${w.leftPercent}%;padding-left:3px;font-size:9px;color:#6b7280;white-space:nowrap;">${escapeHtml(w.label)}</div>`
+          )
+          .join("")}
+      </div>
+    </div>`;
+}
+
 export function buildLookaheadGanttHtml(
   title: string,
   weekMarkers: WeekMarker[],
   groups: GanttPrintGroup[]
 ): string {
-  const markerHtml = weekMarkers
-    .map(
-      (w) =>
-        `<div style="position:absolute;top:0;left:${w.leftPercent}%;border-left:1px solid #d1d5db;padding-left:3px;font-size:9px;color:#6b7280;">${escapeHtml(w.label)}</div>`
-    )
+  const gridlinesHtml = weekMarkers
+    .map((w) => `<div style="position:absolute;top:0;left:${w.leftPercent}%;height:100%;border-left:1px solid #f3f4f6;"></div>`)
     .join("");
 
   const sections = groups
@@ -55,16 +72,13 @@ export function buildLookaheadGanttHtml(
         ? group.items
             .map((item) => {
               const color = BAR_COLOR[item.status] ?? "#9ca3af";
-              const gridlines = weekMarkers
-                .map((w) => `<div style="position:absolute;top:0;left:${w.leftPercent}%;height:100%;border-left:1px solid #f3f4f6;"></div>`)
-                .join("");
               return `
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                  <div style="width:160px;flex-shrink:0;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(item.label)}">
+                  <div style="width:${LABEL_COLUMN_WIDTH}px;flex-shrink:0;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(item.label)}">
                     ${item.isSubActivity ? "&#8618; " : ""}${escapeHtml(item.label)}
                   </div>
                   <div style="position:relative;flex:1;height:16px;border-left:1px solid #e5e7eb;">
-                    ${gridlines}
+                    ${gridlinesHtml}
                     <div
                       title="${escapeHtml(item.label)}: ${escapeHtml(item.sublabel)}"
                       style="position:absolute;top:2px;height:12px;border-radius:2px;left:${item.leftPercent}%;width:${Math.max(item.widthPercent, 0.6)}%;background:${color};${item.isCritical ? "outline:1px solid #111827;" : ""}"
@@ -73,11 +87,11 @@ export function buildLookaheadGanttHtml(
                 </div>`;
             })
             .join("")
-        : `<p style="font-size:10px;color:#6b7280;">No activities scheduled in this window.</p>`;
+        : `<div style="display:flex;gap:8px;"><div style="width:${LABEL_COLUMN_WIDTH}px;flex-shrink:0;"></div><p style="font-size:10px;color:#6b7280;margin:0;">No activities scheduled in this window.</p></div>`;
 
       return `
-        <h3>${escapeHtml(group.projectName)}</h3>
-        <div style="position:relative;height:16px;margin-bottom:6px;border-bottom:1px solid #d1d5db;">${markerHtml}</div>
+        <h3 style="margin-bottom:4px;">${escapeHtml(group.projectName)}</h3>
+        ${buildWeekHeaderRow(weekMarkers)}
         ${rows}`;
     })
     .join("<div style=\"margin-top:16px;\"></div>");

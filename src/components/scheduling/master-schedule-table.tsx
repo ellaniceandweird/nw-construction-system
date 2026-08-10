@@ -128,12 +128,18 @@ export function MasterScheduleTable() {
     return [...groups.entries()]
       .map(([projectId, projectActivities]) => {
         const project = projects.find((p) => p.id === projectId);
-        const start = projectActivities.reduce((min, a) => (a.plannedStart < min ? a.plannedStart : min), projectActivities[0].plannedStart);
-        const finish = projectActivities.reduce((max, a) => (a.plannedFinish > max ? a.plannedFinish : max), projectActivities[0].plannedFinish);
+        const activityStart = projectActivities.reduce((min, a) => (a.plannedStart < min ? a.plannedStart : min), projectActivities[0].plannedStart);
+        const activityFinish = projectActivities.reduce((max, a) => (a.plannedFinish > max ? a.plannedFinish : max), projectActivities[0].plannedFinish);
+        // The project's own Start Date / Target Completion Date (set in
+        // Project Management) is the source of truth for what's shown
+        // here — falls back to the activity-derived range only if the
+        // project doesn't have its own dates set yet.
+        const start = project?.startDate || activityStart;
+        const finish = project?.plannedCompletionDate || activityFinish;
         return { projectId, projectName: project?.projectName ?? "—", activities: projectActivities, start, finish };
       })
       .sort((a, b) => a.start.localeCompare(b.start));
-  }, [filtered]);
+  }, [filtered, projects]);
 
   function handlePrint() {
     try {
