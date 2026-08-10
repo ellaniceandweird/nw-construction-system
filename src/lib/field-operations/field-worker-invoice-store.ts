@@ -97,6 +97,19 @@ export async function saveFieldWorkerInvoices(drafts: FieldWorkerInvoiceDraft[],
   return { ok: true };
 }
 
+export interface FieldWorkerInvoiceEditInput {
+  invoiceNumber?: string;
+  paymentDueDate?: string;
+  lineItems?: FieldWorkerInvoiceDraft["lineItems"];
+  totalHours?: number;
+  totalAmount?: number;
+}
+
+export async function updateFieldWorkerInvoice(id: string, input: FieldWorkerInvoiceEditInput): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, input);
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
+}
+
 export function deleteFieldWorkerInvoice(id: string) {
   void store.remove(id);
 }

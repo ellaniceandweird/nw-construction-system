@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Sparkles, ChevronRight, Trash2, Download, Printer, Search, ArrowUpDown } from "lucide-react";
+import { Sparkles, ChevronRight, Trash2, Download, Printer, Search, ArrowUpDown, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,9 @@ import { useProjects } from "@/hooks/use-projects";
 import { useProperties } from "@/hooks/use-properties";
 import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
 import { GenerateInvoicesDialog } from "@/components/field-operations/generate-invoices-dialog";
+import { FieldWorkerInvoiceEditDialog } from "@/components/field-operations/field-worker-invoice-edit-dialog";
 import type { Project } from "@/types/project";
+import type { FieldWorkerInvoice } from "@/types/field-worker-invoices";
 
 function currency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -38,6 +40,7 @@ export function FieldWorkerInvoicesTable() {
   const allInvoices = useFieldWorkerInvoices();
   const billingEntities = useBillingEntities();
   const [generating, setGenerating] = React.useState(false);
+  const [editingInvoice, setEditingInvoice] = React.useState<FieldWorkerInvoice | null>(null);
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [search, setSearch] = React.useState("");
   const [sortBy, setSortBy] = React.useState<"period_desc" | "period_asc" | "amount_desc" | "amount_asc">("period_desc");
@@ -172,6 +175,7 @@ export function FieldWorkerInvoicesTable() {
               <th className="px-4 py-3 font-medium">Pay Period</th>
               <th className="px-4 py-3 font-medium">Total Hours</th>
               <th className="px-4 py-3 font-medium">Total Amount</th>
+              <th className="px-4 py-3 font-medium">Edit</th>
               <th className="px-4 py-3 font-medium">Print</th>
               <th className="px-4 py-3 font-medium">Delete</th>
             </tr>
@@ -192,12 +196,13 @@ export function FieldWorkerInvoicesTable() {
                     <td className="px-4 py-3 text-muted-foreground">{formatDate(inv.payPeriodStart)} – {formatDate(inv.payPeriodEnd)}</td>
                     <td className="px-4 py-3 text-muted-foreground">{inv.totalHours.toFixed(1)}</td>
                     <td className="px-4 py-3 font-medium text-foreground">{currency(inv.totalAmount)}</td>
+                    <td className="px-4 py-3"><Button variant="ghost" size="icon" onClick={() => setEditingInvoice(inv)}><Pencil className="size-3.5" /></Button></td>
                     <td className="px-4 py-3"><Button variant="ghost" size="icon" onClick={() => handlePrintInvoice(inv.id)}><Printer className="size-3.5" /></Button></td>
                     <td className="px-4 py-3"><Button variant="ghost" size="icon" onClick={() => deleteFieldWorkerInvoice(inv.id)}><Trash2 className="size-3.5 text-destructive" /></Button></td>
                   </tr>
                   {isExpanded && (
                     <tr>
-                      <td colSpan={7} className="bg-muted/20 px-4 pb-4 pt-1">
+                      <td colSpan={8} className="bg-muted/20 px-4 pb-4 pt-1">
                         <Card className="overflow-x-auto py-0">
                           <table className="w-full text-sm">
                             <thead>
@@ -237,13 +242,14 @@ export function FieldWorkerInvoicesTable() {
               );
             })}
             {sorted.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">No invoices generated yet — click &quot;Generate Invoices&quot; above.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">No invoices generated yet — click &quot;Generate Invoices&quot; above.</td></tr>
             )}
           </tbody>
         </table>
       </Card>
 
       <GenerateInvoicesDialog open={generating} onOpenChange={setGenerating} />
+      <FieldWorkerInvoiceEditDialog invoice={editingInvoice} open={!!editingInvoice} onOpenChange={(open) => !open && setEditingInvoice(null)} />
     </>
   );
 }
