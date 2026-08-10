@@ -31,6 +31,8 @@ export interface FieldWorkerInvoice extends BaseEntity {
   payPeriodStart: string;
   payPeriodEnd: string;
   paymentDueDate?: string;
+  /** Whether to show the OT Hrs / OT Rate columns when printed. Undefined means "decide automatically based on whether any line item actually has overtime hours." */
+  showOvertimeColumns?: boolean;
   lineItems: FieldWorkerInvoiceLineItem[];
   totalHours: number;
   totalAmount: number;

@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
@@ -37,6 +38,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
   const [payPeriodEnd, setPayPeriodEnd] = React.useState("");
   const [invoiceNumberInput, setInvoiceNumberInput] = React.useState("");
   const [paymentDueDate, setPaymentDueDate] = React.useState("");
+  const [showOvertimeColumns, setShowOvertimeColumns] = React.useState(true);
   const [preview, setPreview] = React.useState<FieldWorkerInvoiceDraft[] | null>(null);
   const [saved, setSaved] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -57,6 +59,9 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
       payPeriodEnd,
     });
     setPreview(drafts);
+    // Default the checkbox based on whether this batch actually has any
+    // overtime hours — no point showing empty OT columns by default.
+    setShowOvertimeColumns(drafts.some((d) => d.lineItems.some((li) => li.overtimeHours > 0)));
   }
 
   async function handleSave() {
@@ -65,6 +70,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
     const result = await saveFieldWorkerInvoices(preview, {
       invoiceNumber: invoiceNumberInput || undefined,
       paymentDueDate: paymentDueDate || undefined,
+      showOvertimeColumns,
     });
     setSaving(false);
     if (!result.ok) {
@@ -124,6 +130,12 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
                         <Input id="paymentDueDate" type="date" className="mt-1.5" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} />
                         <p className="mt-1 text-xs text-muted-foreground">Applied to every invoice in this batch, and shown when printed.</p>
                       </div>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-md border border-border p-3">
+                      <Checkbox id="showOvertimeColumns" checked={showOvertimeColumns} onCheckedChange={(checked) => setShowOvertimeColumns(checked === true)} />
+                      <Label htmlFor="showOvertimeColumns" className="font-normal">
+                        Show OT Hrs / OT Rate columns when these invoices are printed
+                      </Label>
                     </div>
                     <div className="flex max-h-72 flex-col gap-2 overflow-y-auto">
                       {preview.map((inv) => (

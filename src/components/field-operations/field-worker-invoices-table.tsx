@@ -98,6 +98,9 @@ export function FieldWorkerInvoicesTable() {
   function handlePrintInvoice(invoiceId: string) {
     const inv = sorted.find((i) => i.id === invoiceId);
     if (!inv) return;
+    const hasAnyOvertime = inv.lineItems.some((li) => li.overtimeHours > 0);
+    const showOt = inv.showOvertimeColumns ?? hasAnyOvertime;
+
     const rows = inv.lineItems
       .map(
         (li, i) => `
@@ -108,9 +111,9 @@ export function FieldWorkerInvoicesTable() {
           <td>${escapeHtml(li.costCode ?? "—")}</td>
           <td>${escapeHtml(li.activity)}</td>
           <td class="right">${li.regularHours}</td>
-          <td class="right">${li.overtimeHours}</td>
+          ${showOt ? `<td class="right">${li.overtimeHours}</td>` : ""}
           <td class="right">${currency(li.regularRate)}</td>
-          <td class="right">${currency(li.overtimeRate)}</td>
+          ${showOt ? `<td class="right">${currency(li.overtimeRate)}</td>` : ""}
           <td class="right">${currency(li.amount)}</td>
         </tr>`
       )
@@ -148,7 +151,7 @@ export function FieldWorkerInvoicesTable() {
       </div>
 
       <table style="border:1px solid #e5e7eb; border-radius:6px; overflow:hidden;">
-        <thead><tr><th>Date</th><th>Billing Entity</th><th>Project</th><th>Cost Code</th><th>Work Performed</th><th class="right">Reg Hrs</th><th class="right">OT Hrs</th><th class="right">Reg Rate</th><th class="right">OT Rate</th><th class="right">Amount</th></tr></thead>
+        <thead><tr><th>Date</th><th>Billing Entity</th><th>Project</th><th>Cost Code</th><th>Work Performed</th><th class="right">Reg Hrs</th>${showOt ? '<th class="right">OT Hrs</th>' : ""}<th class="right">Reg Rate</th>${showOt ? '<th class="right">OT Rate</th>' : ""}<th class="right">Amount</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
 
@@ -157,14 +160,16 @@ export function FieldWorkerInvoicesTable() {
           <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:#4b5563;">
             <span>Regular Hours</span><span>${totalRegHours}h</span>
           </div>
-          <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:#4b5563;">
+          ${showOt ? `<div style="display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:#4b5563;">
             <span>Overtime Hours</span><span>${totalOtHours}h</span>
-          </div>
+          </div>` : ""}
           <div style="display:flex; justify-content:space-between; padding:10px 0 0; margin-top:6px; border-top:2px solid #111827; font-size:15px; font-weight:700; color:#111827;">
             <span>Total Due</span><span>${currency(inv.totalAmount)}</span>
           </div>
         </div>
       </div>
+
+      <p style="margin-top:28px; font-size:12px; color:#4b5563;">Please make all checks payable to <strong style="color:#111827;">${escapeHtml(inv.employeeName)}</strong>.</p>
       `
     );
   }

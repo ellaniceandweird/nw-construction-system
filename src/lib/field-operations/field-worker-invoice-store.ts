@@ -18,6 +18,7 @@ function fromRow(row: Record<string, any>): FieldWorkerInvoice {
     totalAmount: Number(row.total_amount ?? 0),
     generatedDate: row.generated_date ?? new Date().toISOString(),
     paymentDueDate: row.payment_due_date ?? undefined,
+    showOvertimeColumns: row.show_overtime_columns ?? undefined,
     createdBy: row.created_by ?? "system",
     createdDate: row.created_date ?? new Date().toISOString(),
     lastModifiedBy: row.last_modified_by ?? "system",
@@ -43,6 +44,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.totalAmount !== undefined) row.total_amount = input.totalAmount;
   if (input.generatedDate !== undefined) row.generated_date = input.generatedDate || null;
   if (input.paymentDueDate !== undefined) row.payment_due_date = input.paymentDueDate || null;
+  if (input.showOvertimeColumns !== undefined) row.show_overtime_columns = input.showOvertimeColumns;
   row.last_modified_date = new Date().toISOString();
   return row;
 }
@@ -77,6 +79,8 @@ export interface SaveInvoicesOptions {
   invoiceNumber?: string;
   /** Applied to every invoice in this batch. */
   paymentDueDate?: string;
+  /** Applied to every invoice in this batch. Undefined means "decide automatically per invoice." */
+  showOvertimeColumns?: boolean;
 }
 
 export async function saveFieldWorkerInvoices(drafts: FieldWorkerInvoiceDraft[], options: SaveInvoicesOptions = {}): Promise<{ ok: boolean; error?: string }> {
@@ -90,6 +94,7 @@ export async function saveFieldWorkerInvoices(drafts: FieldWorkerInvoiceDraft[],
       id,
       invoiceNumber,
       paymentDueDate: options.paymentDueDate || undefined,
+      showOvertimeColumns: options.showOvertimeColumns,
       ...draft,
     });
     if (result === null) return { ok: false, error: store.getLastError() ?? undefined };
@@ -100,6 +105,7 @@ export async function saveFieldWorkerInvoices(drafts: FieldWorkerInvoiceDraft[],
 export interface FieldWorkerInvoiceEditInput {
   invoiceNumber?: string;
   paymentDueDate?: string;
+  showOvertimeColumns?: boolean;
   lineItems?: FieldWorkerInvoiceDraft["lineItems"];
   totalHours?: number;
   totalAmount?: number;

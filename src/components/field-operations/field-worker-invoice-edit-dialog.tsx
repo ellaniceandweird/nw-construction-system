@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProjects } from "@/hooks/use-projects";
 import { useProperties } from "@/hooks/use-properties";
@@ -36,6 +37,7 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
   const billingEntities = useBillingEntities();
   const [invoiceNumber, setInvoiceNumber] = React.useState("");
   const [paymentDueDate, setPaymentDueDate] = React.useState("");
+  const [showOvertimeColumns, setShowOvertimeColumns] = React.useState(true);
   const [lineItems, setLineItems] = React.useState<FieldWorkerInvoiceLineItem[]>([]);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -44,6 +46,7 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
     if (!open || !invoice) return;
     setInvoiceNumber(invoice.invoiceNumber);
     setPaymentDueDate(invoice.paymentDueDate ?? "");
+    setShowOvertimeColumns(invoice.showOvertimeColumns ?? invoice.lineItems.some((li) => li.overtimeHours > 0));
     setLineItems(
       invoice.lineItems.map((li) => {
         if (li.billingEntityId) return { ...li };
@@ -74,6 +77,7 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
     const result = await updateFieldWorkerInvoice(invoice.id, {
       invoiceNumber,
       paymentDueDate: paymentDueDate || undefined,
+      showOvertimeColumns,
       lineItems: computedLineItems,
       totalHours,
       totalAmount,
@@ -113,6 +117,13 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
             <Label htmlFor="paymentDueDate">Payment Due Date</Label>
             <Input id="paymentDueDate" type="date" className="mt-1.5" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} />
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 rounded-md border border-border p-3">
+          <Checkbox id="showOvertimeColumns" checked={showOvertimeColumns} onCheckedChange={(checked) => setShowOvertimeColumns(checked === true)} />
+          <Label htmlFor="showOvertimeColumns" className="font-normal">
+            Show OT Hrs / OT Rate columns when printed
+          </Label>
         </div>
 
         <div className="overflow-x-auto rounded-lg border border-border">
