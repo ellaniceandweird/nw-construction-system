@@ -15,7 +15,7 @@ import { useFieldWorkerInvoices } from "@/hooks/use-field-worker-invoices";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { deleteFieldWorkerInvoice } from "@/lib/field-operations/field-worker-invoice-store";
 import { exportToExcel } from "@/lib/financial/export-excel";
-import { openPrintWindow } from "@/lib/estimating/print-window";
+import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
 import { useProjects } from "@/hooks/use-projects";
 import { useProperties } from "@/hooks/use-properties";
 import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
@@ -100,36 +100,71 @@ export function FieldWorkerInvoicesTable() {
     if (!inv) return;
     const rows = inv.lineItems
       .map(
-        (li) => `
-        <tr>
+        (li, i) => `
+        <tr style="${i % 2 === 1 ? "background:#f9fafb;" : ""}">
           <td>${formatDate(li.date)}</td>
-          <td>${billingEntityName(li.billingEntityId, li.projectId)}</td>
-          <td>${projectName(li.projectId, projects, li.projectName)}</td>
-          <td>${li.costCode ?? "—"}</td>
-          <td>${li.activity}</td>
-          <td>${li.regularHours}</td>
-          <td>${li.overtimeHours}</td>
+          <td>${escapeHtml(billingEntityName(li.billingEntityId, li.projectId))}</td>
+          <td>${escapeHtml(projectName(li.projectId, projects, li.projectName))}</td>
+          <td>${escapeHtml(li.costCode ?? "—")}</td>
+          <td>${escapeHtml(li.activity)}</td>
+          <td class="right">${li.regularHours}</td>
+          <td class="right">${li.overtimeHours}</td>
           <td class="right">${currency(li.regularRate)}</td>
           <td class="right">${currency(li.amount)}</td>
         </tr>`
       )
       .join("");
 
+    const totalRegHours = inv.lineItems.reduce((s, li) => s + li.regularHours, 0);
+    const totalOtHours = inv.lineItems.reduce((s, li) => s + li.overtimeHours, 0);
+
     openPrintWindow(
-      `Invoice ${inv.invoiceNumber}`,
+      `${inv.invoiceNumber} ${inv.employeeName}`,
       `
-      <div class="header">
-        <h1>Nice &amp; Weird Group</h1>
-        <p>Field Worker Invoice — ${inv.employeeName}${inv.trade ? ` (${inv.trade})` : ""}</p>
-        <p>Invoice #: ${inv.invoiceNumber}</p>
-        <p>Pay Period: ${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}</p>
-        ${inv.paymentDueDate ? `<p>Payment Due: ${formatDate(inv.paymentDueDate)}</p>` : ""}
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #111827; padding-bottom:16px; margin-bottom:20px;">
+        <div>
+          <h1 style="font-size:20px; margin:0 0 2px;">Nice &amp; Weird Group</h1>
+          <p style="margin:0; color:#6b7280;">Field Worker Invoice</p>
+        </div>
+        <div style="text-align:right; font-size:13px; color:#374151;">
+          <p style="margin:0; font-size:16px; font-weight:700; color:#111827;">${escapeHtml(inv.invoiceNumber)}</p>
+          <p style="margin:2px 0 0;">Generated ${formatDate(inv.generatedDate)}</p>
+        </div>
       </div>
-      <table>
-        <thead><tr><th>Date</th><th>Billing Entity</th><th>Project</th><th>Cost Code</th><th>Work Performed</th><th>Reg Hrs</th><th>OT Hrs</th><th class="right">Rate</th><th class="right">Amount</th></tr></thead>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div>
+          <p style="margin:0; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:#9ca3af;">Worker</p>
+          <p style="margin:2px 0 0; font-size:14px; font-weight:600; color:#111827;">${escapeHtml(inv.employeeName)}</p>
+        </div>
+        <div>
+          <p style="margin:0; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:#9ca3af;">Pay Period</p>
+          <p style="margin:2px 0 0; font-size:14px; font-weight:600; color:#111827;">${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}</p>
+        </div>
+        <div>
+          <p style="margin:0; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:#9ca3af;">Payment Due</p>
+          <p style="margin:2px 0 0; font-size:14px; font-weight:600; color:#111827;">${inv.paymentDueDate ? formatDate(inv.paymentDueDate) : "—"}</p>
+        </div>
+      </div>
+
+      <table style="border:1px solid #e5e7eb; border-radius:6px; overflow:hidden;">
+        <thead><tr><th>Date</th><th>Billing Entity</th><th>Project</th><th>Cost Code</th><th>Work Performed</th><th class="right">Reg Hrs</th><th class="right">OT Hrs</th><th class="right">Rate</th><th class="right">Amount</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <div style="margin-top:12px; text-align:right; font-weight:700;">Total: ${currency(inv.totalAmount)}</div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+        <div style="width:260px;">
+          <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:#4b5563;">
+            <span>Regular Hours</span><span>${totalRegHours}h</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:#4b5563;">
+            <span>Overtime Hours</span><span>${totalOtHours}h</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:10px 0 0; margin-top:6px; border-top:2px solid #111827; font-size:15px; font-weight:700; color:#111827;">
+            <span>Total Due</span><span>${currency(inv.totalAmount)}</span>
+          </div>
+        </div>
+      </div>
       `
     );
   }
