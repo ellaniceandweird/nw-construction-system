@@ -12,7 +12,6 @@ import type { FieldWorkerRate } from "@/types/references";
 interface Props { rate: FieldWorkerRate | null; open: boolean; onOpenChange: (open: boolean) => void; }
 
 export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
-  const [employeeId, setEmployeeId] = React.useState("");
   const [employeeName, setEmployeeName] = React.useState("");
   const [hourlyRate, setHourlyRate] = React.useState("");
   const [overtimeRate, setOvertimeRate] = React.useState("");
@@ -23,7 +22,6 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
 
   React.useEffect(() => {
     if (open) {
-      setEmployeeId(rate?.employeeId ?? "");
       setEmployeeName(rate?.employeeName ?? "");
       setHourlyRate(rate ? String(rate.hourlyRate) : "");
       setOvertimeRate(rate?.overtimeRate != null ? String(rate.overtimeRate) : "");
@@ -36,7 +34,11 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
   async function handleSave() {
     if (!employeeName || !hourlyRate) return;
     const input = {
-      employeeId: employeeId || `EMP-${Date.now()}`,
+      // The internal link between a worker and their logged hours in
+      // Daily Log — never editable, and never regenerated once set, so
+      // it can't ever drift out of sync with historical time entries
+      // that already reference it.
+      employeeId: rate?.employeeId ?? `EMP-${Date.now()}`,
       employeeName, trade: rate?.trade || "General",
       hourlyRate: parseFloat(hourlyRate),
       overtimeRate: overtimeRate ? parseFloat(overtimeRate) : undefined,
@@ -60,10 +62,7 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
       <DialogContent>
         <DialogHeader><DialogTitle>{rate ? `Edit Rate — ${rate.employeeName}` : "New Field Worker Rate"}</DialogTitle></DialogHeader>
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div><Label htmlFor="employeeName">Employee Name</Label><Input id="employeeName" className="mt-1.5" value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} /></div>
-            <div><Label htmlFor="employeeId">Employee ID (optional)</Label><Input id="employeeId" className="mt-1.5" value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} /></div>
-          </div>
+          <div><Label htmlFor="employeeName">Employee Name</Label><Input id="employeeName" className="mt-1.5" value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} /></div>
           <div className="grid grid-cols-2 gap-4">
             <div><Label htmlFor="hourlyRate">Hourly Rate ($)</Label><Input id="hourlyRate" type="number" className="mt-1.5" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div>
             <div><Label htmlFor="overtimeRate">Overtime Rate ($, optional)</Label><Input id="overtimeRate" type="number" className="mt-1.5" value={overtimeRate} onChange={(e) => setOvertimeRate(e.target.value)} /></div>
