@@ -45,9 +45,15 @@ export function getCrewCapacityForDay(
   day.setHours(0, 0, 0, 0);
 
   const activeToday = activities.filter((a) => {
+    if (a.status === "cancelled" || a.status === "completed") return false;
+    // Work already in progress shows up today regardless of its original
+    // planned dates — if it's running longer than planned, it's still
+    // today's job. Only not-yet-started activities are gated by whether
+    // today actually falls within their planned window.
+    if (a.status === "in_progress") return true;
     const start = parseDate(a.plannedStart);
     const end = parseDate(a.plannedFinish);
-    return day >= start && day <= end && a.status !== "cancelled" && a.status !== "completed";
+    return day >= start && day <= end;
   });
 
   const prioritized = [...activeToday].sort((a, b) => {

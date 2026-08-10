@@ -7,7 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProjects } from "@/hooks/use-projects";
+import { useProperties } from "@/hooks/use-properties";
+import { useBillingEntities } from "@/hooks/use-billing-entities";
+import { getBillingEntityIdForProject } from "@/lib/properties/property-relations";
 import { updateFieldWorkerInvoice, deleteFieldWorkerInvoice } from "@/lib/field-operations/field-worker-invoice-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { FieldWorkerInvoice, FieldWorkerInvoiceLineItem } from "@/types/field-worker-invoices";
@@ -28,6 +32,8 @@ function computeAmount(li: FieldWorkerInvoiceLineItem): number {
 
 export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Props) {
   const projects = useProjects();
+  const properties = useProperties();
+  const billingEntities = useBillingEntities();
   const [invoiceNumber, setInvoiceNumber] = React.useState("");
   const [paymentDueDate, setPaymentDueDate] = React.useState("");
   const [lineItems, setLineItems] = React.useState<FieldWorkerInvoiceLineItem[]>([]);
@@ -38,8 +44,16 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
     if (!open || !invoice) return;
     setInvoiceNumber(invoice.invoiceNumber);
     setPaymentDueDate(invoice.paymentDueDate ?? "");
-    setLineItems(invoice.lineItems.map((li) => ({ ...li })));
+    setLineItems(
+      invoice.lineItems.map((li) => {
+        if (li.billingEntityId) return { ...li };
+        const project = projects.find((p) => p.id === li.projectId);
+        const resolved = project ? getBillingEntityIdForProject(project, properties) : undefined;
+        return { ...li, billingEntityId: resolved };
+      })
+    );
     setConfirmingDelete(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice, open]);
 
   function updateLineItem(index: number, patch: Partial<FieldWorkerInvoiceLineItem>) {
@@ -107,6 +121,7 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
               <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
                 <th className="px-2 py-2 font-medium">Date</th>
                 <th className="px-2 py-2 font-medium">Project</th>
+                <th className="px-2 py-2 font-medium min-w-[9rem]">Billing Entity</th>
                 <th className="px-2 py-2 font-medium min-w-[10rem]">Activity</th>
                 <th className="px-2 py-2 font-medium w-24">Cost Code</th>
                 <th className="px-2 py-2 font-medium w-20">Reg Hrs</th>
@@ -122,6 +137,12 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
                 <tr key={index} className="border-b border-border/60 last:border-0">
                   <td className="px-2 py-1.5 text-xs text-muted-foreground whitespace-nowrap">{formatDate(li.date)}</td>
                   <td className="px-2 py-1.5 text-xs text-muted-foreground whitespace-nowrap">{projectLabel(li)}</td>
+                  <td className="p-1">
+                    <Select value={li.billingEntityId ?? ""} onValueChange={(v) => updateLineItem(index, { billingEntityId: v })}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="—" /></SelectTrigger>
+                      <SelectContent>{billingEntities.map((b) => (<SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>))}</SelectContent>
+                    </Select>
+                  </td>
                   <td className="p-1">
                     <Input className="h-8 text-xs" value={li.activity} onChange={(e) => updateLineItem(index, { activity: e.target.value })} />
                   </td>
