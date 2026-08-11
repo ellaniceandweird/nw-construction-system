@@ -112,7 +112,6 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: "Forecast", href: "/procurement?tab=forecast" },
       { label: "Sourcing", href: "/procurement?tab=sourcing" },
-      { label: "Purchase Order", href: "/procurement?tab=pos" },
       { label: "Vendors", href: "/procurement?tab=vendors" },
       { label: "Subcontractor", href: "/procurement?tab=subcontractors" },
     ],

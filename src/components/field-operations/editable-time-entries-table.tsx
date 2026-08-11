@@ -16,6 +16,7 @@ import { useProjects } from "@/hooks/use-projects";
 import { useActivities } from "@/hooks/use-activities";
 import { useFieldWorkerRates } from "@/hooks/use-field-worker-rates";
 import { useProperties } from "@/hooks/use-properties";
+import { useCostCodes } from "@/hooks/use-cost-codes";
 import {
   updateTimeEntry,
   addTimeEntry,
@@ -59,6 +60,7 @@ export function EditableTimeEntriesTable({ log }: Props) {
   const projects = useProjects();
   const allActivities = useActivities();
   const workerRates = useFieldWorkerRates();
+  const costCodes = useCostCodes();
   const properties = useProperties();
 
   function handleEmployeeChange(index: number, employeeId: string) {
@@ -124,6 +126,7 @@ export function EditableTimeEntriesTable({ log }: Props) {
             <th className="px-2 py-2 font-medium">Property</th>
             <th className="px-2 py-2 font-medium">Project</th>
             <th className="px-2 py-2 font-medium">Activity</th>
+            <th className="px-2 py-2 font-medium w-28">Cost Code</th>
             <th className="px-2 py-2 font-medium w-20">Reg Hrs</th>
             <th className="px-2 py-2 font-medium w-20">OT Hrs</th>
             <th className="px-2 py-2 font-medium">Notes</th>
@@ -208,6 +211,19 @@ export function EditableTimeEntriesTable({ log }: Props) {
                       onBlur={(e) => updateTimeEntry(log.id, index, { activityDescription: e.target.value })}
                     />
                   )}
+                </td>
+                <td className="px-2 py-2">
+                  <Select
+                    value={entry.costCode ?? ""}
+                    onValueChange={(v) => updateTimeEntry(log.id, index, { costCode: v })}
+                  >
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Optional" /></SelectTrigger>
+                    <SelectContent>
+                      {costCodes.map((c) => (
+                        <SelectItem key={c.id} value={c.code}>{c.code} — {c.description}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </td>
                 <td className="px-2 py-2">
                   <Input

@@ -1,6 +1,6 @@
 import type { BaseEntity } from "@/types/common";
 
-export type ApprovalKind = "budget" | "estimate" | "purchase_order" | "change_order" | "manual";
+export type ApprovalKind = "budget" | "estimate" | "purchase_order" | "change_order" | "material_request" | "manual";
 export type ApproverName = "Sjaak" | "Carlo" | "Ben";
 export type ApprovalRequestStatus = "pending" | "approved" | "rejected";
 

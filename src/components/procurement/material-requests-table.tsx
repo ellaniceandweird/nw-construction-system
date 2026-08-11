@@ -22,6 +22,7 @@ import type { MaterialRequest, MaterialRequestStatus } from "@/types/procurement
 
 const STATUS_OPTIONS: { value: MaterialRequestStatus; label: string }[] = [
   { value: "pending", label: "Pending" },
+  { value: "for_approval", label: "For Approval" },
   { value: "sourcing", label: "Sourcing" },
   { value: "ordered", label: "Ordered" },
   { value: "canceled", label: "Canceled" },
@@ -29,6 +30,7 @@ const STATUS_OPTIONS: { value: MaterialRequestStatus; label: string }[] = [
 
 const STATUS_CLASS: Record<MaterialRequestStatus, string> = {
   pending: "border-warning/40",
+  for_approval: "border-primary/40",
   sourcing: "border-info/40",
   ordered: "border-success/40",
   canceled: "border-destructive/40",

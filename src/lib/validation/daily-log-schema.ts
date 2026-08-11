@@ -28,6 +28,7 @@ export const dailyLogFormSchema = z.object({
         projectName: z.string().optional(),
         activityId: z.string().min(1, "Select an activity"),
         activityDescription: z.string().min(1),
+        costCode: z.string().optional(),
         regularHours: z.coerce.number().min(0).max(24),
         overtimeHours: z.coerce.number().min(0).max(24),
         notes: z.string().optional(),

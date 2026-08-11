@@ -17,6 +17,7 @@ import { useBudgets } from "@/hooks/use-budgets";
 import { useEstimates } from "@/hooks/use-estimates";
 import { useChangeOrders } from "@/hooks/use-change-orders";
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
+import { useMaterialRequests } from "@/hooks/use-material-requests";
 import { useProjects } from "@/hooks/use-projects";
 import { useApprovalRequests } from "@/hooks/use-approval-requests";
 import { useAutoConsolidateApprovals } from "@/lib/approvals/use-auto-consolidate-approvals";
@@ -37,6 +38,7 @@ const KIND_LABEL: Record<ApprovalKind, string> = {
   estimate: "Quote",
   change_order: "Change Order",
   purchase_order: "Purchase Order",
+  material_request: "Material Request",
   manual: "Manual",
 };
 
@@ -45,6 +47,7 @@ const KIND_BADGE: Record<ApprovalKind, string> = {
   estimate: "bg-info-soft text-info-foreground",
   change_order: "bg-warning-soft text-warning-foreground",
   purchase_order: "bg-success-soft text-success",
+  material_request: "bg-info-soft text-info-foreground",
   manual: "bg-muted text-muted-foreground",
 };
 
@@ -67,13 +70,14 @@ export function ApprovalsTable() {
   const estimates = useEstimates();
   const changeOrders = useChangeOrders();
   const purchaseOrders = usePurchaseOrders();
+  const materialRequests = useMaterialRequests();
   const projects = useProjects();
   const requests = useApprovalRequests();
   const [kindFilter, setKindFilter] = React.useState<"all" | ApprovalKind>("all");
   const [editing, setEditing] = React.useState<ApprovalRequest | null>(null);
   const [creating, setCreating] = React.useState(false);
 
-  useAutoConsolidateApprovals(budgets, estimates, changeOrders, purchaseOrders, projects, requests);
+  useAutoConsolidateApprovals(budgets, estimates, changeOrders, purchaseOrders, projects, requests, materialRequests);
 
   const pending = requests.filter((r) => r.approvalStatus === "pending");
   const filtered = kindFilter === "all" ? pending : pending.filter((r) => r.kind === kindFilter);

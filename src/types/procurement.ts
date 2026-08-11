@@ -77,6 +77,7 @@ export interface MaterialCatalogItem extends BaseEntity {
 
 export type MaterialRequestStatus =
   | "pending"
+  | "for_approval"
   | "sourcing"
   | "ordered"
   | "canceled";

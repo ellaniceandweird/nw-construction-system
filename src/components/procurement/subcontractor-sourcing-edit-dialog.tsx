@@ -18,7 +18,15 @@ import {
   deleteSubcontractorSourcing,
 } from "@/lib/procurement/subcontractor-sourcing-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
-import type { SubcontractorSourcingRequest } from "@/types/subcontractor-sourcing";
+import type { SubcontractorSourcingRequest, SubcontractorSourcingStatus } from "@/types/subcontractor-sourcing";
+
+const STATUS_OPTIONS: { value: SubcontractorSourcingStatus; label: string }[] = [
+  { value: "identifying", label: "Identifying Subs" },
+  { value: "scoping", label: "Scoping" },
+  { value: "quoting", label: "Quoting" },
+  { value: "awarded", label: "Awarded" },
+  { value: "on_hold", label: "On Hold" },
+];
 
 interface Props {
   entry: SubcontractorSourcingRequest | null;
@@ -34,6 +42,7 @@ export function SubcontractorSourcingEditDialog({ entry, open, onOpenChange }: P
   const [trade, setTrade] = React.useState("");
   const [scopeOfWork, setScopeOfWork] = React.useState("");
   const [budget, setBudget] = React.useState("");
+  const [sourcingStatus, setSourcingStatus] = React.useState<SubcontractorSourcingStatus>("identifying");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -46,6 +55,7 @@ export function SubcontractorSourcingEditDialog({ entry, open, onOpenChange }: P
     setTrade(entry?.trade ?? "");
     setScopeOfWork(entry?.scopeOfWork ?? "");
     setBudget(entry?.budget != null ? String(entry.budget) : "");
+    setSourcingStatus(entry?.sourcingStatus ?? "identifying");
     setNotes(entry?.notes ?? "");
   }, [entry, open]);
 
@@ -58,6 +68,7 @@ export function SubcontractorSourcingEditDialog({ entry, open, onOpenChange }: P
       trade,
       scopeOfWork,
       budget: budget ? parseFloat(budget) : undefined,
+      sourcingStatus,
       notes: notes || undefined,
     };
     setSaving(true);
@@ -109,6 +120,13 @@ export function SubcontractorSourcingEditDialog({ entry, open, onOpenChange }: P
           <div>
             <Label htmlFor="budget">Budget (optional)</Label>
             <Input id="budget" type="number" className="mt-1.5" value={budget} onChange={(e) => setBudget(e.target.value)} />
+          </div>
+          <div>
+            <Label>Status</Label>
+            <Select value={sourcingStatus} onValueChange={(v) => setSourcingStatus(v as SubcontractorSourcingStatus)}>
+              <SelectTrigger className="mt-1.5 w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>{STATUS_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="notes">Notes (optional)</Label>

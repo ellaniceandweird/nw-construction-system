@@ -9,18 +9,15 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ForecastTable } from "@/components/procurement/forecast-table";
 import { MaterialRequestsTable } from "@/components/procurement/material-requests-table";
-import { RfqsTable } from "@/components/procurement/rfqs-table";
 import { QuotesTable } from "@/components/procurement/quotes-table";
 import { SubcontractorSourcingTable } from "@/components/procurement/subcontractor-sourcing-table";
 import { QuoteComparison } from "@/components/procurement/quote-comparison";
-import { PurchaseOrdersTable } from "@/components/procurement/purchase-orders-table";
 import { VendorsTable } from "@/components/procurement/vendors-table";
 import { SubcontractorsTable } from "@/components/procurement/subcontractors-table";
 
 const VALID_TABS = [
   "forecast",
   "sourcing",
-  "pos",
   "vendors",
   "subcontractors",
 ];
@@ -28,7 +25,6 @@ const VALID_TABS = [
 const SOURCING_SUB_TABS = [
   { value: "mrs", label: "Material Request" },
   { value: "subcontractor-sourcing", label: "Subcontractor Sourcing" },
-  { value: "rfqs", label: "RFQs" },
   { value: "quotes", label: "Quotes" },
   { value: "comparison", label: "Quote Comparison" },
 ] as const;
@@ -61,7 +57,6 @@ export function ProcurementPageClient() {
         <TabsList>
           <TabsTrigger value="forecast">Forecast</TabsTrigger>
           <TabsTrigger value="sourcing">Sourcing</TabsTrigger>
-          <TabsTrigger value="pos">Purchase Order</TabsTrigger>
           <TabsTrigger value="vendors">Vendors</TabsTrigger>
           <TabsTrigger value="subcontractors">Subcontractor</TabsTrigger>
         </TabsList>
@@ -70,8 +65,8 @@ export function ProcurementPageClient() {
         </TabsContent>
         <TabsContent value="sourcing">
           <p className="mb-3 text-xs text-muted-foreground">
-            Material Request, RFQs, Quotes, and Quote Comparison — the day-to-day sourcing
-            workflow, grouped together since these all feed into each other.
+            Material Request, Subcontractor Sourcing, Quotes, and Quote Comparison — the
+            day-to-day sourcing workflow, grouped together since these all feed into each other.
           </p>
           <div className="mb-4 inline-flex items-center gap-1 rounded-lg bg-muted p-1 text-muted-foreground">
             {SOURCING_SUB_TABS.map((t) => (
@@ -94,12 +89,8 @@ export function ProcurementPageClient() {
           </div>
           {activeSourcingTab === "mrs" && <MaterialRequestsTable />}
           {activeSourcingTab === "subcontractor-sourcing" && <SubcontractorSourcingTable />}
-          {activeSourcingTab === "rfqs" && <RfqsTable />}
           {activeSourcingTab === "quotes" && <QuotesTable />}
           {activeSourcingTab === "comparison" && <QuoteComparison />}
-        </TabsContent>
-        <TabsContent value="pos">
-          <PurchaseOrdersTable />
         </TabsContent>
         <TabsContent value="vendors">
           <VendorsTable />

@@ -40,6 +40,7 @@ export interface DailyTimeEntry {
   projectName?: string;
   activityId?: string; // GENERAL_WORK_ACTIVITY_ID, MANUAL_ACTIVITY_ID, or a real Activity id from that project's schedule
   activityDescription: string;
+  costCode?: string;
   regularHours: number;
   overtimeHours: number;
   notes?: string; // manual/free-text entry for anything not captured by the activity dropdown

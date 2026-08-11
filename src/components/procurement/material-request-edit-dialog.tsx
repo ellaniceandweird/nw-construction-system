@@ -37,6 +37,7 @@ interface Props {
 
 const STATUS_OPTIONS: { value: MaterialRequestStatus; label: string }[] = [
   { value: "pending", label: "Pending" },
+  { value: "for_approval", label: "For Approval" },
   { value: "sourcing", label: "Sourcing" },
   { value: "ordered", label: "Ordered" },
   { value: "canceled", label: "Canceled" },

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Plus, ArrowUpDown } from "lucide-react";
+import { Pencil, Plus, ArrowUpDown, Upload } from "lucide-react";
 
 import { useRFQs } from "@/hooks/use-rfqs";
 import { useVendors } from "@/hooks/use-vendors";
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { QuoteResponseDialog } from "@/components/procurement/quote-response-dialog";
+import { UploadQuotePdfDialog } from "@/components/procurement/upload-quote-pdf-dialog";
 import type { RequestForQuotation, VendorQuoteResponse } from "@/types/procurement";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -52,6 +53,7 @@ export function QuotesTable() {
   const vendors = useVendors();
   const [editing, setEditing] = React.useState<{ rfqId: string; vendorId: string } | null>(null);
   const [adding, setAdding] = React.useState(false);
+  const [uploadingPdf, setUploadingPdf] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<"date_desc" | "date_asc" | "price_desc" | "price_asc">("date_desc");
 
@@ -79,13 +81,17 @@ export function QuotesTable() {
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Generated from quotes logged on the RFQs tab (manual entry or PDF upload there).
-          Use &quot;Add Quote&quot; here as a fallback if a PDF upload's parsing goes wrong
-          or you just want to enter one directly.
+          Upload a vendor's PDF quote to pull out the likely fields automatically, or enter
+          one manually — either way you'll review and confirm everything before it's saved.
         </p>
-        <Button size="sm" onClick={() => setAdding(true)} className="shrink-0">
-          <Plus className="size-3.5" /> Add Quote
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          <Button size="sm" variant="outline" onClick={() => setUploadingPdf(true)}>
+            <Upload className="size-3.5" /> Upload Quote (PDF)
+          </Button>
+          <Button size="sm" onClick={() => setAdding(true)}>
+            <Plus className="size-3.5" /> Add Quote
+          </Button>
+        </div>
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -169,7 +175,7 @@ export function QuotesTable() {
             {rows.length === 0 && (
               <tr>
                 <td colSpan={13} className="px-4 py-6 text-center text-muted-foreground">
-                  No quotes logged yet — add one from the RFQs tab, or use &quot;Add Quote&quot; above.
+                  No quotes logged yet — use &quot;Upload Quote (PDF)&quot; or &quot;Add Quote&quot; above.
                 </td>
               </tr>
             )}
@@ -184,6 +190,7 @@ export function QuotesTable() {
         onOpenChange={(open) => !open && setEditing(null)}
       />
       <QuoteResponseDialog open={adding} onOpenChange={setAdding} />
+      <UploadQuotePdfDialog open={uploadingPdf} onOpenChange={setUploadingPdf} />
     </>
   );
 }

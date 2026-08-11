@@ -1,7 +1,7 @@
 "use client";
 
 import { createCollectionStore } from "@/lib/supabase/collection-store";
-import type { SubcontractorSourcingRequest } from "@/types/subcontractor-sourcing";
+import type { SubcontractorSourcingRequest, SubcontractorSourcingStatus } from "@/types/subcontractor-sourcing";
 
 const SEED_DATA: SubcontractorSourcingRequest[] = [];
 
@@ -14,6 +14,7 @@ function fromRow(row: Record<string, any>): SubcontractorSourcingRequest {
     trade: row.trade,
     scopeOfWork: row.scope_of_work,
     budget: row.budget != null ? Number(row.budget) : undefined,
+    sourcingStatus: row.sourcing_status ?? "identifying",
     notes: row.notes ?? undefined,
     createdBy: row.created_by ?? "system",
     createdDate: row.created_date ?? new Date().toISOString(),
@@ -34,6 +35,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.trade !== undefined) row.trade = input.trade;
   if (input.scopeOfWork !== undefined) row.scope_of_work = input.scopeOfWork;
   if (input.budget !== undefined) row.budget = input.budget;
+  if (input.sourcingStatus !== undefined) row.sourcing_status = input.sourcingStatus;
   if (input.notes !== undefined) row.notes = input.notes;
   row.last_modified_date = new Date().toISOString();
   return row;
@@ -57,6 +59,7 @@ export interface SubcontractorSourcingInput {
   trade: string;
   scopeOfWork: string;
   budget?: number;
+  sourcingStatus?: SubcontractorSourcingStatus;
   notes?: string;
 }
 
@@ -71,7 +74,7 @@ function nextId(): string {
 
 export async function createSubcontractorSourcing(input: SubcontractorSourcingInput): Promise<{ ok: boolean; error?: string }> {
   const id = nextId();
-  const result = await store.create({ id, ...input });
+  const result = await store.create({ id, sourcingStatus: "identifying", ...input });
   return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 

@@ -39,11 +39,22 @@ interface Props {
   initialRfqId?: string;
   /** Pre-selects a vendor and prefills the form if that vendor already quoted. */
   vendorId?: string;
+  /** Pre-fills the form from a parsed PDF upload — still fully editable before saving. */
+  prefill?: {
+    quotedPrice?: number | null;
+    leadTimeDays?: number | null;
+    freight?: number | null;
+    tax?: number | null;
+    warranty?: string;
+    validityPeriodDays?: number | null;
+    submittedDate?: string;
+    notes?: string;
+  };
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange }: Props) {
+export function QuoteResponseDialog({ initialRfqId, vendorId, prefill, open, onOpenChange }: Props) {
   const projects = useProjects();
   const rfqs = useRFQs();
   const properties = useProperties();
@@ -77,21 +88,21 @@ export function QuoteResponseDialog({ initialRfqId, vendorId, open, onOpenChange
     }
     const existing = vendorId ? rfq.responses.find((r) => r.vendorId === vendorId) : undefined;
     setSelectedVendorId(vendorId ?? existing?.vendorId ?? "");
-    setQuotedPrice(existing ? String(existing.quotedPrice) : "");
-    setLeadTimeDays(existing ? String(existing.leadTimeDays) : "");
-    setFreight(existing?.freight != null ? String(existing.freight) : "");
-    setTax(existing?.tax != null ? String(existing.tax) : "");
-    setWarranty(existing?.warranty ?? "");
-    setValidityPeriodDays(existing?.validityPeriodDays != null ? String(existing.validityPeriodDays) : "");
-    setSubmittedDate(existing?.submittedDate ?? new Date().toISOString().slice(0, 10));
-    setNotes(existing?.notes ?? "");
+    setQuotedPrice(existing ? String(existing.quotedPrice) : prefill?.quotedPrice != null ? String(prefill.quotedPrice) : "");
+    setLeadTimeDays(existing ? String(existing.leadTimeDays) : prefill?.leadTimeDays != null ? String(prefill.leadTimeDays) : "");
+    setFreight(existing?.freight != null ? String(existing.freight) : prefill?.freight != null ? String(prefill.freight) : "");
+    setTax(existing?.tax != null ? String(existing.tax) : prefill?.tax != null ? String(prefill.tax) : "");
+    setWarranty(existing?.warranty ?? prefill?.warranty ?? "");
+    setValidityPeriodDays(existing?.validityPeriodDays != null ? String(existing.validityPeriodDays) : prefill?.validityPeriodDays != null ? String(prefill.validityPeriodDays) : "");
+    setSubmittedDate(existing?.submittedDate ?? prefill?.submittedDate ?? new Date().toISOString().slice(0, 10));
+    setNotes(existing?.notes ?? prefill?.notes ?? "");
     const effectiveVendorId = vendorId ?? existing?.vendorId;
     setStatus(
       rfq.awardedVendorId && rfq.awardedVendorId === effectiveVendorId
         ? "awarded"
         : existing?.quoteStatus ?? "pending_approval"
     );
-  }, [rfq, vendorId]);
+  }, [rfq, vendorId, prefill]);
 
   function handleSave() {
     if (!rfq || !selectedVendorId || !quotedPrice || !leadTimeDays) return;
