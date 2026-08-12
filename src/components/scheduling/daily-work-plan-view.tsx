@@ -4,6 +4,7 @@ import * as React from "react";
 import { ChevronLeft, ChevronRight, Users, HardHat, Briefcase, AlertTriangle, MessageSquare, Printer, ImageDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useActivities } from "@/hooks/use-activities";
 import type { Activity } from "@/types/scheduling";
@@ -95,6 +96,7 @@ export function DailyWorkPlanView() {
   const [dayOffset, setDayOffset] = React.useState(0);
   const [workTypeFilter, setWorkTypeFilter] = React.useState<WorkType | "all">("all");
   const [updateDialogOpen, setUpdateDialogOpen] = React.useState(false);
+  const [selectedActivityIds, setSelectedActivityIds] = React.useState<Set<string>>(new Set());
 
   const date = new Date(TODAY.getTime() + dayOffset * DAY_MS);
   const capacity = getCrewCapacityForDay(activities, date);
@@ -103,7 +105,27 @@ export function DailyWorkPlanView() {
     (s) => workTypeFilter === "all" || getWorkType(s.activity) === workTypeFilter
   );
 
-  const fieldUpdateText = generateDailyFieldUpdateText(date, capacity.scheduled, projects);
+  // Defaults to everything selected whenever the visible list changes
+  // (switching days, changing the work-type filter) — so by default the
+  // generated image/reminder match what's on screen, unless someone
+  // explicitly deselects something for that day.
+  React.useEffect(() => {
+    setSelectedActivityIds(new Set(filteredScheduled.map((s) => s.activity.id)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayOffset, workTypeFilter, activities.length]);
+
+  function toggleActivitySelection(activityId: string) {
+    setSelectedActivityIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(activityId)) next.delete(activityId);
+      else next.add(activityId);
+      return next;
+    });
+  }
+
+  const selectedScheduled = filteredScheduled.filter((s) => selectedActivityIds.has(s.activity.id));
+
+  const fieldUpdateText = generateDailyFieldUpdateText(date, selectedScheduled, projects);
 
   function handlePrint() {
     const rows = [
@@ -134,7 +156,7 @@ export function DailyWorkPlanView() {
   }
 
   function handleGenerateImage() {
-    generateDailyWorkPlanImage(date, capacity.scheduled, projects);
+    generateDailyWorkPlanImage(date, selectedScheduled, projects);
   }
 
   return (
@@ -206,14 +228,28 @@ export function DailyWorkPlanView() {
       </div>
 
       <div className="flex flex-col gap-3 print:hidden">
-        <h2 className="text-base font-semibold text-foreground">Today&apos;s Jobs</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-foreground">Today&apos;s Jobs</h2>
+          <span className="text-xs text-muted-foreground">
+            Uncheck anything that shouldn&apos;t appear in the generated image or reminder for Pedro
+          </span>
+        </div>
         {filteredScheduled.length === 0 && (
           <p className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
             Nothing planned for this day.
           </p>
         )}
         {filteredScheduled.map((s, i) => (
-          <JobCard key={s.activity.id} number={i + 1} activity={s.activity} crewCount={s.assignedCrew} projects={projects} />
+          <div key={s.activity.id} className="flex items-start gap-3">
+            <Checkbox
+              className="mt-4"
+              checked={selectedActivityIds.has(s.activity.id)}
+              onCheckedChange={() => toggleActivitySelection(s.activity.id)}
+            />
+            <div className="flex-1">
+              <JobCard number={i + 1} activity={s.activity} crewCount={s.assignedCrew} projects={projects} />
+            </div>
+          </div>
         ))}
       </div>
 

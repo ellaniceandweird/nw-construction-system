@@ -187,6 +187,12 @@ export async function updateDailyLogDate(id: string, newDate: string): Promise<{
   return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
+/** Corrects the weather on an existing daily log. */
+export async function updateDailyLogWeather(id: string, weatherCondition: WeatherCondition): Promise<{ ok: boolean; error?: string }> {
+  const ok = await store.update(id, { weatherCondition });
+  return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
+}
+
 /** Updates one time entry's hours/notes on an existing log. */
 export function updateTimeEntry(logId: string, entryIndex: number, patch: Partial<DailyTimeEntry>) {
   const log = store.getSnapshot().find((l) => l.id === logId);

@@ -11,6 +11,7 @@ import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { useProjects } from "@/hooks/use-projects";
 import { EditableTimeEntriesTable } from "@/components/field-operations/editable-time-entries-table";
 import { EditDailyLogDateDialog } from "@/components/field-operations/edit-daily-log-date-dialog";
+import { EditDailyLogWeatherDialog } from "@/components/field-operations/edit-daily-log-weather-dialog";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", {
@@ -27,6 +28,7 @@ export default function DailyLogDetailPage() {
   const logs = useDailyLogs();
   const log = logs.find((l) => l.id === params.logId);
   const [editingDate, setEditingDate] = React.useState(false);
+  const [editingWeather, setEditingWeather] = React.useState(false);
 
   if (!log) notFound();
 
@@ -58,11 +60,17 @@ export default function DailyLogDetailPage() {
       </div>
 
       <EditDailyLogDateDialog logId={log.id} currentDate={log.date} open={editingDate} onOpenChange={setEditingDate} />
+      <EditDailyLogWeatherDialog logId={log.id} currentWeather={log.weatherCondition} open={editingWeather} onOpenChange={setEditingWeather} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-info/20 bg-info-soft">
           <CardContent className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Weather</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Weather</span>
+              <button onClick={() => setEditingWeather(true)} className="text-muted-foreground hover:text-foreground">
+                <Pencil className="size-3" />
+              </button>
+            </div>
             <span className="flex items-center gap-1.5 font-medium text-foreground">
               <Cloud className="size-4" />
               {log.weatherCondition.replace("_", " ")}
