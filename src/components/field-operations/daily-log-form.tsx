@@ -84,6 +84,7 @@ export function DailyLogForm() {
   const costCodes = useCostCodes();
   const properties = useProperties();
   const seededRef = React.useRef(false);
+  const [manualCostCodeRows, setManualCostCodeRows] = React.useState<Set<number>>(new Set());
 
   const {
     register,
@@ -387,17 +388,33 @@ export function DailyLogForm() {
                     </td>
 
                     <td className="px-2 py-2">
-                      <Select
-                        value={watch(`timeEntries.${index}.costCode`) || ""}
-                        onValueChange={(v) => setValue(`timeEntries.${index}.costCode`, v)}
-                      >
-                        <SelectTrigger className="w-full"><SelectValue placeholder="Optional" /></SelectTrigger>
-                        <SelectContent>
-                          {costCodes.map((c) => (
-                            <SelectItem key={c.id} value={c.code}>{c.code} — {c.description}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {manualCostCodeRows.has(index) ? (
+                        <Input
+                          className="mt-1"
+                          placeholder="Type cost code"
+                          {...register(`timeEntries.${index}.costCode`)}
+                        />
+                      ) : (
+                        <Select
+                          value={watch(`timeEntries.${index}.costCode`) || ""}
+                          onValueChange={(v) => {
+                            if (v === MANUAL_ENTRY) {
+                              setManualCostCodeRows((prev) => new Set(prev).add(index));
+                              setValue(`timeEntries.${index}.costCode`, "");
+                              return;
+                            }
+                            setValue(`timeEntries.${index}.costCode`, v);
+                          }}
+                        >
+                          <SelectTrigger className="w-full"><SelectValue placeholder="Optional" /></SelectTrigger>
+                          <SelectContent>
+                            {costCodes.map((c) => (
+                              <SelectItem key={c.id} value={c.code}>{c.code} — {c.description}</SelectItem>
+                            ))}
+                            <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
                     </td>
 
                     <td className="px-2 py-2">

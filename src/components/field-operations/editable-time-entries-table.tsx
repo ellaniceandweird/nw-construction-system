@@ -62,6 +62,7 @@ export function EditableTimeEntriesTable({ log }: Props) {
   const workerRates = useFieldWorkerRates();
   const costCodes = useCostCodes();
   const properties = useProperties();
+  const [manualCostCodeRows, setManualCostCodeRows] = React.useState<Set<number>>(new Set());
 
   function handleEmployeeChange(index: number, employeeId: string) {
     if (employeeId === MANUAL_ENTRY) {
@@ -213,17 +214,33 @@ export function EditableTimeEntriesTable({ log }: Props) {
                   )}
                 </td>
                 <td className="px-2 py-2">
-                  <Select
-                    value={entry.costCode ?? ""}
-                    onValueChange={(v) => updateTimeEntry(log.id, index, { costCode: v })}
-                  >
-                    <SelectTrigger className="w-full"><SelectValue placeholder="Optional" /></SelectTrigger>
-                    <SelectContent>
-                      {costCodes.map((c) => (
-                        <SelectItem key={c.id} value={c.code}>{c.code} — {c.description}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {manualCostCodeRows.has(index) || (entry.costCode && !costCodes.some((c) => c.code === entry.costCode)) ? (
+                    <Input
+                      defaultValue={entry.costCode ?? ""}
+                      placeholder="Type cost code"
+                      onBlur={(e) => updateTimeEntry(log.id, index, { costCode: e.target.value })}
+                    />
+                  ) : (
+                    <Select
+                      value={entry.costCode ?? ""}
+                      onValueChange={(v) => {
+                        if (v === MANUAL_ENTRY) {
+                          setManualCostCodeRows((prev) => new Set(prev).add(index));
+                          updateTimeEntry(log.id, index, { costCode: "" });
+                          return;
+                        }
+                        updateTimeEntry(log.id, index, { costCode: v });
+                      }}
+                    >
+                      <SelectTrigger className="w-full"><SelectValue placeholder="Optional" /></SelectTrigger>
+                      <SelectContent>
+                        {costCodes.map((c) => (
+                          <SelectItem key={c.id} value={c.code}>{c.code} — {c.description}</SelectItem>
+                        ))}
+                        <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </td>
                 <td className="px-2 py-2">
                   <Input
