@@ -1,0 +1,317 @@
+"use client";
+
+import * as React from "react";
+import { Plus, Trash2, Zap } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { createEstimate, updateEstimate, deleteEstimate, withComputedLineItemTotals } from "@/lib/estimating/estimate-store";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
+import { findRateForCostCode } from "@/lib/estimating/cost-database-store";
+import { computeEstimateTotal, computeLineItemTotal } from "@/lib/estimating/estimate-calculations";
+import { useCostCodes } from "@/hooks/use-cost-codes";
+import { useProjects } from "@/hooks/use-projects";
+import { useProperties } from "@/hooks/use-properties";
+import { getPropertyDisplayName } from "@/lib/properties/property-relations";
+import type { Estimate, EstimateLineItem, EstimateStatus } from "@/types/estimating";
+
+interface Props {
+  estimate: Estimate | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const STATUS_OPTIONS: { value: EstimateStatus; label: string }[] = [
+  { value: "draft", label: "Draft" },
+  { value: "internal_review", label: "Internal Review" },
+  { value: "owner_review", label: "Owner Review" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+  { value: "superseded", label: "Superseded" },
+  { value: "archived", label: "Archived" },
+];
+
+const NONE = "none";
+
+function emptyLineItem(): Omit<EstimateLineItem, "totalCost"> {
+  return { costCode: "", description: "", quantity: 1, unit: "each", laborCost: 0, materialCost: 0, equipmentCost: 0, subcontractCost: 0, markupPercent: 0 };
+}
+function currency(n: number) {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+
+export function EstimateEditDialog({ estimate, open, onOpenChange }: Props) {
+  const projects = useProjects();
+  const properties = useProperties();
+  const costCodes = useCostCodes();
+
+  const [projectId, setProjectId] = React.useState("");
+  const [propertyId, setPropertyId] = React.useState("");
+  const [address, setAddress] = React.useState("");
+  const [estimateDate, setEstimateDate] = React.useState("");
+  const [estimateStatus, setEstimateStatus] = React.useState<EstimateStatus>("draft");
+  const [notes, setNotes] = React.useState("");
+  const [lineItems, setLineItems] = React.useState<Omit<EstimateLineItem, "totalCost">[]>([emptyLineItem()]);
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setProjectId(estimate?.projectId ?? "");
+    setPropertyId(estimate?.propertyId ?? "");
+    setAddress(estimate?.address ?? "");
+    setEstimateDate(estimate?.estimateDate ?? new Date().toISOString().slice(0, 10));
+    setEstimateStatus(estimate?.estimateStatus ?? "draft");
+    setNotes(estimate?.notes ?? "");
+    setLineItems(estimate?.lineItems.length ? estimate.lineItems : [emptyLineItem()]);
+    setConfirmingDelete(false);
+  }, [estimate, open]);
+
+  function updateLineItem(index: number, patch: Partial<Omit<EstimateLineItem, "totalCost">>) {
+    setLineItems((prev) => prev.map((li, i) => (i === index ? { ...li, ...patch } : li)));
+  }
+  function addLineItem() {
+    setLineItems((prev) => [...prev, emptyLineItem()]);
+  }
+  function removeLineItem(index: number) {
+    setLineItems((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
+  }
+  function applyRate(index: number) {
+    const li = lineItems[index];
+    const rate = findRateForCostCode(li.costCode);
+    if (!rate) return;
+    updateLineItem(index, {
+      laborCost: rate.laborCost * li.quantity,
+      materialCost: rate.materialCost * li.quantity,
+      subcontractCost: rate.subcontractCost * li.quantity,
+      unit: rate.unit,
+    });
+  }
+
+  const computedLineItems = withComputedLineItemTotals(lineItems);
+  const previewTotal = computeEstimateTotal(computedLineItems);
+
+  function handlePropertyChange(value: string) {
+    setPropertyId(value);
+    const property = properties.find((p) => p.id === value);
+    if (property) setAddress(property.address);
+  }
+
+  async function handleSave() {
+    if (!projectId || !estimateDate || lineItems.some((li) => !li.description)) return;
+    const input = {
+      projectId, propertyId: propertyId || undefined, address: address || undefined, estimateDate,
+      estimateStatus,
+      notes: notes || undefined, lineItems: computedLineItems,
+    };
+    setSaving(true);
+    const result = estimate ? await updateEstimate(estimate.id, input) : await createEstimate(input);
+    setSaving(false);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this estimate — check your connection and try again.");
+      return;
+    }
+    showSuccessToast(estimate ? "Estimate updated" : "Estimate created");
+    onOpenChange(false);
+  }
+
+  function handleDelete() {
+    if (!estimate) return;
+    deleteEstimate(estimate.id);
+    onOpenChange(false);
+  }
+
+  const canSave = !!projectId && !!estimateDate && lineItems.every((li) => li.description);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[85vh] max-w-5xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{estimate ? `Edit Estimate ${estimate.estimateNumber}` : "New Estimate"}</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Project</Label>
+              <Select value={projectId} onValueChange={setProjectId}>
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue placeholder="Select project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={estimateStatus} onValueChange={(v) => setEstimateStatus(v as EstimateStatus)}>
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label>Property</Label>
+            <Select value={propertyId} onValueChange={handlePropertyChange}>
+              <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select property" /></SelectTrigger>
+              <SelectContent>
+                {properties.map((p) => (<SelectItem key={p.id} value={p.id}>{getPropertyDisplayName(p)}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="estimateDate">Estimate Date</Label>
+              <Input id="estimateDate" type="date" className="mt-1.5" value={estimateDate} onChange={(e) => setEstimateDate(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="address">Address (optional)</Label>
+              <Input id="address" className="mt-1.5" value={address} onChange={(e) => setAddress(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <Label>Line Items</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
+                <Plus className="size-3.5" /> Add Row
+              </Button>
+            </div>
+            <div className="overflow-x-auto rounded-md border border-border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
+                    <th className="min-w-[180px] px-2 py-2 font-medium">Description</th>
+                    <th className="min-w-[110px] px-2 py-2 font-medium">Cost Code</th>
+                    <th className="min-w-[70px] px-2 py-2 font-medium">Qty</th>
+                    <th className="min-w-[70px] px-2 py-2 font-medium">Unit</th>
+                    <th className="min-w-[90px] px-2 py-2 font-medium">Labor</th>
+                    <th className="min-w-[90px] px-2 py-2 font-medium">Material</th>
+                    <th className="min-w-[100px] px-2 py-2 font-medium">Subcontract</th>
+                    <th className="min-w-[100px] px-2 py-2 font-medium">Total</th>
+                    <th className="px-2 py-2 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((li, index) => (
+                    <tr key={index} className="border-b border-border/60 last:border-0">
+                      <td className="p-1">
+                        <Input className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.description} onChange={(e) => updateLineItem(index, { description: e.target.value })} />
+                      </td>
+                      <td className="p-1">
+                        <Select value={li.costCode || NONE} onValueChange={(v) => updateLineItem(index, { costCode: v === NONE ? "" : v })}>
+                          <SelectTrigger className="h-8 w-full border-0 shadow-none">
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={NONE}>None</SelectItem>
+                            {costCodes.map((c) => (
+                              <SelectItem key={c.id} value={c.code}>{c.code}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.quantity} onChange={(e) => updateLineItem(index, { quantity: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.unit} onChange={(e) => updateLineItem(index, { unit: e.target.value })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.laborCost} onChange={(e) => updateLineItem(index, { laborCost: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.materialCost} onChange={(e) => updateLineItem(index, { materialCost: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1">
+                        <Input type="number" className="h-8 border-0 shadow-none focus-visible:ring-1" value={li.subcontractCost} onChange={(e) => updateLineItem(index, { subcontractCost: parseFloat(e.target.value) || 0 })} />
+                      </td>
+                      <td className="whitespace-nowrap p-1 px-2 text-right font-medium text-foreground">{currency(computeLineItemTotal(li))}</td>
+                      <td className="p-1">
+                        <div className="flex gap-0.5">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                            title="Apply default rate for this cost code"
+                            onClick={() => applyRate(index)}
+                            disabled={!findRateForCostCode(li.costCode)}
+                          >
+                            <Zap className="size-3.5" />
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => removeLineItem(index)} disabled={lineItems.length === 1}>
+                            <Trash2 className="size-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2">
+            <span className="text-sm font-medium text-foreground">Total Estimated Cost</span>
+            <span className="text-base font-semibold text-foreground">{currency(previewTotal)}</span>
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea id="notes" className="mt-1.5" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </div>
+        </div>
+
+        <DialogFooter className="justify-between">
+          {estimate ? (
+            confirmingDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Delete this estimate?</span>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
+                <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
+              </div>
+            ) : (
+              <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmingDelete(true)}>
+                <Trash2 className="size-3.5" /> Delete Estimate
+              </Button>
+            )
+          ) : (
+            <span />
+          )}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={!canSave || saving}>{saving ? "Saving…" : "Save"}</Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

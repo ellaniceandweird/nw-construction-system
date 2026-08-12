@@ -1,0 +1,205 @@
+"use client";
+
+import * as React from "react";
+import { ChevronRight, Search } from "lucide-react";
+
+import { useEstimates } from "@/hooks/use-estimates";
+import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
+import { useChangeOrders } from "@/hooks/use-change-orders";
+import { useCostTrackingNotes } from "@/hooks/use-cost-tracking-notes";
+import { setCostTrackingNote } from "@/lib/estimating/cost-tracking-notes-store";
+import { computeApprovedChangesTotal } from "@/lib/estimating/change-order-store";
+import { useProjects } from "@/hooks/use-projects";
+import { computeDivisionBudget, computeTotalActual } from "@/lib/estimating/budget-tracking";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import type { Project } from "@/types/project";
+
+function currency(n: number) {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+function projectName(id: string, projects: Project[]) {
+  return projects.find((p) => p.id === id)?.projectName ?? id;
+}
+function percentVariance(variance: number, base: number) {
+  if (base === 0) return 0;
+  return (variance / base) * 100;
+}
+
+function NotesCell({ estimateId, initialValue }: { estimateId: string; initialValue: string }) {
+  const [value, setValue] = React.useState(initialValue);
+  return (
+    <Input
+      className="h-8 min-w-[10rem] text-xs"
+      placeholder="Add an update…"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={() => setCostTrackingNote(estimateId, value)}
+    />
+  );
+}
+
+export function CostTrackingTable() {
+  const projects = useProjects();
+  const estimates = useEstimates();
+  const purchaseOrders = usePurchaseOrders();
+  const changeOrders = useChangeOrders();
+  const notes = useCostTrackingNotes();
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [search, setSearch] = React.useState("");
+
+  const filtered = search
+    ? estimates.filter((e) => projectName(e.projectId, projects).toLowerCase().includes(search.toLowerCase()))
+    : estimates;
+  const sorted = [...filtered].sort((a, b) => projectName(a.projectId, projects).localeCompare(projectName(b.projectId, projects)));
+
+  return (
+    <>
+      <div className="mb-3 relative max-w-xs">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input className="pl-8" placeholder="Search project…" value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Compares each estimate&apos;s revised budget (original estimate + approved change
+        orders) against real Purchase Orders already logged in Procurement. Projects with
+        no POs yet show &quot;—&quot; rather than $0. Notes are manual — type an update and
+        click away to save it.
+      </p>
+
+      <Card className="overflow-x-auto py-0">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <th className="px-4 py-3 font-medium">Project</th>
+              <th className="px-4 py-3 font-medium">Estimate Number</th>
+              <th className="px-4 py-3 font-medium">Original Estimate</th>
+              <th className="px-4 py-3 font-medium">Approved Changes</th>
+              <th className="px-4 py-3 font-medium">Revised Budget</th>
+              <th className="px-4 py-3 font-medium">Actual to Date</th>
+              <th className="px-4 py-3 font-medium">Variance</th>
+              <th className="px-4 py-3 font-medium">% Variance</th>
+              <th className="px-4 py-3 font-medium">% Spent</th>
+              <th className="px-4 py-3 font-medium">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((e) => {
+              const projectPOs = purchaseOrders.filter((po) => po.projectId === e.projectId);
+              const hasActuals = projectPOs.length > 0;
+              const totalActual = computeTotalActual(projectPOs);
+              const approvedChanges = computeApprovedChangesTotal(e.id, changeOrders);
+              const revisedBudget = e.totalEstimatedCost + approvedChanges;
+              const variance = revisedBudget - totalActual;
+              const pctVariance = percentVariance(variance, revisedBudget);
+              const percentSpent = revisedBudget > 0 ? (totalActual / revisedBudget) * 100 : 0;
+              const isExpanded = expandedId === e.id;
+              const divisionBudget = computeDivisionBudget(e.lineItems, projectPOs);
+
+              return (
+                <React.Fragment key={e.id}>
+                  <tr className="border-b border-border/60 last:border-0 hover:bg-accent/40">
+                    <td className="px-4 py-3">
+                      <button
+                        className="flex items-center gap-1.5 font-medium text-foreground hover:text-primary hover:underline"
+                        onClick={() => setExpandedId(isExpanded ? null : e.id)}
+                      >
+                        <ChevronRight className={`size-3.5 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                        {projectName(e.projectId, projects)}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{e.estimateNumber}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{currency(e.totalEstimatedCost)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {approvedChanges !== 0 ? (
+                        <span className={approvedChanges > 0 ? "text-foreground" : "text-destructive"}>
+                          {approvedChanges > 0 ? "+" : ""}
+                          {currency(approvedChanges)}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-foreground">{currency(revisedBudget)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{hasActuals ? currency(totalActual) : "—"}</td>
+                    <td className="px-4 py-3">
+                      {hasActuals ? (
+                        <Badge className={`${variance >= 0 ? "bg-success-soft text-success" : "bg-destructive-soft text-destructive"} border-transparent`}>
+                          {variance >= 0 ? "+" : ""}
+                          {currency(variance)}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className={`px-4 py-3 font-medium ${hasActuals ? (pctVariance >= 0 ? "text-success" : "text-destructive") : "text-muted-foreground"}`}>
+                      {hasActuals ? `${pctVariance >= 0 ? "+" : ""}${pctVariance.toFixed(1)}%` : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{hasActuals ? `${percentSpent.toFixed(0)}%` : "—"}</td>
+                    <td className="px-4 py-3">
+                      <NotesCell estimateId={e.id} initialValue={notes[e.id] ?? ""} />
+                    </td>
+                  </tr>
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={10} className="bg-muted/20 px-4 pb-4 pt-1">
+                        <Card className="overflow-x-auto py-0">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                                <th className="px-4 py-2.5 font-medium">Division</th>
+                                <th className="px-4 py-2.5 font-medium">Estimated</th>
+                                <th className="px-4 py-2.5 font-medium">Actual</th>
+                                <th className="px-4 py-2.5 font-medium">Variance</th>
+                                <th className="px-4 py-2.5 font-medium">% Variance</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {divisionBudget.map((d) => {
+                                const dPct = percentVariance(d.variance, d.estimated);
+                                return (
+                                  <tr key={d.divisionKey} className="border-b border-border/60 last:border-0">
+                                    <td className="px-4 py-2.5 text-foreground">{d.divisionLabel}</td>
+                                    <td className="px-4 py-2.5 text-muted-foreground">{currency(d.estimated)}</td>
+                                    <td className="px-4 py-2.5 text-muted-foreground">{hasActuals ? currency(d.actual) : "—"}</td>
+                                    <td className={`px-4 py-2.5 font-medium ${hasActuals ? (d.variance >= 0 ? "text-success" : "text-destructive") : "text-muted-foreground"}`}>
+                                      {hasActuals ? `${d.variance >= 0 ? "+" : ""}${currency(d.variance)}` : "—"}
+                                    </td>
+                                    <td className={`px-4 py-2.5 font-medium ${hasActuals ? (dPct >= 0 ? "text-success" : "text-destructive") : "text-muted-foreground"}`}>
+                                      {hasActuals ? `${dPct >= 0 ? "+" : ""}${dPct.toFixed(1)}%` : "—"}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                              {divisionBudget.length === 0 && (
+                                <tr><td colSpan={5} className="px-4 py-4 text-center text-muted-foreground">No line items or Purchase Orders to compare yet.</td></tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </Card>
+                        {approvedChanges !== 0 && (
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            Division breakdown compares against the original per-division estimate; approved
+                            change orders (shown above) are applied only to the overall Revised Budget total.
+                          </p>
+                        )}
+                        {!hasActuals && (
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            No Purchase Orders logged for this project yet in Procurement.
+                          </p>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+            {sorted.length === 0 && (
+              <tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">No estimates yet — create one on the Estimates tab.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </Card>
+    </>
+  );
+}

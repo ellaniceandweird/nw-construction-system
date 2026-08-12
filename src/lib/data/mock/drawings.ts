@@ -1,0 +1,38 @@
+import type { Drawing } from "@/types/documents";
+
+export const MOCK_DRAWINGS: Drawing[] = [
+  {
+    id: "DWG-000001",
+    createdBy: "system", createdDate: "2026-06-10T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-06-10T00:00:00.000Z",
+    revisionNumber: 1, module: "Documents", status: "active",
+    projectId: "PRJ-000006",
+    drawingNumber: "A-101",
+    drawingTitle: "25 Cross St — Exterior Elevations",
+    discipline: "architectural",
+    sheetNumber: "A-101",
+    revision: "1",
+    scale: "1/4\" = 1'-0\"",
+    issueDate: "2026-06-10",
+    currentRevisionUrl: "https://drive.google.com/drive/folders/example-a101-rev1",
+    drawingStatus: "approved",
+    architect: "Walter Chatham",
+    uploadedBy: "Ella Esquivel",
+  },
+  {
+    id: "DWG-000002",
+    createdBy: "system", createdDate: "2026-07-02T00:00:00.000Z",
+    lastModifiedBy: "system", lastModifiedDate: "2026-07-02T00:00:00.000Z",
+    revisionNumber: 1, module: "Documents", status: "active",
+    projectId: "PRJ-000010",
+    drawingNumber: "S-201",
+    drawingTitle: "The Wick Bulkhead — Reinforcement Plan",
+    discipline: "structural",
+    sheetNumber: "S-201",
+    revision: "0",
+    issueDate: "2026-07-02",
+    currentRevisionUrl: "https://drive.google.com/drive/folders/example-s201-rev0",
+    drawingStatus: "owner_review",
+    uploadedBy: "Ella Esquivel",
+  },
+];

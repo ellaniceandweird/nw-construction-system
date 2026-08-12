@@ -1,0 +1,997 @@
+import type { DailyLog } from "@/types";
+
+/**
+ * Real Daily Log entries from the workbook's Daily Log sheet, grouped by
+ * date + project (one Daily Log record per project per day, per SDS §7.4).
+ * Restructured to use a unified timeEntries model (2026-07-20) so a
+ * worker can be logged against multiple projects/activities without
+ * needing separate top-level daily logs — legacy activity descriptions
+ * are attached per-worker as a reasonable default since the original
+ * data wasn't broken down that granularly.
+ */
+export const MOCK_DAILY_LOGS: DailyLog[] = [
+  {
+    id: "DL-000001",
+    createdBy: "system",
+    createdDate: "2026-06-29T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-06-29T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000006",
+    dailyLogNumber: "DL-000001",
+    date: "2026-06-29",
+    dayOfWeek: "Monday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000001",
+        employeeName: "Pedro (Lead)",
+        trade: "Field Supervision",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "Demolition",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000003",
+        employeeName: "Brandon Alexander Xoc Bucu",
+        trade: "Windows",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000004",
+        employeeName: "Jose Alfredo Yucute Bucu",
+        trade: "Site Preparation",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "Site Preparation",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000006",
+        employeeName: "Angel Francisco Garcia Bacquiax",
+        trade: "Demolition",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000007",
+        employeeName: "Fredy Josue Cuc Choxin",
+        trade: "Windows",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000008",
+        employeeName: "Alfredo Morales",
+        trade: "Site Preparation",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000002",
+    createdBy: "system",
+    createdDate: "2026-06-29T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-06-29T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000001",
+    dailyLogNumber: "DL-000002",
+    date: "2026-06-29",
+    dayOfWeek: "Monday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "Finish Carpentry",
+        status: "present",
+        projectId: "PRJ-000001",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Installation of cabinet handles",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "Finish Carpentry",
+        status: "present",
+        projectId: "PRJ-000001",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Installation of cabinet handles",
+        regularHours: 4,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000003",
+    createdBy: "system",
+    createdDate: "2026-06-30T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-06-30T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000006",
+    dailyLogNumber: "DL-000003",
+    date: "2026-06-30",
+    dayOfWeek: "Tuesday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000001",
+        employeeName: "Pedro (Lead)",
+        trade: "Field Supervision",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "Site Preparation",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000003",
+        employeeName: "Brandon Alexander Xoc Bucu",
+        trade: "Site Preparation",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000004",
+        employeeName: "Jose Alfredo Yucute Bucu",
+        trade: "Rough Carpentry",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "Rough Carpentry",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000006",
+        employeeName: "Angel Francisco Garcia Bacquiax",
+        trade: "Demolition",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000007",
+        employeeName: "Fredy Josue Cuc Choxin",
+        trade: "Demolition",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000008",
+        employeeName: "Alfredo Morales",
+        trade: "Site Preparation",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000004",
+    createdBy: "system",
+    createdDate: "2026-06-30T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-06-30T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000001",
+    dailyLogNumber: "DL-000004",
+    date: "2026-06-30",
+    dayOfWeek: "Tuesday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "Finish Carpentry",
+        status: "present",
+        projectId: "PRJ-000001",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install new counter and cabinets",
+        regularHours: 4,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000005",
+    createdBy: "system",
+    createdDate: "2026-07-01T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-01T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000006",
+    dailyLogNumber: "DL-000005",
+    date: "2026-07-01",
+    dayOfWeek: "Wednesday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000001",
+        employeeName: "Pedro (Lead)",
+        trade: "Windows",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install windows    ",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "Rough Carpentry",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install windows    ",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000003",
+        employeeName: "Brandon Alexander Xoc Bucu",
+        trade: "Demolition",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install windows    ",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000004",
+        employeeName: "Jose Alfredo Yucute Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install windows    ",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install windows    ",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000006",
+        employeeName: "Angel Francisco Garcia Bacquiax",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install windows    ",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000007",
+        employeeName: "Fredy Josue Cuc Choxin",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install windows    ",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000008",
+        employeeName: "Alfredo Morales",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Install windows    ",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000006",
+    createdBy: "system",
+    createdDate: "2026-07-02T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-02T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000006",
+    dailyLogNumber: "DL-000006",
+    date: "2026-07-02",
+    dayOfWeek: "Thursday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000003",
+        employeeName: "Brandon Alexander Xoc Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Continue working on the windows",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000004",
+        employeeName: "Jose Alfredo Yucute Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Continue working on the windows",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Continue working on the windows",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000006",
+        employeeName: "Angel Francisco Garcia Bacquiax",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Continue working on the windows",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000008",
+        employeeName: "Alfredo Morales",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Continue working on the windows",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000007",
+    createdBy: "system",
+    createdDate: "2026-07-02T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-02T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000013",
+    dailyLogNumber: "DL-000007",
+    date: "2026-07-02",
+    dayOfWeek: "Thursday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000001",
+        employeeName: "Pedro (Lead)",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000013",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Mowing",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000013",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Mowing",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000007",
+        employeeName: "Fredy Josue Cuc Choxin",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000013",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Mowing",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000008",
+    createdBy: "system",
+    createdDate: "2026-07-06T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-06T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000006",
+    dailyLogNumber: "DL-000008",
+    date: "2026-07-06",
+    dayOfWeek: "Monday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000001",
+        employeeName: "Pedro (Lead)",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000004",
+        employeeName: "Jose Alfredo Yucute Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000007",
+        employeeName: "Fredy Josue Cuc Choxin",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000008",
+        employeeName: "Alfredo Morales",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 4,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000009",
+    createdBy: "system",
+    createdDate: "2026-07-06T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-06T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000004",
+    dailyLogNumber: "DL-000009",
+    date: "2026-07-06",
+    dayOfWeek: "Monday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000003",
+        employeeName: "Brandon Alexander Xoc Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000004",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Kitty's restaurant, install LED lights under the bar",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000004",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Kitty's restaurant, install LED lights under the bar",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000010",
+    createdBy: "system",
+    createdDate: "2026-07-06T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-06T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000013",
+    dailyLogNumber: "DL-000010",
+    date: "2026-07-06",
+    dayOfWeek: "Monday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000013",
+        activityId: "GENERAL_WORK",
+        activityDescription: "warehouse KAZ - move the things on one side",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000004",
+        employeeName: "Jose Alfredo Yucute Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000013",
+        activityId: "GENERAL_WORK",
+        activityDescription: "warehouse KAZ - move the things on one side",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000007",
+        employeeName: "Fredy Josue Cuc Choxin",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000013",
+        activityId: "GENERAL_WORK",
+        activityDescription: "warehouse KAZ - move the things on one side",
+        regularHours: 4,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000008",
+        employeeName: "Alfredo Morales",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000013",
+        activityId: "GENERAL_WORK",
+        activityDescription: "warehouse KAZ - move the things on one side",
+        regularHours: 4,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000011",
+    createdBy: "system",
+    createdDate: "2026-07-06T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-06T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000011",
+    dailyLogNumber: "DL-000011",
+    date: "2026-07-06",
+    dayOfWeek: "Monday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000006",
+        employeeName: "Angel Francisco Garcia Bacquiax",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000011",
+        activityId: "GENERAL_WORK",
+        activityDescription: "The Wick sign replacement (prepare, painting)",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000012",
+    createdBy: "system",
+    createdDate: "2026-07-07T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-07T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000006",
+    dailyLogNumber: "DL-000012",
+    date: "2026-07-07",
+    dayOfWeek: "Tuesday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000001",
+        employeeName: "Pedro (Lead)",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "pickup the cedar boards; Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "pickup the cedar boards; Field supervision",
+        regularHours: 7,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000003",
+        employeeName: "Brandon Alexander Xoc Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "pickup the cedar boards; Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000004",
+        employeeName: "Jose Alfredo Yucute Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "pickup the cedar boards; Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "pickup the cedar boards; Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000006",
+        employeeName: "Angel Francisco Garcia Bacquiax",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "pickup the cedar boards; Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000007",
+        employeeName: "Fredy Josue Cuc Choxin",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "pickup the cedar boards; Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000008",
+        employeeName: "Alfredo Morales",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "pickup the cedar boards; Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000013",
+    createdBy: "system",
+    createdDate: "2026-07-07T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-07T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000013",
+    dailyLogNumber: "DL-000013",
+    date: "2026-07-07",
+    dayOfWeek: "Tuesday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000013",
+        activityId: "GENERAL_WORK",
+        activityDescription: "assist Vinny in Kitty's restaurant, remove ice machine to change filter",
+        regularHours: 1,
+        overtimeHours: 0
+      }
+    ]
+  },
+  {
+    id: "DL-000014",
+    createdBy: "system",
+    createdDate: "2026-07-08T18:00:00.000Z",
+    lastModifiedBy: "system",
+    lastModifiedDate: "2026-07-08T18:00:00.000Z",
+    revisionNumber: 1,
+    module: "Field Operations",
+    status: "active",
+    projectId: "PRJ-000006",
+    dailyLogNumber: "DL-000014",
+    date: "2026-07-08",
+    dayOfWeek: "Wednesday",
+    preparedBy: "Pedro (Lead)",
+    weatherCondition: "clear",
+    materialDeliveries: [],
+    materialConsumption: [],
+    timeEntries: [
+      {
+        employeeId: "EMP-000001",
+        employeeName: "Pedro (Lead)",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000002",
+        employeeName: "Federico Taquez Jolon",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000003",
+        employeeName: "Brandon Alexander Xoc Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000004",
+        employeeName: "Jose Alfredo Yucute Bucu",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000005",
+        employeeName: "Margarito Vicente Sontay",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000006",
+        employeeName: "Angel Francisco Garcia Bacquiax",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000007",
+        employeeName: "Fredy Josue Cuc Choxin",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      },
+      {
+        employeeId: "EMP-000008",
+        employeeName: "Alfredo Morales",
+        trade: "General",
+        status: "present",
+        projectId: "PRJ-000006",
+        activityId: "GENERAL_WORK",
+        activityDescription: "Field supervision",
+        regularHours: 8,
+        overtimeHours: 0
+      }
+    ]
+  }
+];
