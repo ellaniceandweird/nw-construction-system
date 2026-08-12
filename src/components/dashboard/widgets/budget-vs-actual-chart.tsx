@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useProjects } from "@/hooks/use-projects";
@@ -10,70 +9,64 @@ function formatCurrency(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
-function shortenLabel(name: string, max = 14) {
-  return name.length > max ? `${name.slice(0, max - 1)}…` : name;
-}
-
+/**
+ * Plain table, deliberately no chart/graph here — per explicit feedback
+ * that budget figures should never be shown as a bar chart. Shows
+ * active projects specifically — on-hold/upcoming/closed projects
+ * shouldn't be mixed in with active spend tracking.
+ */
 export function BudgetVsActualChart() {
   const projects = useProjects();
 
-  const data = [...projects]
-    .filter((p) => p.approvedBudget > 0 || (p.actualCostToDate ?? 0) > 0)
+  const rows = [...projects]
+    .filter((p) => p.calculatedStatus === "active")
     .sort((a, b) => b.approvedBudget - a.approvedBudget)
-    .slice(0, 8)
     .map((p) => ({
-      name: shortenLabel(p.projectName),
-      fullName: p.projectName,
-      Budget: p.approvedBudget,
-      Actual: p.actualCostToDate ?? 0,
+      id: p.id,
+      name: p.projectName,
+      budget: p.approvedBudget,
+      spent: p.actualCostToDate ?? 0,
+      remaining: p.approvedBudget - (p.actualCostToDate ?? 0),
     }));
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Budget vs. Actual by Project</CardTitle>
+        <CardTitle>Active Projects — Budget Overview</CardTitle>
       </CardHeader>
       <CardContent>
-        {data.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">No project budgets to show yet.</p>
+        {rows.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">No active projects with a budget set yet.</p>
         ) : (
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
-                  interval={0}
-                  angle={-20}
-                  textAnchor="end"
-                  height={50}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
-                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-                  width={48}
-                />
-                <Tooltip
-                  formatter={(value: any) => formatCurrency(Number(value))}
-                  labelFormatter={(_, payload) => payload?.[0]?.payload?.fullName ?? ""}
-                  contentStyle={{
-                    background: "var(--color-card)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="Budget" fill="var(--color-primary-soft)" stroke="var(--color-primary)" strokeWidth={1} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Actual" fill="var(--color-warning-soft)" stroke="var(--color-warning)" strokeWidth={1} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                  <th className="pb-2 pr-3 font-medium">Project</th>
+                  <th className="pb-2 pr-3 font-medium">Budget</th>
+                  <th className="pb-2 pr-3 font-medium">Spent to Date</th>
+                  <th className="pb-2 font-medium">Remaining</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id} className="border-b border-border/60 last:border-0">
+                    <td className="py-2 pr-3">
+                      <Link href={`/projects/${r.id}`} className="font-medium text-foreground hover:text-primary hover:underline">
+                        {r.name}
+                      </Link>
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">{formatCurrency(r.budget)}</td>
+                    <td className="py-2 pr-3 text-muted-foreground">{formatCurrency(r.spent)}</td>
+                    <td className={`py-2 font-medium ${r.remaining < 0 ? "text-destructive" : "text-foreground"}`}>
+                      {formatCurrency(r.remaining)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-        <Link href="/financial" className="mt-2 inline-block text-xs font-medium text-primary hover:underline">
-          View financials
-        </Link>
       </CardContent>
     </Card>
   );

@@ -16,10 +16,6 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function formatCurrency(n: number) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-}
-
 const PROJECT_STATUS_MAP: Record<ProjectCalculatedStatus, DashboardStatus> = {
   planning: "upcoming",
   active: "on_track",
@@ -62,8 +58,6 @@ interface DeadlineRow {
   dueDate: string;
   statusTone: DashboardStatus;
   statusLabel: string;
-  budget?: number;
-  spent?: number;
 }
 
 export function UpcomingDeadlinesWidget() {
@@ -80,8 +74,6 @@ export function UpcomingDeadlinesWidget() {
       dueDate: p.plannedCompletionDate,
       statusTone: PROJECT_STATUS_MAP[p.calculatedStatus],
       statusLabel: PROJECT_STATUS_LABEL[p.calculatedStatus],
-      budget: p.approvedBudget,
-      spent: p.actualCostToDate,
     }));
 
   const maintenanceRows: DeadlineRow[] = maintenanceTasks
@@ -113,9 +105,7 @@ export function UpcomingDeadlinesWidget() {
               <tr className="border-b border-border text-left text-xs text-muted-foreground">
                 <th className="pb-2 pr-3 font-medium">Project / Task</th>
                 <th className="pb-2 pr-3 font-medium">Completion Date</th>
-                <th className="pb-2 pr-3 font-medium">Status</th>
-                <th className="pb-2 pr-3 font-medium">Budget</th>
-                <th className="pb-2 font-medium">Spent to Date</th>
+                <th className="pb-2 font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -129,20 +119,14 @@ export function UpcomingDeadlinesWidget() {
                   <td className="py-2 pr-3 text-muted-foreground">
                     {formatDate(r.dueDate)}
                   </td>
-                  <td className="py-2 pr-3">
+                  <td className="py-2">
                     <StatusBadge status={r.statusTone} label={r.statusLabel} />
-                  </td>
-                  <td className="py-2 pr-3 text-muted-foreground">
-                    {r.budget != null ? formatCurrency(r.budget) : "—"}
-                  </td>
-                  <td className="py-2 text-muted-foreground">
-                    {r.spent != null ? formatCurrency(r.spent) : "—"}
                   </td>
                 </tr>
               ))}
               {upcoming.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                  <td colSpan={3} className="py-6 text-center text-muted-foreground">
                     No upcoming project or maintenance deadlines.
                   </td>
                 </tr>

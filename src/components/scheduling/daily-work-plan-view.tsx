@@ -16,6 +16,7 @@ import { DailyFieldUpdateDialog } from "@/components/scheduling/daily-field-upda
 import { openPrintWindow } from "@/lib/estimating/print-window";
 import { buildDailyWorkPlanHtml } from "@/lib/scheduling/print-daily-work-plan";
 import { generateDailyWorkPlanImage } from "@/lib/scheduling/generate-daily-work-plan-image";
+import { DailyWorkPlanDetailsPanel } from "@/components/scheduling/daily-work-plan-details-panel";
 import { getTodayInNewYork } from "@/lib/date/today";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -296,6 +297,7 @@ export function DailyWorkPlanView() {
         </div>
       )}
 
+      <DailyWorkPlanDetailsPanel date={date} activities={selectedScheduled} projects={projects} />
 
       <DailyFieldUpdateDialog
         open={updateDialogOpen}
