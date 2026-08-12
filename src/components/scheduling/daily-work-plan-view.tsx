@@ -104,13 +104,21 @@ export function DailyWorkPlanView() {
   const filteredScheduled = capacity.scheduled.filter(
     (s) => workTypeFilter === "all" || getWorkType(s.activity) === workTypeFilter
   );
+  const filteredDeferred = capacity.deferred.filter(
+    (d) => workTypeFilter === "all" || getWorkType(d.activity) === workTypeFilter
+  );
 
   // Defaults to everything selected whenever the visible list changes
   // (switching days, changing the work-type filter) — so by default the
   // generated image/reminder match what's on screen, unless someone
-  // explicitly deselects something for that day.
+  // explicitly deselects something for that day. Both fully-staffed and
+  // needs-more-crew activities are selectable — you decide which
+  // projects actually get workers deployed today, staffing shortfall or
+  // not.
   React.useEffect(() => {
-    setSelectedActivityIds(new Set(filteredScheduled.map((s) => s.activity.id)));
+    setSelectedActivityIds(
+      new Set([...filteredScheduled.map((s) => s.activity.id), ...filteredDeferred.map((d) => d.activity.id)])
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dayOffset, workTypeFilter, activities.length]);
 
@@ -123,7 +131,12 @@ export function DailyWorkPlanView() {
     });
   }
 
-  const selectedScheduled = filteredScheduled.filter((s) => selectedActivityIds.has(s.activity.id));
+  const selectedScheduled = [
+    ...filteredScheduled.filter((s) => selectedActivityIds.has(s.activity.id)),
+    ...filteredDeferred
+      .filter((d) => selectedActivityIds.has(d.activity.id))
+      .map((d) => ({ activity: d.activity, assignedCrew: d.neededCrew })),
+  ];
 
   const fieldUpdateText = generateDailyFieldUpdateText(date, selectedScheduled, projects);
 
@@ -231,7 +244,7 @@ export function DailyWorkPlanView() {
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-foreground">Today&apos;s Jobs</h2>
           <span className="text-xs text-muted-foreground">
-            Uncheck anything that shouldn&apos;t appear in the generated image or reminder for Pedro
+            Check which projects get workers deployed today — includes jobs below that still need more crew
           </span>
         </div>
         {filteredScheduled.length === 0 && (
@@ -253,26 +266,30 @@ export function DailyWorkPlanView() {
         ))}
       </div>
 
-      {capacity.deferred.length > 0 && (
+      {filteredDeferred.length > 0 && (
         <div className="flex flex-col gap-3 print:hidden">
           <h2 className="flex items-center gap-2 text-base font-semibold text-destructive">
             <AlertTriangle className="size-4" />
             Needs More Crew — Reschedule or Add Help
           </h2>
-          {capacity.deferred.map((d) => {
+          {filteredDeferred.map((d) => {
             const project = projects.find((p) => p.id === d.activity.projectId);
             return (
-              <div
-                key={d.activity.id}
-                className="flex items-center justify-between rounded-2xl border border-dashed border-destructive/40 bg-destructive-soft/40 p-4"
-              >
-                <div>
-                  <p className="font-semibold text-foreground">{project?.projectName}</p>
-                  <p className="text-sm text-muted-foreground">{d.activity.name}</p>
+              <div key={d.activity.id} className="flex items-start gap-3">
+                <Checkbox
+                  className="mt-4"
+                  checked={selectedActivityIds.has(d.activity.id)}
+                  onCheckedChange={() => toggleActivitySelection(d.activity.id)}
+                />
+                <div className="flex flex-1 items-center justify-between rounded-2xl border border-dashed border-destructive/40 bg-destructive-soft/40 p-4">
+                  <div>
+                    <p className="font-semibold text-foreground">{project?.projectName}</p>
+                    <p className="text-sm text-muted-foreground">{d.activity.name}</p>
+                  </div>
+                  <span className="text-sm font-medium text-destructive">
+                    Needs {d.neededCrew} people
+                  </span>
                 </div>
-                <span className="text-sm font-medium text-destructive">
-                  Needs {d.neededCrew} people
-                </span>
               </div>
             );
           })}
