@@ -6,7 +6,7 @@ import { Search, ArrowUpDown, Printer, Pencil } from "lucide-react";
 
 import { useProjects } from "@/hooks/use-projects";
 import { useActivities } from "@/hooks/use-activities";
-import { computeProjectCompletionPercent } from "@/lib/scheduling/compute-project-completion";
+import { getEffectiveCompletionPercent } from "@/lib/scheduling/compute-project-completion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -95,7 +95,7 @@ export function ProjectList() {
           <td>${escapeHtml(p.projectName)}</td>
           <td>${escapeHtml(p.address.street)}</td>
           <td>${statusLabel(p.calculatedStatus)}</td>
-          <td>${computeProjectCompletionPercent(p.id, activities)}%</td>
+          <td>${getEffectiveCompletionPercent(p, activities)}%</td>
           <td class="right">${formatCurrency(p.approvedBudget)}</td>
           <td>${formatDate(p.startDate)}</td>
           <td>${formatDate(p.plannedCompletionDate)}</td>
@@ -198,7 +198,7 @@ export function ProjectList() {
                 <td className="px-4 py-3">
                   <ProjectStatusBadge status={p.calculatedStatus} />
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{computeProjectCompletionPercent(p.id, activities)}%</td>
+                <td className="px-4 py-3 text-muted-foreground">{getEffectiveCompletionPercent(p, activities)}%</td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {formatCurrency(p.approvedBudget)}
                 </td>

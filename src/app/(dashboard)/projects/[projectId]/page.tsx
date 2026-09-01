@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
 import { Pencil } from "lucide-react";
@@ -15,7 +16,8 @@ import { ProjectRelatedFiles } from "@/components/projects/project-related-files
 import { RecordProjectView } from "@/components/projects/record-project-view";
 import { useProjects } from "@/hooks/use-projects";
 import { useActivities } from "@/hooks/use-activities";
-import { computeProjectCompletionPercent } from "@/lib/scheduling/compute-project-completion";
+import { getEffectiveCompletionPercent } from "@/lib/scheduling/compute-project-completion";
+import { EditCompletionPercentDialog } from "@/components/projects/edit-completion-percent-dialog";
 
 function formatCurrency(n?: number) {
   if (!n) return "—";
@@ -32,6 +34,7 @@ export default function ProjectDetailsPage() {
   const projects = useProjects();
   const activities = useActivities();
   const project = projects.find((p) => p.id === params.projectId);
+  const [editingCompletion, setEditingCompletion] = React.useState(false);
 
   if (!project) notFound();
 
@@ -79,7 +82,15 @@ export default function ProjectDetailsPage() {
                 </div>
                 <div>
                   <span className="text-xs text-muted-foreground">% Complete</span>
-                  <p className="font-medium text-foreground">{computeProjectCompletionPercent(project.id, activities)}%</p>
+                  <p className="flex items-center gap-1.5 font-medium text-foreground">
+                    {getEffectiveCompletionPercent(project, activities)}%
+                    {project.manualCompletionPercent != null && (
+                      <span className="text-[10px] font-normal text-muted-foreground">(manual)</span>
+                    )}
+                    <button onClick={() => setEditingCompletion(true)} className="text-muted-foreground hover:text-foreground">
+                      <Pencil className="size-3" />
+                    </button>
+                  </p>
                 </div>
               </div>
             </div>
@@ -127,6 +138,14 @@ export default function ProjectDetailsPage() {
       <div className="mt-4">
         <ProjectRelatedFiles projectId={project.id} />
       </div>
+
+      <EditCompletionPercentDialog
+        projectId={project.id}
+        currentValue={getEffectiveCompletionPercent(project, activities)}
+        isManualOverride={project.manualCompletionPercent != null}
+        open={editingCompletion}
+        onOpenChange={setEditingCompletion}
+      />
     </>
   );
 }

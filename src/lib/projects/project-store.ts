@@ -40,6 +40,7 @@ function fromRow(row: Record<string, any>): Project {
     tags: row.tags ?? [],
     healthScore: Number(row.health_score ?? 100),
     completionPercent: Number(row.completion_percent ?? 0),
+    manualCompletionPercent: row.manual_completion_percent != null ? Number(row.manual_completion_percent) : undefined,
     notes: row.notes ?? undefined,
     createdBy: row.created_by ?? "system",
     createdDate: row.created_date ?? new Date().toISOString(),
@@ -87,6 +88,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.tags !== undefined) row.tags = input.tags;
   if (input.healthScore !== undefined) row.health_score = input.healthScore;
   if (input.completionPercent !== undefined) row.completion_percent = input.completionPercent;
+  if (input.manualCompletionPercent !== undefined) row.manual_completion_percent = input.manualCompletionPercent;
   if (input.notes !== undefined) row.notes = input.notes;
   row.last_modified_date = new Date().toISOString();
   return row;
@@ -132,6 +134,7 @@ export interface ProjectInput {
   team?: Project["team"];
   tags?: Project["tags"];
   notes?: string;
+  manualCompletionPercent?: number;
 }
 
 function nextId(): string {

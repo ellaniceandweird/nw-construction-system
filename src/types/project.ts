@@ -113,6 +113,9 @@ export interface Project extends BaseEntity {
   /** 0-100 completion, weighted by activity duration/cost/weight (SDS §6.12). */
   completionPercent: number;
 
+  /** When set, overrides the live activity-based % Complete calculation — for cases where the real number doesn't match what activities alone would compute. Undefined means "use the live calculation." */
+  manualCompletionPercent?: number;
+
   attachments?: Attachment[];
 
   /** Free-text notes about the project, shown in the Projects list. */

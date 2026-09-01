@@ -2,7 +2,7 @@ import type { Project } from "@/types/project";
 import type { Activity } from "@/types/scheduling";
 import type { MaintenanceTask } from "@/types/maintenance";
 import type { DailyLog } from "@/types/field-operations";
-import { computeProjectCompletionPercent } from "@/lib/scheduling/compute-project-completion";
+import { getEffectiveCompletionPercent } from "@/lib/scheduling/compute-project-completion";
 import { getTodayInNewYork } from "@/lib/date/today";
 
 /**
@@ -25,7 +25,7 @@ function daysBetween(a: Date, b: Date) {
 export function getProjectsBehindSchedule(projects: Project[], activities: Activity[]) {
   const today = getTodayInNewYork();
   return projects.filter((p) => {
-    if (computeProjectCompletionPercent(p.id, activities) >= 100) return false;
+    if (getEffectiveCompletionPercent(p, activities) >= 100) return false;
     return new Date(p.plannedCompletionDate) < today;
   });
 }

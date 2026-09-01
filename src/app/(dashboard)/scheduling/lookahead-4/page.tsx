@@ -3,6 +3,11 @@ import { SchedulingTabs } from "@/components/scheduling/scheduling-tabs";
 import { FourWeekGanttChart } from "@/components/scheduling/four-week-gantt-chart";
 import { getTodayInNewYork } from "@/lib/date/today";
 
+// Never statically cache this page — it computes "today" server-side
+// and must reflect the real current date on every request, not whatever
+// date happened to be current at the last build/deploy.
+export const dynamic = "force-dynamic";
+
 export default function Lookahead4Page() {
   const TODAY = getTodayInNewYork();
   return (
