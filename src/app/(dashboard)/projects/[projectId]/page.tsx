@@ -82,15 +82,21 @@ export default function ProjectDetailsPage() {
                 </div>
                 <div>
                   <span className="text-xs text-muted-foreground">% Complete</span>
-                  <p className="flex items-center gap-1.5 font-medium text-foreground">
-                    {getEffectiveCompletionPercent(project, activities)}%
-                    {project.manualCompletionPercent != null && (
-                      <span className="text-[10px] font-normal text-muted-foreground">(manual)</span>
-                    )}
-                    <button onClick={() => setEditingCompletion(true)} className="text-muted-foreground hover:text-foreground">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-foreground">
+                      {getEffectiveCompletionPercent(project, activities)}%
+                      {project.manualCompletionPercent != null && (
+                        <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">(manual)</span>
+                      )}
+                    </p>
+                    <button
+                      onClick={() => setEditingCompletion(true)}
+                      className="flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-xs text-muted-foreground hover:border-primary hover:text-primary"
+                    >
                       <Pencil className="size-3" />
+                      Edit
                     </button>
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
