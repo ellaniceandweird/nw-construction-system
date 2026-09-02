@@ -1,3 +1,6 @@
+import { NW_LOGO_DATA_URI } from "@/lib/print/logo-data-uri";
+import { formatNowInNewYork } from "@/lib/date/today";
+
 /**
  * Opens a new window containing only the given HTML, with its own
  * self-contained styles, and triggers the browser's print dialog on it.
@@ -8,6 +11,11 @@
  * content when tested. A separate print window has no such dependency:
  * it's a plain HTML document with inline styles, so there's nothing for
  * a build cache to get wrong.
+ *
+ * Every print output automatically gets the same Nice & Weird Group
+ * header (logo + generated timestamp in real Eastern time) — callers
+ * don't need to build their own; just pass the content that's specific
+ * to that document.
  */
 export function openPrintWindow(title: string, bodyHtml: string) {
   const printWindow = window.open("", "_blank", "width=900,height=1100");
@@ -15,6 +23,19 @@ export function openPrintWindow(title: string, bodyHtml: string) {
     alert("Your browser blocked the print window. Please allow pop-ups for this site and try again.");
     return;
   }
+
+  const sharedHeader = `
+    <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #111827; padding-bottom:14px; margin-bottom:20px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <img src="${NW_LOGO_DATA_URI}" alt="Nice and Weird Group" style="height:44px; width:auto;" />
+        <div>
+          <p style="margin:0; font-weight:700; font-size:15px; color:#111827;">Nice &amp; Weird Group</p>
+          <p style="margin:0; font-size:11px; color:#6b7280;">Construction Management</p>
+        </div>
+      </div>
+      <p style="margin:0; font-size:11px; color:#9ca3af; text-align:right;">Generated ${formatNowInNewYork()}</p>
+    </div>
+  `;
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -51,7 +72,7 @@ export function openPrintWindow(title: string, bodyHtml: string) {
           }
         </style>
       </head>
-      <body>${bodyHtml}</body>
+      <body>${sharedHeader}${bodyHtml}</body>
     </html>
   `);
   printWindow.document.close();

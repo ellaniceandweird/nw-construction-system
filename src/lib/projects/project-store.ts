@@ -134,7 +134,7 @@ export interface ProjectInput {
   team?: Project["team"];
   tags?: Project["tags"];
   notes?: string;
-  manualCompletionPercent?: number;
+  manualCompletionPercent?: number | null;
 }
 
 function nextId(): string {

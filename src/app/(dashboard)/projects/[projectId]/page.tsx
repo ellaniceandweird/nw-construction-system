@@ -17,7 +17,6 @@ import { RecordProjectView } from "@/components/projects/record-project-view";
 import { useProjects } from "@/hooks/use-projects";
 import { useActivities } from "@/hooks/use-activities";
 import { getEffectiveCompletionPercent } from "@/lib/scheduling/compute-project-completion";
-import { EditCompletionPercentDialog } from "@/components/projects/edit-completion-percent-dialog";
 
 function formatCurrency(n?: number) {
   if (!n) return "—";
@@ -34,7 +33,6 @@ export default function ProjectDetailsPage() {
   const projects = useProjects();
   const activities = useActivities();
   const project = projects.find((p) => p.id === params.projectId);
-  const [editingCompletion, setEditingCompletion] = React.useState(false);
 
   if (!project) notFound();
 
@@ -82,21 +80,12 @@ export default function ProjectDetailsPage() {
                 </div>
                 <div>
                   <span className="text-xs text-muted-foreground">% Complete</span>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-foreground">
-                      {getEffectiveCompletionPercent(project, activities)}%
-                      {project.manualCompletionPercent != null && (
-                        <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">(manual)</span>
-                      )}
-                    </p>
-                    <button
-                      onClick={() => setEditingCompletion(true)}
-                      className="flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-xs text-muted-foreground hover:border-primary hover:text-primary"
-                    >
-                      <Pencil className="size-3" />
-                      Edit
-                    </button>
-                  </div>
+                  <p className="font-medium text-foreground">
+                    {getEffectiveCompletionPercent(project, activities)}%
+                    {project.manualCompletionPercent != null && (
+                      <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">(manual)</span>
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
@@ -144,14 +133,6 @@ export default function ProjectDetailsPage() {
       <div className="mt-4">
         <ProjectRelatedFiles projectId={project.id} />
       </div>
-
-      <EditCompletionPercentDialog
-        projectId={project.id}
-        currentValue={getEffectiveCompletionPercent(project, activities)}
-        isManualOverride={project.manualCompletionPercent != null}
-        open={editingCompletion}
-        onOpenChange={setEditingCompletion}
-      />
     </>
   );
 }

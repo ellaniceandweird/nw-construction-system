@@ -18,6 +18,9 @@ export const projectFormSchema = z.object({
 
   approvedBudget: z.coerce.number().optional(),
 
+  /** Kept as a string in the form (not coerced) — an empty string must mean "leave untouched," not accidentally coerce to 0 and zero out a project's completion. Parsed carefully at submit time instead. */
+  manualCompletionPercent: z.string().optional(),
+
   notes: z.string().optional(),
 });
 

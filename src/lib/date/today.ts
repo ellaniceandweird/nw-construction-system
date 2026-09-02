@@ -19,3 +19,15 @@ export function getTodayInNewYork(): Date {
 export function getTodayInNewYorkString(): string {
   return new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 }
+
+/** Formats the real current moment (date + time) in America/New_York, for "Generated on…" style timestamps — e.g. print headers. Always reflects real Eastern time regardless of the server's or viewer's own timezone. */
+export function formatNowInNewYork(): string {
+  return new Date().toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }) + " ET";
+}

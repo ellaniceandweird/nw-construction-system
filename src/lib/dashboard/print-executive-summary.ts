@@ -1,4 +1,6 @@
 import { escapeHtml } from "@/lib/estimating/print-window";
+import { NW_LOGO_DATA_URI } from "@/lib/print/logo-data-uri";
+import { formatNowInNewYork } from "@/lib/date/today";
 import type { Project } from "@/types/project";
 import type { UpcomingWorkItem } from "@/lib/dashboard/metrics";
 
@@ -32,7 +34,7 @@ export function printExecutiveSummary(input: ExecutiveSummaryInput) {
     return;
   }
 
-  const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const dateStr = formatNowInNewYork();
 
   function kpiTile(label: string, value: number, colorVar: string) {
     return `
@@ -142,10 +144,13 @@ export function printExecutiveSummary(input: ExecutiveSummaryInput) {
         </style>
       </head>
       <body>
-        <div style="display:flex; align-items:baseline; justify-content:space-between; border-bottom:2px solid oklch(0.24 0.02 265); padding-bottom:14px; margin-bottom:24px;">
-          <div>
-            <div style="font-size:20px; font-weight:700;">Nice &amp; Weird Group</div>
-            <div style="font-size:12px; color:oklch(0.55 0.02 265); margin-top:2px;">Executive Summary</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid oklch(0.24 0.02 265); padding-bottom:14px; margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img src="${NW_LOGO_DATA_URI}" alt="Nice and Weird Group" style="height:40px; width:auto;" />
+            <div>
+              <div style="font-size:20px; font-weight:700;">Nice &amp; Weird Group</div>
+              <div style="font-size:12px; color:oklch(0.55 0.02 265); margin-top:2px;">Executive Summary</div>
+            </div>
           </div>
           <div style="font-size:12px; color:oklch(0.55 0.02 265);">${dateStr}</div>
         </div>

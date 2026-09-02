@@ -60,6 +60,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           startDate: existingProject.startDate,
           plannedCompletionDate: existingProject.plannedCompletionDate,
           approvedBudget: existingProject.approvedBudget,
+          manualCompletionPercent: existingProject.manualCompletionPercent != null ? String(existingProject.manualCompletionPercent) : "",
           notes: existingProject.notes ?? "",
         }
       : {
@@ -134,6 +135,10 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
       plannedCompletionDate: values.plannedCompletionDate ?? "",
       estimatedContractValue: existingProject?.estimatedContractValue ?? values.approvedBudget ?? 0,
       approvedBudget: values.approvedBudget ?? existingProject?.approvedBudget ?? 0,
+      manualCompletionPercent:
+        values.manualCompletionPercent && values.manualCompletionPercent.trim() !== ""
+          ? Math.max(0, Math.min(100, parseFloat(values.manualCompletionPercent)))
+          : null,
       notes: values.notes || undefined,
     };
 
@@ -270,6 +275,23 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
               {...register("approvedBudget")}
             />
             {fieldError(errors.approvedBudget?.message)}
+          </div>
+
+          <div>
+            <Label htmlFor="manualCompletionPercent">% Complete (optional override)</Label>
+            <Input
+              id="manualCompletionPercent"
+              type="number"
+              min={0}
+              max={100}
+              placeholder="Auto-calculated from activities"
+              className="mt-1.5"
+              {...register("manualCompletionPercent")}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Leave blank to use the automatic calculation from completed activities.
+            </p>
+            {fieldError(errors.manualCompletionPercent?.message)}
           </div>
 
           <div className="sm:col-span-2">

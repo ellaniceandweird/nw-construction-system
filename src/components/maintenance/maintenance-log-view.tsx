@@ -16,6 +16,7 @@ import {
 
 function formatTimestamp(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
+    timeZone: "America/New_York",
     month: "short",
     day: "numeric",
     year: "numeric",

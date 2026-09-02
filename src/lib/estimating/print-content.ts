@@ -30,7 +30,6 @@ export function buildEstimatesListHtml(
 
   return `
     <div class="header">
-      <h1>Nice &amp; Weird Group</h1>
       <p>Estimates</p>
     </div>
     <table>
@@ -82,7 +81,6 @@ export function buildTakeoffListHtml(
 
   return `
     <div class="header">
-      <h1>Nice &amp; Weird Group</h1>
       <p>Takeoff</p>
     </div>
     ${sections}
@@ -166,7 +164,6 @@ export function buildEstimateDetailHtml(estimate: Estimate, projectName: string)
 
   return `
     <div class="header">
-      <h1>Nice &amp; Weird Group</h1>
       <p>Estimate — ${escapeHtml(projectName)}</p>
       ${estimate.address ? `<p>${escapeHtml(estimate.address)}</p>` : ""}
       ${estimate.client ? `<p>Owner: ${escapeHtml(estimate.client)}</p>` : ""}
