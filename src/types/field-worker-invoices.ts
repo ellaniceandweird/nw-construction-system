@@ -13,6 +13,8 @@ export interface FieldWorkerInvoiceLineItem {
   projectName?: string;
   /** Derived from the project's property's billing entity — per line item, since one worker can cross projects/billing entities within a pay period. */
   billingEntityId?: string;
+  /** What was actually typed for a manual billing entity entry — the display fallback whenever billingEntityId doesn't resolve to a real BillingEntity. */
+  billingEntityName?: string;
   activity: string;
   costCode?: string;
   regularHours: number;

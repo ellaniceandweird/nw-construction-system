@@ -16,6 +16,7 @@ import { getBillingEntityIdForProject } from "@/lib/properties/property-relation
 import { updateFieldWorkerInvoice, deleteFieldWorkerInvoice } from "@/lib/field-operations/field-worker-invoice-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { FieldWorkerInvoice, FieldWorkerInvoiceLineItem } from "@/types/field-worker-invoices";
+import { MANUAL_ENTRY } from "@/lib/field-operations/daily-log-store";
 
 interface Props {
   invoice: FieldWorkerInvoice | null;
@@ -40,6 +41,7 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
   const [showOvertimeColumns, setShowOvertimeColumns] = React.useState(true);
   const [lineItems, setLineItems] = React.useState<FieldWorkerInvoiceLineItem[]>([]);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const [manualBillingEntityRows, setManualBillingEntityRows] = React.useState<Set<number>>(new Set());
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -149,10 +151,32 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
                   <td className="px-2 py-1.5 text-xs text-muted-foreground whitespace-nowrap">{formatDate(li.date)}</td>
                   <td className="px-2 py-1.5 text-xs text-muted-foreground whitespace-nowrap">{projectLabel(li)}</td>
                   <td className="p-1">
-                    <Select value={li.billingEntityId ?? ""} onValueChange={(v) => updateLineItem(index, { billingEntityId: v })}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="—" /></SelectTrigger>
-                      <SelectContent>{billingEntities.map((b) => (<SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>))}</SelectContent>
-                    </Select>
+                    {manualBillingEntityRows.has(index) || (li.billingEntityId && !billingEntities.some((b) => b.id === li.billingEntityId)) ? (
+                      <Input
+                        className="h-8 text-xs"
+                        placeholder="Type billing entity"
+                        defaultValue={li.billingEntityName ?? ""}
+                        onBlur={(e) => updateLineItem(index, { billingEntityName: e.target.value })}
+                      />
+                    ) : (
+                      <Select
+                        value={li.billingEntityId ?? ""}
+                        onValueChange={(v) => {
+                          if (v === MANUAL_ENTRY) {
+                            setManualBillingEntityRows((prev) => new Set(prev).add(index));
+                            updateLineItem(index, { billingEntityId: undefined, billingEntityName: "" });
+                            return;
+                          }
+                          updateLineItem(index, { billingEntityId: v, billingEntityName: undefined });
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>
+                          {billingEntities.map((b) => (<SelectItem key={b.id} value={b.id}>{b.companyName}</SelectItem>))}
+                          <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </td>
                   <td className="p-1">
                     <Input className="h-8 text-xs" value={li.activity} onChange={(e) => updateLineItem(index, { activity: e.target.value })} />

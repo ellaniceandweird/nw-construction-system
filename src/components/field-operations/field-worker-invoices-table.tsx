@@ -61,14 +61,14 @@ export function FieldWorkerInvoicesTable() {
     }
   });
 
-  function billingEntityName(id: string | undefined, projectId: string) {
+  function billingEntityName(id: string | undefined, projectId: string, manualName?: string) {
     let resolvedId = id;
     if (!resolvedId) {
       const project = projects.find((p) => p.id === projectId);
       resolvedId = project ? getBillingEntityIdForProject(project, properties) : undefined;
     }
-    if (!resolvedId) return "—";
-    return billingEntities.find((b) => b.id === resolvedId)?.companyName ?? "—";
+    if (!resolvedId) return manualName || "—";
+    return billingEntities.find((b) => b.id === resolvedId)?.companyName ?? (manualName || "—");
   }
 
   function handleExport() {
@@ -82,7 +82,7 @@ export function FieldWorkerInvoicesTable() {
           Trade: inv.trade,
           "Pay Period": `${formatDate(inv.payPeriodStart)} – ${formatDate(inv.payPeriodEnd)}`,
           Date: formatDate(li.date),
-          "Billing Entity": billingEntityName(li.billingEntityId, li.projectId),
+          "Billing Entity": billingEntityName(li.billingEntityId, li.projectId, li.billingEntityName),
           Project: projectName(li.projectId, projects, li.projectName),
           "Cost Code": li.costCode ?? "",
           "Work Performed": li.activity,
@@ -106,7 +106,7 @@ export function FieldWorkerInvoicesTable() {
         (li, i) => `
         <tr style="${i % 2 === 1 ? "background:#f9fafb;" : ""}">
           <td>${formatDate(li.date)}</td>
-          <td>${escapeHtml(billingEntityName(li.billingEntityId, li.projectId))}</td>
+          <td>${escapeHtml(billingEntityName(li.billingEntityId, li.projectId, li.billingEntityName))}</td>
           <td>${escapeHtml(projectName(li.projectId, projects, li.projectName))}</td>
           <td>${escapeHtml(li.costCode ?? "—")}</td>
           <td>${escapeHtml(li.activity)}</td>
@@ -267,7 +267,7 @@ export function FieldWorkerInvoicesTable() {
                               {inv.lineItems.map((li, i) => (
                                 <tr key={i} className="border-b border-border/60 last:border-0">
                                   <td className="px-4 py-2.5 text-muted-foreground">{formatDate(li.date)}</td>
-                                  <td className="px-4 py-2.5 text-muted-foreground">{billingEntityName(li.billingEntityId, li.projectId)}</td>
+                                  <td className="px-4 py-2.5 text-muted-foreground">{billingEntityName(li.billingEntityId, li.projectId, li.billingEntityName)}</td>
                                   <td className="px-4 py-2.5 text-foreground">{projectName(li.projectId, projects, li.projectName)}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.costCode ?? "—"}</td>
                                   <td className="px-4 py-2.5 text-muted-foreground">{li.activity}</td>
