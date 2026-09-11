@@ -51,6 +51,11 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
     setShowOvertimeColumns(invoice.showOvertimeColumns ?? invoice.lineItems.some((li) => li.overtimeHours > 0));
     setLineItems(
       invoice.lineItems.map((li) => {
+        // A row with a saved manual billing entity name should never have
+        // its billingEntityId silently re-populated from the project
+        // link — that would fight against the deliberate manual choice
+        // every time this dialog reopens.
+        if (li.billingEntityName) return { ...li };
         if (li.billingEntityId) return { ...li };
         const project = projects.find((p) => p.id === li.projectId);
         const resolved = project ? getBillingEntityIdForProject(project, properties) : undefined;
