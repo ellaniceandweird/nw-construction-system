@@ -42,6 +42,7 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
   const [lineItems, setLineItems] = React.useState<FieldWorkerInvoiceLineItem[]>([]);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [manualBillingEntityRows, setManualBillingEntityRows] = React.useState<Set<number>>(new Set());
+  const [manualProjectRows, setManualProjectRows] = React.useState<Set<number>>(new Set());
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -68,6 +69,9 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
     // resolution without the row being a manual entry.
     setManualBillingEntityRows(
       new Set(invoice.lineItems.map((li, i) => (li.billingEntityName ? i : -1)).filter((i) => i >= 0))
+    );
+    setManualProjectRows(
+      new Set(invoice.lineItems.map((li, i) => (li.projectId === MANUAL_ENTRY ? i : -1)).filter((i) => i >= 0))
     );
     setConfirmingDelete(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,10 +113,6 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
     if (!invoice) return;
     deleteFieldWorkerInvoice(invoice.id);
     onOpenChange(false);
-  }
-
-  function projectLabel(li: FieldWorkerInvoiceLineItem) {
-    return projects.find((p) => p.id === li.projectId)?.projectName ?? li.projectName ?? "—";
   }
 
   return (
@@ -161,7 +161,34 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
               {computedLineItems.map((li, index) => (
                 <tr key={index} className="border-b border-border/60 last:border-0">
                   <td className="px-2 py-1.5 text-xs text-muted-foreground whitespace-nowrap">{formatDate(li.date)}</td>
-                  <td className="px-2 py-1.5 text-xs text-muted-foreground whitespace-nowrap">{projectLabel(li)}</td>
+                  <td className="p-1">
+                    {manualProjectRows.has(index) ? (
+                      <Input
+                        className="h-8 text-xs"
+                        placeholder="Type project"
+                        defaultValue={li.projectName ?? ""}
+                        onBlur={(e) => updateLineItem(index, { projectName: e.target.value })}
+                      />
+                    ) : (
+                      <Select
+                        value={li.projectId}
+                        onValueChange={(v) => {
+                          if (v === MANUAL_ENTRY) {
+                            setManualProjectRows((prev) => new Set(prev).add(index));
+                            updateLineItem(index, { projectId: MANUAL_ENTRY, projectName: "" });
+                            return;
+                          }
+                          updateLineItem(index, { projectId: v, projectName: undefined });
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>
+                          {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+                          <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </td>
                   <td className="p-1">
                     {manualBillingEntityRows.has(index) ? (
                       <Input
