@@ -62,13 +62,17 @@ export function FieldWorkerInvoicesTable() {
   });
 
   function billingEntityName(id: string | undefined, projectId: string, manualName?: string) {
+    // An explicit manual entry always wins — it exists specifically to
+    // override whatever the project/property link would otherwise
+    // resolve to, so it must never be silently re-derived away.
+    if (manualName) return manualName;
     let resolvedId = id;
     if (!resolvedId) {
       const project = projects.find((p) => p.id === projectId);
       resolvedId = project ? getBillingEntityIdForProject(project, properties) : undefined;
     }
-    if (!resolvedId) return manualName || "—";
-    return billingEntities.find((b) => b.id === resolvedId)?.companyName ?? (manualName || "—");
+    if (!resolvedId) return "—";
+    return billingEntities.find((b) => b.id === resolvedId)?.companyName ?? "—";
   }
 
   function handleExport() {
