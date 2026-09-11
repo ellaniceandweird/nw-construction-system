@@ -57,6 +57,13 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
         return { ...li, billingEntityId: resolved };
       })
     );
+    // A row is in "manual entry" mode only when it has real manually-typed
+    // text saved against it — never guessed from whether an id happens to
+    // resolve, since a billingEntityId can legitimately be unset/pending
+    // resolution without the row being a manual entry.
+    setManualBillingEntityRows(
+      new Set(invoice.lineItems.map((li, i) => (li.billingEntityName ? i : -1)).filter((i) => i >= 0))
+    );
     setConfirmingDelete(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice, open]);
@@ -151,7 +158,7 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
                   <td className="px-2 py-1.5 text-xs text-muted-foreground whitespace-nowrap">{formatDate(li.date)}</td>
                   <td className="px-2 py-1.5 text-xs text-muted-foreground whitespace-nowrap">{projectLabel(li)}</td>
                   <td className="p-1">
-                    {manualBillingEntityRows.has(index) || (li.billingEntityId && !billingEntities.some((b) => b.id === li.billingEntityId)) ? (
+                    {manualBillingEntityRows.has(index) ? (
                       <Input
                         className="h-8 text-xs"
                         placeholder="Type billing entity"
