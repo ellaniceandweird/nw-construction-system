@@ -32,15 +32,40 @@ export interface WeekMarker {
   leftPercent: number;
 }
 
+function buildLegend(): string {
+  const entries: { label: string; color: string }[] = [
+    { label: "Not started", color: BAR_COLOR.not_started },
+    { label: "In progress", color: BAR_COLOR.in_progress },
+    { label: "Completed", color: BAR_COLOR.completed },
+    { label: "Delayed / blocked", color: BAR_COLOR.delayed },
+  ];
+  return `
+    <div style="display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap;">
+      ${entries
+        .map(
+          (e) => `
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:${e.color};"></span>
+          <span style="font-size:10px;color:#4b5563;">${e.label}</span>
+        </div>`
+        )
+        .join("")}
+    </div>`;
+}
+
 /**
  * Builds a real bar-chart lookahead print document. Every row — including
  * the week-header row itself — uses the exact same two-column layout: a
  * fixed LABEL_COLUMN_WIDTH title column on the left, then a flexible bar
  * area on the right where week gridlines and activity bars share the same
  * percentage coordinate space. This is what keeps the header dates,
- * gridlines, and bars all lined up with each other — previously the week
- * header ignored the label column's width entirely, so every date was
- * shifted left of where its gridline/bars actually were.
+ * gridlines, and bars all lined up with each other.
+ *
+ * Each bar's actual start/end dates and duration are printed as visible
+ * text next to the bar (not just a hover title, which is useless on a
+ * printed page), and a color legend appears once near the top so the
+ * not-started/in-progress/completed/delayed color coding is never
+ * ambiguous.
  */
 function buildWeekHeaderRow(weekMarkers: WeekMarker[]): string {
   return `
@@ -80,9 +105,11 @@ export function buildLookaheadGanttHtml(
                   <div style="position:relative;flex:1;height:16px;border-left:1px solid #e5e7eb;">
                     ${gridlinesHtml}
                     <div
-                      title="${escapeHtml(item.label)}: ${escapeHtml(item.sublabel)}"
                       style="position:absolute;top:2px;height:12px;border-radius:2px;left:${item.leftPercent}%;width:${Math.max(item.widthPercent, 0.6)}%;background:${color};${item.isCritical ? "outline:1px solid #111827;" : ""}"
                     ></div>
+                    <span style="position:absolute;top:50%;left:calc(${item.leftPercent}% + ${Math.max(item.widthPercent, 0.6)}% + 6px);transform:translateY(-50%);font-size:9px;color:#6b7280;white-space:nowrap;">
+                      ${escapeHtml(item.sublabel)}
+                    </span>
                   </div>
                 </div>`;
             })
@@ -98,6 +125,7 @@ export function buildLookaheadGanttHtml(
 
   return `
     <div class="header"><h1>${escapeHtml(title)}</h1></div>
+    ${buildLegend()}
     ${sections || `<p>No activities fall within this window (${groups.length} projects checked). If this seems wrong, refresh the page and try again.</p>`}
   `;
 }

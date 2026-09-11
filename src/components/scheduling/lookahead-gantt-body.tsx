@@ -16,8 +16,21 @@ const BAR_COLOR: Record<string, string> = {
   ready: "bg-primary",
 };
 
+/** Legend entries shown once per page, above the gantt body — kept in sync with BAR_COLOR above so the legend never drifts out of date with the actual bar colors. */
+export const LEGEND_ITEMS = [
+  { label: "Not started", colorClass: "bg-muted-foreground/40" },
+  { label: "In progress", colorClass: "bg-primary" },
+  { label: "Completed", colorClass: "bg-success" },
+  { label: "Delayed / blocked", colorClass: "bg-destructive" },
+] as const;
+
 function formatShort(d: Date) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function durationDays(start: Date, end: Date) {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  return Math.max(1, Math.round((end.getTime() - start.getTime()) / DAY_MS) + 1);
 }
 
 interface LookaheadItem {
@@ -125,6 +138,12 @@ export function LookaheadGanttBody({ items, activities, projects, windowStart, w
                   style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, top: "50%", transform: "translateY(-50%)" }}
                   title={`${group.project?.projectName}: ${group.items.length} activit${group.items.length === 1 ? "y" : "ies"}`}
                 />
+                <span
+                  className="absolute whitespace-nowrap text-[11px] font-medium text-muted-foreground"
+                  style={{ left: `calc(${leftPercent}% + ${widthPercent}% + 8px)`, top: "50%", transform: "translateY(-50%)" }}
+                >
+                  {formatShort(parseDate(group.earliestStart))} – {formatShort(parseDate(group.latestFinish))} · {durationDays(parseDate(group.earliestStart), parseDate(group.latestFinish))}d
+                </span>
               </div>
             </div>
 
@@ -146,6 +165,12 @@ export function LookaheadGanttBody({ items, activities, projects, windowStart, w
                       style={{ left: `${itemLeft}%`, width: `${itemWidth}%`, top: "50%", transform: "translateY(-50%)" }}
                       title={`${item.description}: ${formatShort(start)} – ${formatShort(end)} (${activity?.percentComplete ?? 0}%)`}
                     />
+                    <span
+                      className="absolute whitespace-nowrap text-[11px] text-muted-foreground"
+                      style={{ left: `calc(${itemLeft}% + ${itemWidth}% + 8px)`, top: "50%", transform: "translateY(-50%)" }}
+                    >
+                      {formatShort(start)} – {formatShort(end)} · {durationDays(start, end)}d
+                    </span>
                   </div>
                 </div>
               );

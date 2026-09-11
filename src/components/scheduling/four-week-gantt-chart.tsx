@@ -8,7 +8,7 @@ import { useProjects } from "@/hooks/use-projects";
 import { generateLookahead4 } from "@/lib/scheduling/generate";
 import { openPrintWindow } from "@/lib/estimating/print-window";
 import { buildLookaheadGanttHtml } from "@/lib/scheduling/print-lookahead-gantt";
-import { LookaheadGanttBody } from "@/components/scheduling/lookahead-gantt-body";
+import { LookaheadGanttBody, LEGEND_ITEMS } from "@/components/scheduling/lookahead-gantt-body";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WINDOW_DAYS = 28;
@@ -19,6 +19,15 @@ function parseDate(d: string) {
 
 function formatShort(d: Date) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatShortYear(d: Date) {
+  return d.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "2-digit" }).replace(/\//g, ".");
+}
+
+function durationDays(start: Date, end: Date) {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  return Math.max(1, Math.round((end.getTime() - start.getTime()) / DAY_MS) + 1);
 }
 
 export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
@@ -56,7 +65,7 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
             const widthPercent = ((clampedEnd.getTime() - clampedStart.getTime()) / DAY_MS / WINDOW_DAYS) * 100;
             return {
               label: item.description,
-              sublabel: `${formatShort(start)} – ${formatShort(end)} (${activity?.percentComplete ?? 0}%)`,
+              sublabel: `${formatShort(start)} – ${formatShort(end)} · ${durationDays(start, end)}d (${activity?.percentComplete ?? 0}%)`,
               leftPercent,
               widthPercent,
               status: activity?.status ?? "not_started",
@@ -65,7 +74,8 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
           }),
         };
       });
-    openPrintWindow("4-Week Lookahead", buildLookaheadGanttHtml("4-Week Lookahead", weekMarkers, groups));
+    const titleWithDates = `4-Week Lookahead, ${formatShortYear(windowStart)} – ${formatShortYear(new Date(windowEnd.getTime() - DAY_MS))}`;
+    openPrintWindow(titleWithDates, buildLookaheadGanttHtml(titleWithDates, weekMarkers, groups));
     } catch (err) {
       console.error("4-Week Lookahead print failed:", err);
       alert(`Print failed to generate: ${err instanceof Error ? err.message : String(err)}`);
@@ -74,7 +84,15 @@ export function FourWeekGanttChart({ referenceDate }: { referenceDate: Date }) {
 
   return (
     <>
-    <div className="mb-3 flex justify-end print:hidden">
+    <div className="mb-3 flex items-center justify-between print:hidden">
+      <div className="flex flex-wrap items-center gap-4">
+        {LEGEND_ITEMS.map((item) => (
+          <div key={item.label} className="flex items-center gap-1.5">
+            <span className={`inline-block size-3 rounded-sm ${item.colorClass}`} />
+            <span className="text-xs text-muted-foreground">{item.label}</span>
+          </div>
+        ))}
+      </div>
       <Button variant="outline" onClick={handlePrint}>
         <Printer className="size-3.5" /> Print
       </Button>
