@@ -7,6 +7,8 @@ import { derivePurchaseOrderTransactions } from "@/lib/financial/cost-transactio
 import { useCostLedgerNotes } from "@/hooks/use-cost-ledger-notes";
 import { setCostLedgerNote } from "@/lib/financial/cost-ledger-notes-store";
 import { exportToExcel } from "@/lib/financial/export-excel";
+import { updateCostTransaction } from "@/lib/financial/cost-transaction-store";
+import { MANUAL_ENTRY } from "@/lib/field-operations/daily-log-store";
 import { useProjects } from "@/hooks/use-projects";
 import { useVendors } from "@/hooks/use-vendors";
 import type { Vendor } from "@/types/procurement";
@@ -42,8 +44,8 @@ function currency(n: number) {
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
-function projectName(id: string, projects: Project[]) {
-  return projects.find((p) => p.id === id)?.projectName ?? id;
+function projectName(id: string, projects: Project[], manualName?: string) {
+  return projects.find((p) => p.id === id)?.projectName ?? manualName ?? "—";
 }
 function vendorName(id: string | undefined, vendors: Vendor[]) {
   if (!id) return "—";
@@ -70,6 +72,7 @@ export function CostLedgerTable() {
   const vendors = useVendors();
   const notes = useCostLedgerNotes();
   const [adding, setAdding] = React.useState(false);
+  const [manualProjectRows, setManualProjectRows] = React.useState<Set<string>>(new Set());
   const [bulkAdding, setBulkAdding] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
   const [editing, setEditing] = React.useState<CostTransaction | null>(null);
@@ -109,7 +112,7 @@ export function CostLedgerTable() {
       "Cost Ledger",
       transactions.map((t) => ({
         Date: formatDate(t.date),
-        Project: projectName(t.projectId, projects),
+        Project: projectName(t.projectId, projects, t.projectName),
         Description: t.description,
         "Cost Code": t.costCode || "",
         Vendor: vendorName(t.vendorId, vendors),
@@ -193,7 +196,38 @@ export function CostLedgerTable() {
             {transactions.map((t) => (
               <tr key={t.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(t.date)}</td>
-                <td className="px-4 py-3 text-foreground">{projectName(t.projectId, projects)}</td>
+                <td className="p-1">
+                  {t.sourceModule === "manual" ? (
+                    manualProjectRows.has(t.id) || t.projectId === MANUAL_ENTRY ? (
+                      <Input
+                        className="h-8 text-sm"
+                        placeholder="Type project"
+                        defaultValue={t.projectName ?? ""}
+                        onBlur={(e) => updateCostTransaction(t.id, { projectName: e.target.value })}
+                      />
+                    ) : (
+                      <Select
+                        value={t.projectId}
+                        onValueChange={(v) => {
+                          if (v === MANUAL_ENTRY) {
+                            setManualProjectRows((prev) => new Set(prev).add(t.id));
+                            updateCostTransaction(t.id, { projectId: MANUAL_ENTRY, projectName: "" });
+                            return;
+                          }
+                          updateCostTransaction(t.id, { projectId: v, projectName: undefined });
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-full text-sm"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>
+                          {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>))}
+                          <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )
+                  ) : (
+                    <span className="px-3 text-sm text-foreground">{projectName(t.projectId, projects, t.projectName)}</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-muted-foreground max-w-sm">{t.description}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.costCode || "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{vendorName(t.vendorId, vendors)}</td>

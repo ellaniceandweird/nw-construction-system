@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Plus, Pencil } from "lucide-react";
+import { Search, Plus, Pencil, Upload } from "lucide-react";
 
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { addMaintenanceTask, updateTaskStatus } from "@/lib/maintenance/maintenance-task-store";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { PrintButton } from "@/components/shared/print-button";
 import { MaintenanceTaskEditDialog } from "@/components/maintenance/maintenance-task-edit-dialog";
+import { ImportMaintenanceTasksDialog } from "@/components/maintenance/import-maintenance-tasks-dialog";
 import type { MaintenancePriority, MaintenanceTask, MaintenanceTaskStatus } from "@/types/maintenance";
 
 const PRIORITY_CLASS: Record<string, string> = {
@@ -65,6 +66,7 @@ export function MaintenanceTasksTable() {
   const [propertyFilter, setPropertyFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<SortOption>("default");
   const [adding, setAdding] = React.useState(false);
+  const [importing, setImporting] = React.useState(false);
   const [newProperty, setNewProperty] = React.useState("");
 
   React.useEffect(() => {
@@ -141,6 +143,9 @@ export function MaintenanceTasksTable() {
           </SelectContent>
         </Select>
         <PrintButton />
+        <Button variant="outline" onClick={() => setImporting(true)} className="print:hidden">
+          <Upload /> Import Excel/PDF
+        </Button>
         <Button onClick={() => setAdding(true)} className="ml-auto print:hidden">
           <Plus /> Add Row
         </Button>
@@ -286,6 +291,7 @@ export function MaintenanceTasksTable() {
         open={!!editingTask}
         onOpenChange={(open) => !open && setEditingTask(null)}
       />
+      <ImportMaintenanceTasksDialog open={importing} onOpenChange={setImporting} />
     </div>
   );
 }

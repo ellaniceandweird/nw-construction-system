@@ -41,6 +41,8 @@ export interface Budget extends BaseEntity {
 /** SDS §10.6 — Cost Tracking (actual cost transaction ledger). */
 export interface CostTransaction extends BaseEntity {
   projectId: string;
+  /** What was actually typed for a manual (non-project-linked) entry — the display fallback whenever projectId doesn't resolve to a real Project. */
+  projectName?: string;
   activityId?: string;
   costCode: string;
   category:

@@ -88,6 +88,36 @@ export function addMaintenanceTask(input: MaintenanceTaskInput) {
   return id;
 }
 
+/**
+ * Adds many tasks at once (bulk paste / import). IDs are computed once
+ * upfront and incremented locally in this loop rather than calling
+ * nextTaskId() repeatedly — the store's snapshot doesn't reflect an
+ * in-flight create until it resolves, so a tight loop of nextTaskId()
+ * calls risks generating the same ID twice and colliding.
+ */
+export async function addMaintenanceTasksBulk(inputs: MaintenanceTaskInput[]): Promise<{ succeeded: number; failed: { row: number; error?: string }[] }> {
+  const items = store.getSnapshot();
+  let maxNum = items.reduce((max, t) => {
+    const n = parseInt(t.id.replace("MT-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  const failed: { row: number; error?: string }[] = [];
+  let succeeded = 0;
+  for (let i = 0; i < inputs.length; i++) {
+    maxNum += 1;
+    const id = `MT-${String(maxNum).padStart(6, "0")}`;
+    const result = await store.create({
+      id,
+      taskStatus: "not_started",
+      dateEntered: new Date().toISOString().slice(0, 10),
+      ...inputs[i],
+    });
+    if (result !== null) succeeded++;
+    else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+  }
+  return { succeeded, failed };
+}
+
 export function updateTaskStatus(taskId: string, taskStatus: MaintenanceTaskStatus) {
   const existing = store.getSnapshot().find((t) => t.id === taskId);
   if (!existing) return;

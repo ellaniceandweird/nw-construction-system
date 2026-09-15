@@ -76,6 +76,30 @@ export async function createEquipmentMaintenance(input: EquipmentMaintenanceEdit
   return result !== null ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }
 
+/**
+ * Adds many equipment maintenance schedules at once (bulk paste / import).
+ * IDs are computed once upfront and incremented locally in this loop,
+ * avoiding the same collision risk a tight loop of nextId() calls would
+ * have.
+ */
+export async function createEquipmentMaintenanceBulk(inputs: EquipmentMaintenanceEditInput[]): Promise<{ succeeded: number; failed: { row: number; error?: string }[] }> {
+  const items = store.getSnapshot();
+  let maxNum = items.reduce((max, r) => {
+    const n = parseInt(r.id.replace("EQ-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  const failed: { row: number; error?: string }[] = [];
+  let succeeded = 0;
+  for (let i = 0; i < inputs.length; i++) {
+    maxNum += 1;
+    const id = `EQ-${String(maxNum).padStart(6, "0")}`;
+    const result = await store.create({ id, ...inputs[i] });
+    if (result !== null) succeeded++;
+    else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+  }
+  return { succeeded, failed };
+}
+
 export async function updateEquipmentMaintenance(id: string, input: EquipmentMaintenanceEditInput): Promise<{ ok: boolean; error?: string }> {
   const existing = store.getSnapshot().find((r) => r.id === id);
   const ok = await store.update(id, input);

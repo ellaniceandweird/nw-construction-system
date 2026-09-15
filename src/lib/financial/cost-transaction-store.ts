@@ -1,13 +1,13 @@
 "use client";
 
 import { createCollectionStore } from "@/lib/supabase/collection-store";
-import { MOCK_COST_TRANSACTIONS } from "@/lib/data/mock/cost-transactions";
 import type { CostTransaction } from "@/types/financial";
 
 function fromRow(row: Record<string, any>): CostTransaction {
   return {
     id: row.id,
     projectId: row.project_id,
+    projectName: row.project_name ?? undefined,
     activityId: row.activity_id ?? undefined,
     costCode: row.cost_code,
     category: row.category,
@@ -32,6 +32,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   const row: Record<string, any> = {};
   if (input.id !== undefined) row.id = input.id;
   if (input.projectId !== undefined) row.project_id = input.projectId;
+  if (input.projectName !== undefined) row.project_name = input.projectName;
   if (input.activityId !== undefined) row.activity_id = input.activityId;
   if (input.costCode !== undefined) row.cost_code = input.costCode;
   if (input.category !== undefined) row.category = input.category;
@@ -48,7 +49,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
 
 const store = createCollectionStore<CostTransaction>({
   table: "cost_transactions",
-  seedData: MOCK_COST_TRANSACTIONS,
+  seedData: [] as CostTransaction[],
   fromRow,
   toRow,
   orderBy: "date",
@@ -68,6 +69,7 @@ function nextId(): string {
 
 export interface CostTransactionInput {
   projectId: string;
+  projectName?: string;
   costCode: string;
   category: CostTransaction["category"];
   description: string;
@@ -111,7 +113,7 @@ export async function createCostTransactionsBulk(inputs: CostTransactionInput[])
   return { succeeded, failed };
 }
 
-export async function updateCostTransaction(id: string, input: CostTransactionInput): Promise<{ ok: boolean; error?: string }> {
+export async function updateCostTransaction(id: string, input: Partial<CostTransactionInput>): Promise<{ ok: boolean; error?: string }> {
   const ok = await store.update(id, input);
   return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Pencil, Plus } from "lucide-react";
+import { Search, Pencil, Plus, Upload } from "lucide-react";
 
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { PrintButton } from "@/components/shared/print-button";
 import { EquipmentMaintenanceEditDialog } from "@/components/maintenance/equipment-maintenance-edit-dialog";
+import { ImportEquipmentMaintenanceDialog } from "@/components/maintenance/import-equipment-maintenance-dialog";
 import { computeNextDueDate, isOverdue } from "@/lib/maintenance/next-due-date";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
 
@@ -42,6 +43,7 @@ export function EquipmentMaintenanceTable() {
   const [sortBy, setSortBy] = React.useState<SortOption>("default");
   const [editingRecord, setEditingRecord] = React.useState<EquipmentMaintenanceSchedule | null>(null);
   const [creating, setCreating] = React.useState(false);
+  const [importing, setImporting] = React.useState(false);
 
   const propertyNames = Array.from(new Set(records.map((e) => e.propertyName)));
   const systemTypes = Array.from(new Set(records.map((e) => e.systemType))).sort();
@@ -142,6 +144,9 @@ export function EquipmentMaintenanceTable() {
         <Button size="sm" onClick={() => setCreating(true)} className="print:hidden">
           <Plus className="size-3.5" /> Add Row
         </Button>
+        <Button size="sm" variant="outline" onClick={() => setImporting(true)} className="print:hidden">
+          <Upload className="size-3.5" /> Import Excel/PDF
+        </Button>
         <PrintButton />
         <span className="ml-auto text-sm text-muted-foreground print:hidden">
           {filtered.length} of {records.length} equipment records
@@ -210,6 +215,7 @@ export function EquipmentMaintenanceTable() {
         open={creating}
         onOpenChange={setCreating}
       />
+      <ImportEquipmentMaintenanceDialog open={importing} onOpenChange={setImporting} />
     </div>
   );
 }
