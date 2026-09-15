@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Plus, Download, Pencil } from "lucide-react";
+import { Plus, Download, Pencil, Upload, Table2 } from "lucide-react";
 import { useCostTransactions } from "@/hooks/use-cost-transactions";
 import { usePurchaseOrders } from "@/hooks/use-purchase-orders";
 import { derivePurchaseOrderTransactions } from "@/lib/financial/cost-transaction-derivation";
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { ArrowUpDown } from "lucide-react";
 import { AddCostTransactionDialog } from "@/components/financial/add-cost-transaction-dialog";
+import { BulkAddCostTransactionsDialog } from "@/components/financial/bulk-add-cost-transactions-dialog";
+import { ImportCostTransactionsDialog } from "@/components/financial/import-cost-transactions-dialog";
 import { EditCostTransactionDialog } from "@/components/financial/edit-cost-transaction-dialog";
 import type { Project } from "@/types/project";
 import type { CostTransaction } from "@/types/financial";
@@ -68,6 +70,8 @@ export function CostLedgerTable() {
   const vendors = useVendors();
   const notes = useCostLedgerNotes();
   const [adding, setAdding] = React.useState(false);
+  const [bulkAdding, setBulkAdding] = React.useState(false);
+  const [importing, setImporting] = React.useState(false);
   const [editing, setEditing] = React.useState<CostTransaction | null>(null);
   const [projectFilter, setProjectFilter] = React.useState("all");
   const [sourceFilter, setSourceFilter] = React.useState("all");
@@ -158,6 +162,12 @@ export function CostLedgerTable() {
           <Button size="sm" variant="outline" onClick={handleExport}>
             <Download className="size-3.5" /> Export to Excel
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setImporting(true)}>
+            <Upload className="size-3.5" /> Import Excel/PDF
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setBulkAdding(true)}>
+            <Table2 className="size-3.5" /> Bulk Add
+          </Button>
           <Button size="sm" onClick={() => setAdding(true)}>
             <Plus className="size-3.5" /> Add Manual Entry
           </Button>
@@ -225,6 +235,8 @@ export function CostLedgerTable() {
       </Card>
 
       <AddCostTransactionDialog open={adding} onOpenChange={setAdding} />
+      <BulkAddCostTransactionsDialog open={bulkAdding} onOpenChange={setBulkAdding} />
+      <ImportCostTransactionsDialog open={importing} onOpenChange={setImporting} />
       <EditCostTransactionDialog
         transaction={editing}
         open={!!editing}

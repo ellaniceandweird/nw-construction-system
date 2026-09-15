@@ -85,6 +85,32 @@ export async function createCostTransaction(input: CostTransactionInput): Promis
     : { ok: false, error: store.getLastError() ?? undefined, id };
 }
 
+/**
+ * Creates many manual cost entries at once (bulk paste / import). IDs are
+ * computed once upfront and incremented locally in this loop, rather
+ * than each call re-reading the store's snapshot via nextId() — since
+ * the snapshot doesn't reflect an in-flight create until it resolves,
+ * calling nextId() repeatedly in a tight loop risks generating the same
+ * ID twice and colliding on the unique constraint.
+ */
+export async function createCostTransactionsBulk(inputs: CostTransactionInput[]): Promise<{ succeeded: number; failed: { row: number; error?: string }[] }> {
+  const items = store.getSnapshot();
+  let maxNum = items.reduce((max, t) => {
+    const n = parseInt(t.id.replace("CTX-", ""), 10);
+    return Number.isFinite(n) ? Math.max(max, n) : max;
+  }, 0);
+  const failed: { row: number; error?: string }[] = [];
+  let succeeded = 0;
+  for (let i = 0; i < inputs.length; i++) {
+    maxNum += 1;
+    const id = `CTX-${String(maxNum).padStart(6, "0")}`;
+    const result = await store.create({ id, sourceModule: "manual", ...inputs[i] });
+    if (result !== null) succeeded++;
+    else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+  }
+  return { succeeded, failed };
+}
+
 export async function updateCostTransaction(id: string, input: CostTransactionInput): Promise<{ ok: boolean; error?: string }> {
   const ok = await store.update(id, input);
   return ok ? { ok: true } : { ok: false, error: store.getLastError() ?? undefined };
