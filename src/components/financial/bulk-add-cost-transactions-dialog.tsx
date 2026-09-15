@@ -6,9 +6,11 @@ import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createCostTransactionsBulk } from "@/lib/financial/cost-transaction-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import { useProjects } from "@/hooks/use-projects";
+import { MANUAL_ENTRY } from "@/lib/field-operations/daily-log-store";
 import type { CostTransaction } from "@/types/financial";
 
 interface Props {
@@ -51,9 +53,13 @@ export function BulkAddCostTransactionsDialog({ open, onOpenChange }: Props) {
   const projects = useProjects();
   const [rows, setRows] = React.useState<RowData[]>(() => Array.from({ length: 8 }, emptyRow));
   const [saving, setSaving] = React.useState(false);
+  const [manualProjectRows, setManualProjectRows] = React.useState<Set<number>>(new Set());
 
   React.useEffect(() => {
-    if (open) setRows(Array.from({ length: 8 }, emptyRow));
+    if (open) {
+      setRows(Array.from({ length: 8 }, emptyRow));
+      setManualProjectRows(new Set());
+    }
   }, [open]);
 
   function updateCell(rowIndex: number, colIndex: number, value: string) {
@@ -133,9 +139,11 @@ export function BulkAddCostTransactionsDialog({ open, onOpenChange }: Props) {
           <DialogTitle>Bulk Add Cost Entries</DialogTitle>
         </DialogHeader>
         <p className="text-xs text-muted-foreground">
-          Copy a range of cells from Google Sheets or Excel and paste into any cell below — it'll
-          fill in the matching rows and columns automatically. Only rows with a Description and
-          Amount filled in will be imported. Project must exactly match a real project name.
+          Copy a range of cells from Google Sheets or Excel and paste into any cell in the Date,
+          Description, Cost Code, Category, Amount, or Reference # columns — it'll fill in the
+          matching rows and columns automatically. Project is a dropdown per row (with a Manual
+          entry option) rather than pasteable, so pick or type it separately for each row. Only
+          rows with a Description and Amount filled in will be imported.
         </p>
 
         {unmatchedProjectRows.length > 0 && (
@@ -163,12 +171,41 @@ export function BulkAddCostTransactionsDialog({ open, onOpenChange }: Props) {
                 <tr key={rowIndex} className="border-b border-border/60 last:border-0">
                   {COLUMNS.map((col, colIndex) => (
                     <td key={col.key} className="p-1">
-                      <Input
-                        className="h-8 min-w-[7rem] border-transparent bg-transparent text-xs focus:border-input focus:bg-background"
-                        value={row[col.key]}
-                        onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
-                        onPaste={(e) => handlePaste(e, rowIndex, colIndex)}
-                      />
+                      {col.key === "projectName" ? (
+                        manualProjectRows.has(rowIndex) ? (
+                          <Input
+                            className="h-8 min-w-[9rem] text-xs"
+                            placeholder="Type project"
+                            value={row.projectName}
+                            onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
+                          />
+                        ) : (
+                          <Select
+                            value={projects.some((p) => p.projectName === row.projectName) ? row.projectName : ""}
+                            onValueChange={(v) => {
+                              if (v === MANUAL_ENTRY) {
+                                setManualProjectRows((prev) => new Set(prev).add(rowIndex));
+                                updateCell(rowIndex, colIndex, "");
+                                return;
+                              }
+                              updateCell(rowIndex, colIndex, v);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 min-w-[9rem] text-xs"><SelectValue placeholder="Select project" /></SelectTrigger>
+                            <SelectContent>
+                              {projects.map((p) => (<SelectItem key={p.id} value={p.projectName}>{p.projectName}</SelectItem>))}
+                              <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )
+                      ) : (
+                        <Input
+                          className="h-8 min-w-[7rem] border-transparent bg-transparent text-xs focus:border-input focus:bg-background"
+                          value={row[col.key]}
+                          onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
+                          onPaste={(e) => handlePaste(e, rowIndex, colIndex)}
+                        />
+                      )}
                     </td>
                   ))}
                   <td className="p-1">
