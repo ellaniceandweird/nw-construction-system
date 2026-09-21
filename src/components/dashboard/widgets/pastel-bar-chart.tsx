@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 
 interface Series {
@@ -28,7 +29,15 @@ export function PastelBarChart({ data, categoryKey, series, stacked = false, val
           <YAxis hide />
           {series.map((s) => (
             <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color} stackId={stacked ? "stack" : undefined} radius={stacked ? 0 : [4, 4, 0, 0]}>
-              <LabelList dataKey={s.key} position={stacked ? "inside" : "top"} formatter={(v: number) => (v > 0 ? valueFormatter(v) : "")} style={{ fontSize: 11, fill: stacked ? "#2c2c2a" : "var(--foreground)" }} />
+              <LabelList
+                dataKey={s.key}
+                position={stacked ? "inside" : "top"}
+                formatter={(label: React.ReactNode) => {
+                  const v = typeof label === "number" ? label : parseFloat(String(label ?? ""));
+                  return Number.isFinite(v) && v > 0 ? valueFormatter(v) : "";
+                }}
+                style={{ fontSize: 11, fill: stacked ? "#2c2c2a" : "var(--foreground)" }}
+              />
             </Bar>
           ))}
         </BarChart>

@@ -30,7 +30,7 @@ export function PastelDonutChart({ data, height = 200, centerLabel }: Props) {
               outerRadius="90%"
               paddingAngle={2}
               strokeWidth={0}
-              label={({ value }) => (value > 0 ? value : "")}
+              label={(props: { value?: number }) => (typeof props.value === "number" && props.value > 0 ? props.value : "")}
               labelLine={false}
             >
               {data.map((d) => (
