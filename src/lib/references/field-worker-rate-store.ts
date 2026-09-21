@@ -12,7 +12,7 @@ function fromRow(row: Record<string, any>): FieldWorkerRate {
     trade: row.trade,
     hourlyRate: Number(row.hourly_rate),
     overtimeRate: row.overtime_rate != null ? Number(row.overtime_rate) : undefined,
-    defaultCostCode: row.default_cost_code ?? undefined,
+    startDate: row.start_date ?? undefined,
     notes: row.notes ?? undefined,
     createdBy: row.created_by ?? "system",
     createdDate: row.created_date ?? new Date().toISOString(),
@@ -32,7 +32,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.trade !== undefined) row.trade = input.trade;
   if (input.hourlyRate !== undefined) row.hourly_rate = input.hourlyRate;
   if (input.overtimeRate !== undefined) row.overtime_rate = input.overtimeRate;
-  if (input.defaultCostCode !== undefined) row.default_cost_code = input.defaultCostCode;
+  if (input.startDate !== undefined) row.start_date = input.startDate;
   if (input.notes !== undefined) row.notes = input.notes;
   row.last_modified_date = new Date().toISOString();
   return row;
@@ -59,7 +59,7 @@ export interface FieldWorkerRateInput {
   trade: string;
   hourlyRate: number;
   overtimeRate?: number;
-  defaultCostCode?: string;
+  startDate?: string;
   notes?: string;
 }
 

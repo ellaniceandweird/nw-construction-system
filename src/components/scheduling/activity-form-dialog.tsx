@@ -31,6 +31,7 @@ import {
 } from "@/lib/validation/activity-schema";
 import { addActivity, updateActivity, deleteActivity } from "@/lib/scheduling/activity-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
+import { MANUAL_ENTRY } from "@/lib/field-operations/daily-log-store";
 import type { Activity } from "@/types/scheduling";
 
 function fieldError(message?: string) {
@@ -62,6 +63,7 @@ export function ActivityFormDialog({
   const projects = useProjects();
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [manualProject, setManualProject] = React.useState(false);
   const {
     register,
     handleSubmit,
@@ -74,6 +76,7 @@ export function ActivityFormDialog({
     defaultValues: existingActivity
       ? {
           projectId: existingActivity.projectId,
+          projectName: existingActivity.projectName,
           name: existingActivity.name,
           plannedStart: existingActivity.plannedStart,
           plannedFinish: existingActivity.plannedFinish,
@@ -94,10 +97,12 @@ export function ActivityFormDialog({
   React.useEffect(() => {
     if (open) {
       setConfirmingDelete(false);
+      setManualProject(existingActivity?.projectId === MANUAL_ENTRY);
       reset(
         existingActivity
           ? {
               projectId: existingActivity.projectId,
+              projectName: existingActivity.projectName,
               name: existingActivity.name,
               plannedStart: existingActivity.plannedStart,
               plannedFinish: existingActivity.plannedFinish,
@@ -118,7 +123,7 @@ export function ActivityFormDialog({
     setSaving(true);
     const result = existingActivity
       ? await updateActivity(existingActivity.id, values)
-      : await addActivity(values, project?.projectName ?? "Unknown Project");
+      : await addActivity(values, project?.projectName ?? values.projectName ?? "Manual Entry");
     setSaving(false);
     if (!result.ok) {
       showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this activity — check your connection and try again.");
@@ -148,21 +153,52 @@ export function ActivityFormDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <div>
             <Label>Project</Label>
-            <Select
-              value={watch("projectId")}
-              onValueChange={(v) => setValue("projectId", v, { shouldValidate: true })}
-            >
-              <SelectTrigger className="mt-1.5 w-full">
-                <SelectValue placeholder="Select a project" />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.projectName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {manualProject ? (
+              <Input
+                className="mt-1.5"
+                placeholder="Type project or small job name"
+                {...register("projectName")}
+              />
+            ) : (
+              <Select
+                value={watch("projectId")}
+                onValueChange={(v) => {
+                  if (v === MANUAL_ENTRY) {
+                    setManualProject(true);
+                    setValue("projectId", MANUAL_ENTRY, { shouldValidate: true });
+                    setValue("projectName", "");
+                    return;
+                  }
+                  setValue("projectId", v, { shouldValidate: true });
+                  setValue("projectName", undefined);
+                }}
+              >
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue placeholder="Select a project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.projectName}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            {manualProject && (
+              <button
+                type="button"
+                onClick={() => {
+                  setManualProject(false);
+                  setValue("projectId", "");
+                  setValue("projectName", undefined);
+                }}
+                className="mt-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Choose from real projects instead
+              </button>
+            )}
             {fieldError(errors.projectId?.message)}
           </div>
 

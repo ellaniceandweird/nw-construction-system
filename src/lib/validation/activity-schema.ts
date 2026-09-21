@@ -3,6 +3,7 @@ import { z } from "zod";
 export const activityFormSchema = z
   .object({
     projectId: z.string().min(1, "Select a project"),
+    projectName: z.string().optional(),
     name: z.string().min(3, "Activity name must be at least 3 characters"),
     plannedStart: z.string().min(1, "Start date is required"),
     plannedFinish: z.string().min(1, "Finish date is required"),

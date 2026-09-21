@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { createFieldWorkerRate, updateFieldWorkerRate, deleteFieldWorkerRate } from "@/lib/references/field-worker-rate-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { FieldWorkerRate } from "@/types/references";
@@ -15,7 +16,7 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
   const [employeeName, setEmployeeName] = React.useState("");
   const [hourlyRate, setHourlyRate] = React.useState("");
   const [overtimeRate, setOvertimeRate] = React.useState("");
-  const [defaultCostCode, setDefaultCostCode] = React.useState("");
+  const [startDate, setStartDate] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -25,7 +26,7 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
       setEmployeeName(rate?.employeeName ?? "");
       setHourlyRate(rate ? String(rate.hourlyRate) : "");
       setOvertimeRate(rate?.overtimeRate != null ? String(rate.overtimeRate) : "");
-      setDefaultCostCode(rate?.defaultCostCode ?? "");
+      setStartDate(rate?.startDate ?? "");
       setNotes(rate?.notes ?? "");
       setConfirmingDelete(false);
     }
@@ -42,17 +43,17 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
       employeeName, trade: rate?.trade || "General",
       hourlyRate: parseFloat(hourlyRate),
       overtimeRate: overtimeRate ? parseFloat(overtimeRate) : undefined,
-      defaultCostCode: defaultCostCode || undefined,
+      startDate: startDate || undefined,
       notes: notes || undefined,
     };
     setSaving(true);
     const result = rate ? await updateFieldWorkerRate(rate.id, input) : await createFieldWorkerRate(input);
     setSaving(false);
     if (!result.ok) {
-      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this rate — check your connection and try again.");
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't save this worker — check your connection and try again.");
       return;
     }
-    showSuccessToast(rate ? "Rate updated" : "Rate added");
+    showSuccessToast(rate ? "Worker updated" : "Worker added");
     onOpenChange(false);
   }
   function handleDelete() { if (!rate) return; deleteFieldWorkerRate(rate.id); onOpenChange(false); }
@@ -60,20 +61,24 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader><DialogTitle>{rate ? `Edit Rate — ${rate.employeeName}` : "New Field Worker Rate"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{rate ? `Edit Worker — ${rate.employeeName}` : "New Field Worker"}</DialogTitle></DialogHeader>
         <div className="flex flex-col gap-4">
           <div><Label htmlFor="employeeName">Employee Name</Label><Input id="employeeName" className="mt-1.5" value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} /></div>
           <div className="grid grid-cols-2 gap-4">
             <div><Label htmlFor="hourlyRate">Hourly Rate ($)</Label><Input id="hourlyRate" type="number" className="mt-1.5" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div>
             <div><Label htmlFor="overtimeRate">Overtime Rate ($, optional)</Label><Input id="overtimeRate" type="number" className="mt-1.5" value={overtimeRate} onChange={(e) => setOvertimeRate(e.target.value)} /></div>
           </div>
-          <div><Label htmlFor="defaultCostCode">Default Cost Code (optional)</Label><Input id="defaultCostCode" className="mt-1.5" value={defaultCostCode} onChange={(e) => setDefaultCostCode(e.target.value)} /></div>
-          <div><Label htmlFor="notes">Notes (optional)</Label><Input id="notes" className="mt-1.5" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
+          <div>
+            <Label htmlFor="startDate">Start Date (optional)</Label>
+            <Input id="startDate" type="date" className="mt-1.5" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <p className="mt-1 text-xs text-muted-foreground">Used to calculate "Months with Us" automatically — always current, never entered separately.</p>
+          </div>
+          <div><Label htmlFor="notes">Notes (optional)</Label><Textarea id="notes" className="mt-1.5" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
         </div>
         <DialogFooter className="justify-between">
           {rate ? (confirmingDelete ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Delete this rate?</span>
+              <span className="text-sm text-muted-foreground">Delete this worker?</span>
               <Button variant="destructive" size="sm" onClick={handleDelete}>Confirm Delete</Button>
               <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>Cancel</Button>
             </div>

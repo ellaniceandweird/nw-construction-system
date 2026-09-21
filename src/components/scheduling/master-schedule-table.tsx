@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, Search, Plus, Pencil, Upload, Table2, Printe
 import { useActivities } from "@/hooks/use-activities";
 import { useProjects } from "@/hooks/use-projects";
 import { updateProject } from "@/lib/projects/project-store";
+import { MANUAL_ENTRY } from "@/lib/field-operations/daily-log-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -120,23 +121,35 @@ export function MasterScheduleTable() {
     .sort((a, b) => new Date(a.plannedStart).getTime() - new Date(b.plannedStart).getTime());
 
   const groupedByProject = React.useMemo(() => {
+    // Manual (non-project-linked) activities all share the same
+    // projectId sentinel, so grouping by projectId alone would lump
+    // unrelated small jobs together under one bucket. Group those by
+    // their own typed name instead, so "Fence Painting" and "Small Deck
+    // Repair" each get their own group.
+    function groupKey(a: Activity) {
+      return a.projectId === MANUAL_ENTRY ? `manual:${a.projectName || "Untitled"}` : a.projectId;
+    }
     const groups = new Map<string, Activity[]>();
     for (const a of filtered) {
-      if (!groups.has(a.projectId)) groups.set(a.projectId, []);
-      groups.get(a.projectId)!.push(a);
+      const key = groupKey(a);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(a);
     }
     return [...groups.entries()]
-      .map(([projectId, projectActivities]) => {
-        const project = projects.find((p) => p.id === projectId);
-        const activityStart = projectActivities.reduce((min, a) => (a.plannedStart < min ? a.plannedStart : min), projectActivities[0].plannedStart);
-        const activityFinish = projectActivities.reduce((max, a) => (a.plannedFinish > max ? a.plannedFinish : max), projectActivities[0].plannedFinish);
+      .map(([key, projectActivities]) => {
+        const first = projectActivities[0];
+        const isManual = first.projectId === MANUAL_ENTRY;
+        const project = isManual ? undefined : projects.find((p) => p.id === first.projectId);
+        const activityStart = projectActivities.reduce((min, a) => (a.plannedStart < min ? a.plannedStart : min), first.plannedStart);
+        const activityFinish = projectActivities.reduce((max, a) => (a.plannedFinish > max ? a.plannedFinish : max), first.plannedFinish);
         // The project's own Start Date / Target Completion Date (set in
         // Project Management) is the source of truth for what's shown
         // here — falls back to the activity-derived range only if the
         // project doesn't have its own dates set yet.
         const start = project?.startDate || activityStart;
         const finish = project?.plannedCompletionDate || activityFinish;
-        return { projectId, projectName: project?.projectName ?? "—", activities: projectActivities, start, finish };
+        const projectName = isManual ? (first.projectName || "Untitled Manual Entry") : (project?.projectName ?? "—");
+        return { projectId: key, projectName, activities: projectActivities, start, finish };
       })
       .sort((a, b) => a.start.localeCompare(b.start));
   }, [filtered, projects]);

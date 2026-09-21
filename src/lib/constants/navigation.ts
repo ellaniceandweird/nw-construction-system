@@ -144,7 +144,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/references",
     icon: Library,
     children: [
-      { label: "Field Worker Rates", href: "/references?tab=fieldworkerrates" },
+      { label: "Field Workers", href: "/references?tab=fieldworkerrates" },
       { label: "US Holidays", href: "/references?tab=holidays" },
       { label: "Billing Entities", href: "/references?tab=billingentities" },
       { label: "Cost Codes", href: "/references?tab=costcodes" },

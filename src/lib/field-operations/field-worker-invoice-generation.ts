@@ -52,7 +52,7 @@ export function generateFieldWorkerInvoices(
         projectName: entry.projectName,
         billingEntityId,
         activity: entry.activityDescription || "General Work",
-        costCode: entry.activityId === MANUAL_ACTIVITY_ID ? MANUAL_ENTRY_COST_CODE : rate?.defaultCostCode,
+        costCode: entry.activityId === MANUAL_ACTIVITY_ID ? MANUAL_ENTRY_COST_CODE : entry.costCode,
         regularHours: entry.regularHours,
         overtimeHours: entry.overtimeHours,
         regularRate,

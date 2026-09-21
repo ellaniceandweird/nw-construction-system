@@ -79,7 +79,7 @@ export function ImportFieldWorkerRatesDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={(next) => { if (!next) reset(); onOpenChange(next); }}>
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Import Field Worker Rates</DialogTitle>
+          <DialogTitle>Import Field Workers</DialogTitle>
           <DialogDescription>
             Upload an Excel, CSV, or PDF rate sheet — matched by columns like Employee
             Name, Trade, Hourly Rate, Overtime Rate. Nothing saves until you review and confirm.

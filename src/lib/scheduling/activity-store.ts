@@ -18,6 +18,7 @@ function fromRow(row: Record<string, any>): Activity {
   return {
     id: row.id,
     projectId: row.project_id,
+    projectName: row.project_name ?? undefined,
     activityCode: row.activity_code,
     costCode: row.cost_code ?? undefined,
     wbsPath: row.wbs_path,
@@ -76,6 +77,7 @@ function toRow(input: Record<string, any>): Record<string, any> {
   const row: Record<string, any> = {};
   if (input.id !== undefined) row.id = input.id;
   if (input.projectId !== undefined) row.project_id = input.projectId;
+  if (input.projectName !== undefined) row.project_name = input.projectName;
   if (input.activityCode !== undefined) row.activity_code = input.activityCode;
   if (input.wbsPath !== undefined) row.wbs_path = input.wbsPath;
   if (input.name !== undefined) row.name = input.name;
@@ -116,6 +118,7 @@ function nextActivityId(): string {
 
 export interface ActivityInput {
   projectId: string;
+  projectName?: string;
   name: string;
   plannedStart: string;
   plannedFinish: string;

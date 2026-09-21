@@ -147,7 +147,7 @@ export function DailyWorkPlanDetailsPanel({ date, activities, projects }: Props)
               </label>
             ))}
             {crewAttendance.length === 0 && (
-              <p className="col-span-full text-sm text-muted-foreground">No crew members set up in Field Worker Rates yet.</p>
+              <p className="col-span-full text-sm text-muted-foreground">No crew members set up in Field Workers yet.</p>
             )}
           </div>
         </CardContent>

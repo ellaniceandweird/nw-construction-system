@@ -33,7 +33,7 @@ export function ReferencesPageClient() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
-          <TabsTrigger value="fieldworkerrates">Field Worker Rates</TabsTrigger>
+          <TabsTrigger value="fieldworkerrates">Field Workers</TabsTrigger>
           <TabsTrigger value="holidays">US Holidays</TabsTrigger>
           <TabsTrigger value="billingentities">Billing Entities</TabsTrigger>
           <TabsTrigger value="costcodes">Cost Codes</TabsTrigger>

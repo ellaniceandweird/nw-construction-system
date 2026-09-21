@@ -92,7 +92,7 @@ export function GenerateInvoicesDialog({ open, onOpenChange }: Props) {
           <DialogTitle>Generate Field Worker Invoices</DialogTitle>
           <DialogDescription>
             Pulls real crew hours from Daily Logs for the pay period you choose, and rates
-            from References &gt; Field Worker Rates. Nothing saves until you review and confirm.
+            from References &gt; Field Workers. Nothing saves until you review and confirm.
           </DialogDescription>
         </DialogHeader>
 

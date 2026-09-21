@@ -21,6 +21,22 @@ function currency(n?: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
+function formatDate(d?: string) {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+/** Whole months between the worker's start date and today — recomputed on every render from the real current date, so this can never drift or need manual updating. */
+function monthsWithUs(startDate?: string): string {
+  if (!startDate) return "—";
+  const start = new Date(startDate + "T00:00:00");
+  const today = new Date();
+  if (start > today) return "—";
+  let months = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+  if (today.getDate() < start.getDate()) months -= 1;
+  return String(Math.max(0, months));
+}
+
 export function FieldWorkerRatesTable() {
   const rates = useFieldWorkerRates();
   const [editing, setEditing] = React.useState<FieldWorkerRate | null>(null);
@@ -46,7 +62,7 @@ export function FieldWorkerRatesTable() {
         </p>
         <div className="flex shrink-0 gap-2">
           <Button size="sm" variant="outline" onClick={() => setImporting(true)}><Upload className="size-3.5" /> Import</Button>
-          <Button size="sm" onClick={() => setCreating(true)}><Plus className="size-3.5" /> New Rate</Button>
+          <Button size="sm" onClick={() => setCreating(true)}><Plus className="size-3.5" /> New Worker</Button>
         </div>
       </div>
       <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -70,7 +86,9 @@ export function FieldWorkerRatesTable() {
               <th className="px-4 py-3 font-medium">Employee</th>
               <th className="px-4 py-3 font-medium">Hourly Rate</th>
               <th className="px-4 py-3 font-medium">Overtime Rate</th>
-              <th className="px-4 py-3 font-medium">Default Cost Code</th>
+              <th className="px-4 py-3 font-medium">Start Date</th>
+              <th className="px-4 py-3 font-medium">Months with Us</th>
+              <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium">Edit</th>
             </tr>
           </thead>
@@ -80,11 +98,13 @@ export function FieldWorkerRatesTable() {
                 <td className="px-4 py-3 font-medium text-foreground">{r.employeeName}</td>
                 <td className="px-4 py-3 text-muted-foreground">{currency(r.hourlyRate)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{currency(r.overtimeRate)}</td>
-                <td className="px-4 py-3 text-muted-foreground">{r.defaultCostCode ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{formatDate(r.startDate)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{monthsWithUs(r.startDate)}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[16rem] truncate" title={r.notes}>{r.notes || "—"}</td>
                 <td className="px-4 py-3"><Button variant="ghost" size="icon" onClick={() => setEditing(r)}><Pencil className="size-3.5" /></Button></td>
               </tr>
             ))}
-            {sorted.length === 0 && (<tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No rates yet — add one above.</td></tr>)}
+            {sorted.length === 0 && (<tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">No workers yet — add one above.</td></tr>)}
           </tbody>
         </table>
       </Card>

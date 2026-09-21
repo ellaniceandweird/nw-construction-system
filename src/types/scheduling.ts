@@ -58,6 +58,8 @@ export interface ActivityConstraint {
  */
 export interface Activity extends Omit<BaseEntity, "status"> {
   projectId: string;
+  /** What was actually typed for a manual (non-project-linked) activity — e.g. a small job that doesn't warrant its own full Project record. The display fallback whenever projectId doesn't resolve to a real Project. */
+  projectName?: string;
 
   // Identification
   activityCode: string;

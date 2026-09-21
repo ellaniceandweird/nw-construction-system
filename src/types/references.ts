@@ -13,7 +13,8 @@ export interface FieldWorkerRate extends BaseEntity {
   trade: string;
   hourlyRate: number;
   overtimeRate?: number;
-  defaultCostCode?: string;
+  /** When this worker started with the company — used to compute "months with us" live, never stored as a separate number so it can never drift out of date. */
+  startDate?: string;
   notes?: string;
 }
 
