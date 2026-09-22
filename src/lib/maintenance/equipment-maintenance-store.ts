@@ -82,22 +82,44 @@ export async function createEquipmentMaintenance(input: EquipmentMaintenanceEdit
  * avoiding the same collision risk a tight loop of nextId() calls would
  * have.
  */
-export async function createEquipmentMaintenanceBulk(inputs: EquipmentMaintenanceEditInput[]): Promise<{ succeeded: number; failed: { row: number; error?: string }[] }> {
+/**
+ * Imports many equipment maintenance schedules at once, matching each
+ * incoming row against existing ones by Property + Location + System
+ * Type (case-insensitive) so re-importing an updated Google Sheet
+ * supersedes the matching existing row instead of creating a
+ * duplicate. Rows that don't match anything existing are added as new.
+ */
+export async function createEquipmentMaintenanceBulk(inputs: EquipmentMaintenanceEditInput[]): Promise<{ added: number; updated: number; failed: { row: number; error?: string }[] }> {
   const items = store.getSnapshot();
   let maxNum = items.reduce((max, r) => {
     const n = parseInt(r.id.replace("EQ-", ""), 10);
     return Number.isFinite(n) ? Math.max(max, n) : max;
   }, 0);
+
+  function matchKey(propertyName: string, location: string, systemType: string) {
+    return `${propertyName.trim().toLowerCase()}|${location.trim().toLowerCase()}|${systemType.trim().toLowerCase()}`;
+  }
+  const existingByKey = new Map(items.map((r) => [matchKey(r.propertyName, r.location, r.systemType), r]));
+
   const failed: { row: number; error?: string }[] = [];
-  let succeeded = 0;
+  let added = 0;
+  let updated = 0;
   for (let i = 0; i < inputs.length; i++) {
+    const input = inputs[i];
+    const existing = existingByKey.get(matchKey(input.propertyName, input.location, input.systemType));
+    if (existing) {
+      const result = await store.update(existing.id, input);
+      if (result) updated++;
+      else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+      continue;
+    }
     maxNum += 1;
     const id = `EQ-${String(maxNum).padStart(6, "0")}`;
-    const result = await store.create({ id, ...inputs[i] });
-    if (result !== null) succeeded++;
+    const result = await store.create({ id, ...input });
+    if (result !== null) added++;
     else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
   }
-  return { succeeded, failed };
+  return { added, updated, failed };
 }
 
 export async function updateEquipmentMaintenance(id: string, input: EquipmentMaintenanceEditInput): Promise<{ ok: boolean; error?: string }> {

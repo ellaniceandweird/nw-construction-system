@@ -33,7 +33,8 @@ export function ImportEquipmentMaintenanceDialog({ open, onOpenChange }: Props) 
   const [error, setError] = React.useState("");
   const [warnings, setWarnings] = React.useState<string[]>([]);
   const [rows, setRows] = React.useState<ParsedEquipmentMaintenanceRow[]>([]);
-  const [savedCount, setSavedCount] = React.useState(0);
+  const [addedCount, setAddedCount] = React.useState(0);
+  const [updatedCount, setUpdatedCount] = React.useState(0);
   const [saving, setSaving] = React.useState(false);
 
   function reset() {
@@ -42,7 +43,8 @@ export function ImportEquipmentMaintenanceDialog({ open, onOpenChange }: Props) 
     setError("");
     setWarnings([]);
     setRows([]);
-    setSavedCount(0);
+    setAddedCount(0);
+    setUpdatedCount(0);
   }
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -92,10 +94,11 @@ export function ImportEquipmentMaintenanceDialog({ open, onOpenChange }: Props) 
     );
     setSaving(false);
     if (result.failed.length > 0) {
-      showErrorToast(`Saved ${result.succeeded}, but ${result.failed.length} row(s) failed — check your connection and try those again.`);
-      if (result.succeeded === 0) return;
+      showErrorToast(`${result.added + result.updated} row(s) saved, but ${result.failed.length} row(s) failed — check your connection and try those again.`);
+      if (result.added + result.updated === 0) return;
     }
-    setSavedCount(result.succeeded);
+    setAddedCount(result.added);
+    setUpdatedCount(result.updated);
     setStage("done");
   }
 
@@ -108,8 +111,10 @@ export function ImportEquipmentMaintenanceDialog({ open, onOpenChange }: Props) 
           <DialogTitle>Import Recurring Maintenance</DialogTitle>
           <DialogDescription>
             Upload an Excel, CSV, or PDF list — matched by columns like Property, Location, System
-            Type, Maintenance Needed, Frequency, Last Completed, Notes. Nothing saves until you
-            review and confirm.
+            Type, Maintenance Needed, Frequency, Last Completed, Notes. A row is matched against
+            an existing item by Property + Location + System Type, so re-importing an updated
+            sheet updates the matching item instead of creating a duplicate. Nothing saves until
+            you review and confirm.
           </DialogDescription>
         </DialogHeader>
 
@@ -198,7 +203,12 @@ export function ImportEquipmentMaintenanceDialog({ open, onOpenChange }: Props) 
         {stage === "done" && (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <p className="text-lg font-semibold text-success">Items imported</p>
-            <p className="text-sm text-muted-foreground">Added {savedCount} item{savedCount === 1 ? "" : "s"}.</p>
+            <p className="text-sm text-muted-foreground">
+              {addedCount > 0 && `${addedCount} new item${addedCount === 1 ? "" : "s"} added`}
+              {addedCount > 0 && updatedCount > 0 && ", "}
+              {updatedCount > 0 && `${updatedCount} existing item${updatedCount === 1 ? "" : "s"} updated (matched by property + location + system)`}
+              {addedCount === 0 && updatedCount === 0 && "Nothing to save."}
+            </p>
           </div>
         )}
 

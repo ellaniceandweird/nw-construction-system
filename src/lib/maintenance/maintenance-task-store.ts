@@ -95,27 +95,51 @@ export function addMaintenanceTask(input: MaintenanceTaskInput) {
  * in-flight create until it resolves, so a tight loop of nextTaskId()
  * calls risks generating the same ID twice and colliding.
  */
-export async function addMaintenanceTasksBulk(inputs: MaintenanceTaskInput[]): Promise<{ succeeded: number; failed: { row: number; error?: string }[] }> {
+/**
+ * Imports many tasks at once (bulk paste / import), matching each
+ * incoming row against existing tasks by Property + Task Description
+ * (case-insensitive) so re-importing an updated Google Sheet supersedes
+ * the matching existing row instead of creating a duplicate. Rows that
+ * don't match anything existing are added as new. IDs for genuinely new
+ * rows are computed once upfront and incremented locally, avoiding the
+ * same collision risk a tight loop of nextTaskId() calls would have.
+ */
+export async function addMaintenanceTasksBulk(inputs: MaintenanceTaskInput[]): Promise<{ added: number; updated: number; failed: { row: number; error?: string }[] }> {
   const items = store.getSnapshot();
   let maxNum = items.reduce((max, t) => {
     const n = parseInt(t.id.replace("MT-", ""), 10);
     return Number.isFinite(n) ? Math.max(max, n) : max;
   }, 0);
+
+  function matchKey(propertyName: string | undefined, taskDescription: string) {
+    return `${(propertyName ?? "").trim().toLowerCase()}|${taskDescription.trim().toLowerCase()}`;
+  }
+  const existingByKey = new Map(items.map((t) => [matchKey(t.propertyName, t.taskDescription), t]));
+
   const failed: { row: number; error?: string }[] = [];
-  let succeeded = 0;
+  let added = 0;
+  let updated = 0;
   for (let i = 0; i < inputs.length; i++) {
+    const input = inputs[i];
+    const existing = existingByKey.get(matchKey(input.propertyName, input.taskDescription));
+    if (existing) {
+      const result = await store.update(existing.id, input);
+      if (result) updated++;
+      else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+      continue;
+    }
     maxNum += 1;
     const id = `MT-${String(maxNum).padStart(6, "0")}`;
     const result = await store.create({
       id,
       taskStatus: "not_started",
       dateEntered: new Date().toISOString().slice(0, 10),
-      ...inputs[i],
+      ...input,
     });
-    if (result !== null) succeeded++;
+    if (result !== null) added++;
     else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
   }
-  return { succeeded, failed };
+  return { added, updated, failed };
 }
 
 export function updateTaskStatus(taskId: string, taskStatus: MaintenanceTaskStatus) {

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Plus, Pencil, Upload } from "lucide-react";
+import { Search, Plus, Pencil, Upload, Printer } from "lucide-react";
 
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { addMaintenanceTask, updateTaskStatus } from "@/lib/maintenance/maintenance-task-store";
@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PrintButton } from "@/components/shared/print-button";
+import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
+import { DASHBOARD_COLORS } from "@/lib/dashboard/pastel-colors";
 import { MaintenanceTaskEditDialog } from "@/components/maintenance/maintenance-task-edit-dialog";
 import { ImportMaintenanceTasksDialog } from "@/components/maintenance/import-maintenance-tasks-dialog";
 import type { MaintenancePriority, MaintenanceTask, MaintenanceTaskStatus } from "@/types/maintenance";
@@ -55,6 +56,22 @@ function formatDate(d?: string) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
+// Same color meaning as the dashboards: green = good/complete, blue =
+// in progress, amber = attention/on-hold, coral = critical/stuck.
+const STATUS_TONE: Record<MaintenanceTaskStatus, keyof typeof DASHBOARD_COLORS> = {
+  complete: "good",
+  working_on: "info",
+  not_started: "secondary",
+  stuck: "critical",
+};
+const PRIORITY_TONE: Record<MaintenancePriority, keyof typeof DASHBOARD_COLORS> = {
+  high: "critical",
+  medium: "attention",
+  low: "good",
+  on_hold: "secondary",
+  long_term_project: "info",
+};
 
 export function MaintenanceTasksTable() {
   const tasks = useMaintenanceTasks();
@@ -106,6 +123,47 @@ export function MaintenanceTasksTable() {
 
   const propertyNames = Array.from(new Set(tasks.map((t) => t.propertyName).filter(Boolean)));
 
+  function handlePrint() {
+    const rows = filtered
+      .map((task) => {
+        const statusTone = STATUS_TONE[task.taskStatus];
+        const statusColors = DASHBOARD_COLORS[statusTone];
+        const statusLabel = STATUS_OPTIONS.find((o) => o.value === task.taskStatus)?.label ?? task.taskStatus;
+        const priorityBadge = task.priority
+          ? (() => {
+              const c = DASHBOARD_COLORS[PRIORITY_TONE[task.priority!]];
+              return `<span style="background:${c.bg};color:${c.text};padding:2px 8px;border-radius:4px;font-size:10px;">${escapeHtml(task.priority!.replace(/_/g, " "))}</span>`;
+            })()
+          : "—";
+        return `
+          <tr>
+            <td>${formatDate(task.dateEntered)}</td>
+            <td>${escapeHtml(task.propertyName ?? "—")}</td>
+            <td>${escapeHtml(task.taskDescription)}</td>
+            <td>${priorityBadge}</td>
+            <td><span style="background:${statusColors.bg};color:${statusColors.text};padding:2px 8px;border-radius:4px;font-size:10px;">${escapeHtml(statusLabel)}</span></td>
+            <td>${escapeHtml(task.responsibleParty ?? "—")}</td>
+            <td>${formatDate(task.plannedCompletionDate)}</td>
+            <td>${task.dateCompleted ? formatDate(task.dateCompleted) : "—"}</td>
+          </tr>`;
+      })
+      .join("");
+
+    openPrintWindow(
+      "General Maintenance",
+      `
+      <div class="header"><h1>General Maintenance</h1></div>
+      <p>${filtered.length} task${filtered.length === 1 ? "" : "s"}${propertyFilter !== "all" ? ` — ${escapeHtml(propertyFilter)}` : ""}</p>
+      <table>
+        <thead>
+          <tr><th>Date Entered</th><th>Property</th><th>Task</th><th>Priority</th><th>Status</th><th>Responsible</th><th>Target Date</th><th>Completed</th></tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="8">No tasks match the current filters.</td></tr>'}</tbody>
+      </table>
+      `
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -142,7 +200,9 @@ export function MaintenanceTasksTable() {
             <SelectItem value="priority">Priority (High First)</SelectItem>
           </SelectContent>
         </Select>
-        <PrintButton />
+        <Button variant="outline" onClick={handlePrint} className="print:hidden">
+          <Printer className="size-3.5" /> Print
+        </Button>
         <Button variant="outline" onClick={() => setImporting(true)} className="print:hidden">
           <Upload /> Import Excel/PDF
         </Button>

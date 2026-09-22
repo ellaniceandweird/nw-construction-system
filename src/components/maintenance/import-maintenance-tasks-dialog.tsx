@@ -34,7 +34,8 @@ export function ImportMaintenanceTasksDialog({ open, onOpenChange }: Props) {
   const [error, setError] = React.useState("");
   const [warnings, setWarnings] = React.useState<string[]>([]);
   const [rows, setRows] = React.useState<ParsedMaintenanceTaskRow[]>([]);
-  const [savedCount, setSavedCount] = React.useState(0);
+  const [addedCount, setAddedCount] = React.useState(0);
+  const [updatedCount, setUpdatedCount] = React.useState(0);
   const [saving, setSaving] = React.useState(false);
 
   function reset() {
@@ -43,7 +44,8 @@ export function ImportMaintenanceTasksDialog({ open, onOpenChange }: Props) {
     setError("");
     setWarnings([]);
     setRows([]);
-    setSavedCount(0);
+    setAddedCount(0);
+    setUpdatedCount(0);
   }
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -91,10 +93,11 @@ export function ImportMaintenanceTasksDialog({ open, onOpenChange }: Props) {
     );
     setSaving(false);
     if (result.failed.length > 0) {
-      showErrorToast(`Saved ${result.succeeded}, but ${result.failed.length} row(s) failed — check your connection and try those again.`);
-      if (result.succeeded === 0) return;
+      showErrorToast(`${result.added + result.updated} row(s) saved, but ${result.failed.length} row(s) failed — check your connection and try those again.`);
+      if (result.added + result.updated === 0) return;
     }
-    setSavedCount(result.succeeded);
+    setAddedCount(result.added);
+    setUpdatedCount(result.updated);
     setStage("done");
   }
 
@@ -107,7 +110,9 @@ export function ImportMaintenanceTasksDialog({ open, onOpenChange }: Props) {
           <DialogTitle>Import Maintenance Tasks</DialogTitle>
           <DialogDescription>
             Upload an Excel, CSV, or PDF list — matched by columns like Property, Task/Description,
-            Priority, Responsible Party, Target Date. Nothing saves until you review and confirm.
+            Priority, Responsible Party, Target Date. A row is matched against an existing task
+            by Property + Task, so re-importing an updated sheet updates the matching task
+            instead of creating a duplicate. Nothing saves until you review and confirm.
           </DialogDescription>
         </DialogHeader>
 
@@ -192,7 +197,12 @@ export function ImportMaintenanceTasksDialog({ open, onOpenChange }: Props) {
         {stage === "done" && (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <p className="text-lg font-semibold text-success">Tasks imported</p>
-            <p className="text-sm text-muted-foreground">Added {savedCount} task{savedCount === 1 ? "" : "s"}.</p>
+            <p className="text-sm text-muted-foreground">
+              {addedCount > 0 && `${addedCount} new task${addedCount === 1 ? "" : "s"} added`}
+              {addedCount > 0 && updatedCount > 0 && ", "}
+              {updatedCount > 0 && `${updatedCount} existing task${updatedCount === 1 ? "" : "s"} updated (matched by property + task)`}
+              {addedCount === 0 && updatedCount === 0 && "Nothing to save."}
+            </p>
           </div>
         )}
 

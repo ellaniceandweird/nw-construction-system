@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Pencil, Plus, Upload } from "lucide-react";
+import { Search, Pencil, Plus, Upload, Printer } from "lucide-react";
 
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PrintButton } from "@/components/shared/print-button";
+import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
+import { DASHBOARD_COLORS } from "@/lib/dashboard/pastel-colors";
 import { EquipmentMaintenanceEditDialog } from "@/components/maintenance/equipment-maintenance-edit-dialog";
 import { ImportEquipmentMaintenanceDialog } from "@/components/maintenance/import-equipment-maintenance-dialog";
 import { computeNextDueDate, isOverdue } from "@/lib/maintenance/next-due-date";
@@ -88,6 +89,43 @@ export function EquipmentMaintenanceTable() {
       break;
   }
 
+  function handlePrint() {
+    const rows = filtered
+      .map((e) => {
+        const overdue = isOverdue(e.lastCompleted, e.frequency);
+        const nextDue = formatDate(computeNextDueDate(e.lastCompleted, e.frequency)?.toISOString());
+        const nextDueCell = overdue
+          ? `<span style="background:${DASHBOARD_COLORS.critical.bg};color:${DASHBOARD_COLORS.critical.text};padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;">${escapeHtml(nextDue)} — overdue</span>`
+          : escapeHtml(nextDue);
+        return `
+          <tr>
+            <td>${escapeHtml(e.propertyName)}</td>
+            <td>${escapeHtml(e.location)}</td>
+            <td>${escapeHtml(e.systemType)}</td>
+            <td>${escapeHtml(e.maintenanceNeeded ?? "—")}</td>
+            <td>${escapeHtml(e.frequency ?? "—")}</td>
+            <td>${formatDate(e.lastCompleted)}</td>
+            <td>${nextDueCell}</td>
+            <td>${escapeHtml(e.notes ?? "—")}</td>
+          </tr>`;
+      })
+      .join("");
+
+    openPrintWindow(
+      "Recurring Maintenance",
+      `
+      <div class="header"><h1>Recurring Maintenance</h1></div>
+      <p>${filtered.length} record${filtered.length === 1 ? "" : "s"}</p>
+      <table>
+        <thead>
+          <tr><th>Property</th><th>Location</th><th>System Type</th><th>Maintenance Needed</th><th>Frequency</th><th>Last Completed</th><th>Next Due</th><th>Notes</th></tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="8">No records match the current filters.</td></tr>'}</tbody>
+      </table>
+      `
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -147,7 +185,9 @@ export function EquipmentMaintenanceTable() {
         <Button size="sm" variant="outline" onClick={() => setImporting(true)} className="print:hidden">
           <Upload className="size-3.5" /> Import Excel/PDF
         </Button>
-        <PrintButton />
+        <Button size="sm" variant="outline" onClick={handlePrint} className="print:hidden">
+          <Printer className="size-3.5" /> Print
+        </Button>
         <span className="ml-auto text-sm text-muted-foreground print:hidden">
           {filtered.length} of {records.length} equipment records
         </span>
