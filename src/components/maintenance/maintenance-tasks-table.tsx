@@ -160,7 +160,8 @@ export function MaintenanceTasksTable() {
         </thead>
         <tbody>${rows || '<tr><td colspan="8">No tasks match the current filters.</td></tr>'}</tbody>
       </table>
-      `
+      `,
+      "Maintenance Management"
     );
   }
 

@@ -17,7 +17,7 @@ import { formatNowInNewYork } from "@/lib/date/today";
  * don't need to build their own; just pass the content that's specific
  * to that document.
  */
-export function openPrintWindow(title: string, bodyHtml: string) {
+export function openPrintWindow(title: string, bodyHtml: string, headerSubtitle: string = "Construction Management") {
   const printWindow = window.open("", "_blank", "width=900,height=1100");
   if (!printWindow) {
     alert("Your browser blocked the print window. Please allow pop-ups for this site and try again.");
@@ -30,7 +30,7 @@ export function openPrintWindow(title: string, bodyHtml: string) {
         <img src="${NW_LOGO_DATA_URI}" alt="Nice and Weird Group" style="height:44px; width:auto;" />
         <div>
           <p style="margin:0; font-weight:700; font-size:15px; color:#111827;">Nice &amp; Weird Group</p>
-          <p style="margin:0; font-size:11px; color:#6b7280;">Construction Management</p>
+          <p style="margin:0; font-size:11px; color:#6b7280;">${headerSubtitle}</p>
         </div>
       </div>
       <p style="margin:0; font-size:11px; color:#9ca3af; text-align:right;">Generated ${formatNowInNewYork()}</p>

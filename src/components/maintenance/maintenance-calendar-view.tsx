@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, ClipboardList, Wrench } from "lucide-react";
+import { ChevronLeft, ChevronRight, ClipboardList, Wrench, Printer } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { computeNextDueDate } from "@/lib/maintenance/next-due-date";
 import { cn } from "@/lib/utils";
 import { getTodayInNewYork } from "@/lib/date/today";
+import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
+import { DASHBOARD_COLORS } from "@/lib/dashboard/pastel-colors";
 
 interface CalendarEvent {
   date: string; // yyyy-mm-dd
@@ -80,6 +82,56 @@ export function MaintenanceCalendarView() {
   ];
   while (cells.length % 7 !== 0) cells.push(null);
 
+  function handlePrint() {
+    const weekdayHeaderHtml = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      .map((d) => `<th style="padding:6px;background:#f9fafb;font-size:10px;color:#6b7280;border:1px solid #e5e7eb;">${d}</th>`)
+      .join("");
+
+    function eventHtml(ev: CalendarEvent) {
+      const colors = ev.overdue ? DASHBOARD_COLORS.critical : ev.type === "task" ? DASHBOARD_COLORS.info : DASHBOARD_COLORS.attention;
+      const label = `${escapeHtml(ev.title)}${ev.propertyName ? ` — ${escapeHtml(ev.propertyName)}` : ""}`;
+      return `<div style="background:${colors.bg};color:${colors.text};border-radius:4px;padding:2px 5px;margin-bottom:2px;font-size:9px;line-height:1.3;word-break:break-word;">${label}</div>`;
+    }
+
+    // Rows of 7 cells, each cell showing the day number and every event
+    // in full (wrapped, never truncated) — a printed page has no hover
+    // tooltip to fall back on, so nothing can be cut off here.
+    const rowsHtml: string[] = [];
+    for (let i = 0; i < cells.length; i += 7) {
+      const weekCells = cells.slice(i, i + 7)
+        .map((day) => {
+          if (day === null) return `<td style="border:1px solid #e5e7eb;background:#fafafa;"></td>`;
+          const dateStr = toISODate(new Date(viewMonth.getFullYear(), viewMonth.getMonth(), day));
+          const dayEvents = eventsByDate.get(dateStr) ?? [];
+          const isToday = dateStr === toISODate(TODAY);
+          return `
+            <td style="border:1px solid #e5e7eb;vertical-align:top;padding:4px;${isToday ? "background:#eff6ff;" : ""}">
+              <div style="font-size:10px;font-weight:600;color:${isToday ? "#1d4ed8" : "#374151"};margin-bottom:3px;">${day}</div>
+              ${dayEvents.map(eventHtml).join("")}
+            </td>`;
+        })
+        .join("");
+      rowsHtml.push(`<tr>${weekCells}</tr>`);
+    }
+
+    openPrintWindow(
+      `Maintenance Calendar — ${viewMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}`,
+      `
+      <div class="header"><h1>Maintenance Calendar — ${viewMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h1></div>
+      <table style="table-layout:fixed;width:100%;border-collapse:collapse;">
+        <thead><tr>${weekdayHeaderHtml}</tr></thead>
+        <tbody>${rowsHtml.join("")}</tbody>
+      </table>
+      <div style="display:flex;gap:16px;margin-top:12px;font-size:10px;color:#4b5563;">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${DASHBOARD_COLORS.info.fill};margin-right:4px;"></span>General Maintenance</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${DASHBOARD_COLORS.attention.fill};margin-right:4px;"></span>Recurring Maintenance</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${DASHBOARD_COLORS.critical.fill};margin-right:4px;"></span>Overdue</span>
+      </div>
+      `,
+      "Maintenance Management"
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
@@ -95,9 +147,14 @@ export function MaintenanceCalendarView() {
         <h3 className="text-lg font-semibold text-foreground">
           {viewMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </h3>
-        <Button variant="outline" size="icon" onClick={() => setMonthOffset((m) => m + 1)}>
-          <ChevronRight className="size-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Printer className="size-3.5" /> Print
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => setMonthOffset((m) => m + 1)}>
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -124,7 +181,7 @@ export function MaintenanceCalendarView() {
                         key={idx}
                         title={`${ev.title}${ev.propertyName ? ` — ${ev.propertyName}` : ""}`}
                         className={cn(
-                          "flex items-center gap-1 truncate rounded px-1 py-0.5 text-[10px] leading-tight",
+                          "flex items-start gap-1 rounded px-1 py-0.5 text-[10px] leading-tight",
                           ev.overdue
                             ? "bg-destructive-soft text-destructive"
                             : ev.type === "task"
@@ -133,11 +190,11 @@ export function MaintenanceCalendarView() {
                         )}
                       >
                         {ev.type === "task" ? (
-                          <ClipboardList className="size-2.5 shrink-0" />
+                          <ClipboardList className="size-2.5 shrink-0 mt-0.5" />
                         ) : (
-                          <Wrench className="size-2.5 shrink-0" />
+                          <Wrench className="size-2.5 shrink-0 mt-0.5" />
                         )}
-                        <span className="truncate">{ev.title}</span>
+                        <span className="break-words">{ev.title}</span>
                       </div>
                     ))}
                     {dayEvents.length > 3 && (

@@ -122,7 +122,8 @@ export function EquipmentMaintenanceTable() {
         </thead>
         <tbody>${rows || '<tr><td colspan="8">No records match the current filters.</td></tr>'}</tbody>
       </table>
-      `
+      `,
+      "Maintenance Management"
     );
   }
 
