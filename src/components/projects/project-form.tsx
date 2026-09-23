@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useBillingEntities } from "@/hooks/use-billing-entities";
 import { useProperties } from "@/hooks/use-properties";
@@ -33,6 +33,32 @@ function fieldError(message?: string) {
   if (!message) return null;
   return <p className="mt-1 text-xs text-destructive">{message}</p>;
 }
+
+const PHASE_OPTIONS: { value: NonNullable<ProjectFormValues["currentPhase"]>; label: string }[] = [
+  { value: "opportunity", label: "Opportunity" },
+  { value: "preconstruction", label: "Preconstruction" },
+  { value: "estimating", label: "Estimating" },
+  { value: "design_coordination", label: "Design Coordination" },
+  { value: "procurement", label: "Procurement" },
+  { value: "construction", label: "Construction" },
+  { value: "commissioning", label: "Commissioning" },
+  { value: "punch_list", label: "Punch List" },
+  { value: "substantial_completion", label: "Substantial Completion" },
+  { value: "closeout", label: "Closeout" },
+  { value: "warranty", label: "Warranty" },
+  { value: "archived", label: "Archived" },
+];
+
+const TEAM_FIELDS: { key: keyof ProjectFormValues; label: string }[] = [
+  { key: "director", label: "Director" },
+  { key: "operationsManager", label: "Operations Manager" },
+  { key: "projectManager", label: "Project Manager" },
+  { key: "projectEngineer", label: "Project Engineer" },
+  { key: "superintendent", label: "Superintendent" },
+  { key: "foreman", label: "Foreman" },
+  { key: "procurementLead", label: "Procurement Lead" },
+  { key: "estimator", label: "Estimator" },
+];
 
 export function ProjectForm({ existingProject }: { existingProject?: Project }) {
   const router = useRouter();
@@ -52,19 +78,52 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
     resolver: zodResolver(projectFormSchema),
     defaultValues: existingProject
       ? {
+          projectNumber: existingProject.projectNumber,
           projectName: existingProject.projectName,
           propertyId: existingProject.propertyId,
           billingEntityId: existingProject.billingEntityId,
+          costCenter: existingProject.costCenter ?? "",
+          internalProjectCode: existingProject.internalProjectCode ?? "",
+
+          clientName: existingProject.clientName ?? "",
+          owner: existingProject.owner ?? "",
+          architect: existingProject.architect ?? "",
+          engineer: existingProject.engineer ?? "",
+          generalContractor: existingProject.generalContractor ?? "",
+          primaryContact: existingProject.primaryContact ?? "",
+          contactEmail: existingProject.contactEmail ?? "",
+          contactPhone: existingProject.contactPhone ?? "",
+
           projectDescription: existingProject.projectDescription ?? "",
+          constructionCategory: existingProject.constructionCategory ?? "",
+          contractType: existingProject.contractType ?? "",
+          currentPhase: existingProject.currentPhase,
           manualStatus: existingProject.manualStatus,
+          priority: existingProject.priority,
+
           startDate: existingProject.startDate,
           plannedCompletionDate: existingProject.plannedCompletionDate,
+          actualCompletionDate: existingProject.actualCompletionDate ?? "",
+
+          estimatedContractValue: existingProject.estimatedContractValue,
           approvedBudget: existingProject.approvedBudget,
+
+          director: existingProject.team?.director ?? "",
+          operationsManager: existingProject.team?.operationsManager ?? "",
+          projectManager: existingProject.team?.projectManager ?? "",
+          projectEngineer: existingProject.team?.projectEngineer ?? "",
+          superintendent: existingProject.team?.superintendent ?? "",
+          foreman: existingProject.team?.foreman ?? "",
+          procurementLead: existingProject.team?.procurementLead ?? "",
+          estimator: existingProject.team?.estimator ?? "",
+
           manualCompletionPercent: existingProject.manualCompletionPercent != null ? String(existingProject.manualCompletionPercent) : "",
           notes: existingProject.notes ?? "",
         }
       : {
           manualStatus: "active",
+          currentPhase: "preconstruction",
+          priority: "medium",
           approvedBudget: 0,
           notes: "",
           projectDescription: "",
@@ -109,14 +168,24 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
     // billing entity changed since), so this is the single source of
     // truth at save time rather than trusting old form/stored values.
     const derivedBillingEntityId = property?.billingEntityId || values.billingEntityId || existingProject?.billingEntityId || "";
-    const entity = billingEntities.find((b) => b.id === derivedBillingEntityId);
     const input = {
-      projectNumber: existingProject?.projectNumber ?? `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
+      projectNumber: values.projectNumber || existingProject?.projectNumber || `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
       projectName: values.projectName || existingProject?.projectName || "Untitled Project",
       propertyId: values.propertyId || existingProject?.propertyId || "",
       propertyName: property?.name ?? property?.address ?? existingProject?.propertyName ?? "",
-      clientName: entity?.companyName ?? existingProject?.clientName ?? "",
       billingEntityId: derivedBillingEntityId,
+      costCenter: values.costCenter || undefined,
+      internalProjectCode: values.internalProjectCode || undefined,
+
+      clientName: values.clientName || existingProject?.clientName || "",
+      owner: values.owner || undefined,
+      architect: values.architect || undefined,
+      engineer: values.engineer || undefined,
+      generalContractor: values.generalContractor || undefined,
+      primaryContact: values.primaryContact || undefined,
+      contactEmail: values.contactEmail || undefined,
+      contactPhone: values.contactPhone || undefined,
+
       address: {
         street: property?.address ?? existingProject?.address.street ?? "",
         city: property?.town ?? existingProject?.address.city ?? "",
@@ -125,16 +194,29 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
         country: "USA",
       },
       projectDescription: values.projectDescription || undefined,
-      constructionCategory: existingProject?.constructionCategory ?? "Renovation",
-      contractType: existingProject?.contractType ?? "Time & Materials",
-      currentPhase: existingProject?.currentPhase ?? "construction",
+      constructionCategory: values.constructionCategory || existingProject?.constructionCategory || "Renovation",
+      contractType: values.contractType || existingProject?.contractType || "Time & Materials",
+      currentPhase: values.currentPhase ?? existingProject?.currentPhase ?? "construction",
       manualStatus: values.manualStatus ?? existingProject?.manualStatus ?? "active",
       calculatedStatus: values.manualStatus ?? existingProject?.calculatedStatus ?? "active",
-      priority: existingProject?.priority ?? "medium",
+      priority: values.priority ?? existingProject?.priority ?? "medium",
       startDate: values.startDate ?? "",
       plannedCompletionDate: values.plannedCompletionDate ?? "",
-      estimatedContractValue: existingProject?.estimatedContractValue ?? values.approvedBudget ?? 0,
+      actualCompletionDate: values.actualCompletionDate || undefined,
+      estimatedContractValue: values.estimatedContractValue ?? existingProject?.estimatedContractValue ?? values.approvedBudget ?? 0,
       approvedBudget: values.approvedBudget ?? existingProject?.approvedBudget ?? 0,
+
+      team: {
+        director: values.director || undefined,
+        operationsManager: values.operationsManager || undefined,
+        projectManager: values.projectManager || undefined,
+        projectEngineer: values.projectEngineer || undefined,
+        superintendent: values.superintendent || undefined,
+        foreman: values.foreman || undefined,
+        procurementLead: values.procurementLead || undefined,
+        estimator: values.estimator || undefined,
+      },
+
       manualCompletionPercent:
         values.manualCompletionPercent && values.manualCompletionPercent.trim() !== ""
           ? Math.max(0, Math.min(100, parseFloat(values.manualCompletionPercent)))
@@ -169,6 +251,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <Card>
+        <CardHeader><CardTitle>Identification</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <Label htmlFor="projectName">Project Name</Label>
@@ -204,6 +287,19 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             {fieldError(errors.billingEntityId?.message)}
           </div>
 
+          <div>
+            <Label htmlFor="projectNumber">Project Number</Label>
+            <Input id="projectNumber" className="mt-1.5" {...register("projectNumber")} />
+          </div>
+          <div>
+            <Label htmlFor="costCenter">Cost Center (optional)</Label>
+            <Input id="costCenter" className="mt-1.5" {...register("costCenter")} />
+          </div>
+          <div>
+            <Label htmlFor="internalProjectCode">Internal Project Code (optional)</Label>
+            <Input id="internalProjectCode" className="mt-1.5" {...register("internalProjectCode")} />
+          </div>
+
           <div className="sm:col-span-2">
             <Label>Address</Label>
             <div className="mt-1.5 flex min-h-9 items-center rounded-lg border border-input bg-muted/40 px-3 py-2 text-sm text-foreground">
@@ -219,7 +315,50 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
               Pulled from the property record — edit it in References {"->"} Billing Entities, not here.
             </p>
           </div>
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader><CardTitle>Client Information</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="clientName">Client Name</Label>
+            <Input id="clientName" className="mt-1.5" {...register("clientName")} />
+          </div>
+          <div>
+            <Label htmlFor="owner">Owner (optional)</Label>
+            <Input id="owner" className="mt-1.5" {...register("owner")} />
+          </div>
+          <div>
+            <Label htmlFor="architect">Architect (optional)</Label>
+            <Input id="architect" className="mt-1.5" {...register("architect")} />
+          </div>
+          <div>
+            <Label htmlFor="engineer">Engineer (optional)</Label>
+            <Input id="engineer" className="mt-1.5" {...register("engineer")} />
+          </div>
+          <div>
+            <Label htmlFor="generalContractor">General Contractor (optional)</Label>
+            <Input id="generalContractor" className="mt-1.5" {...register("generalContractor")} />
+          </div>
+          <div>
+            <Label htmlFor="primaryContact">Primary Contact (optional)</Label>
+            <Input id="primaryContact" className="mt-1.5" {...register("primaryContact")} />
+          </div>
+          <div>
+            <Label htmlFor="contactEmail">Contact Email (optional)</Label>
+            <Input id="contactEmail" type="email" className="mt-1.5" {...register("contactEmail")} />
+          </div>
+          <div>
+            <Label htmlFor="contactPhone">Contact Phone (optional)</Label>
+            <Input id="contactPhone" type="tel" className="mt-1.5" {...register("contactPhone")} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Project Details</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <Label htmlFor="projectDescription">Project Description</Label>
             <Textarea
@@ -229,6 +368,43 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
               {...register("projectDescription")}
             />
             {fieldError(errors.projectDescription?.message)}
+          </div>
+
+          <div>
+            <Label htmlFor="constructionCategory">Construction Category</Label>
+            <Input id="constructionCategory" className="mt-1.5" placeholder="e.g. Renovation, New Build" {...register("constructionCategory")} />
+          </div>
+          <div>
+            <Label htmlFor="contractType">Contract Type</Label>
+            <Input id="contractType" className="mt-1.5" placeholder="e.g. Time & Materials, Fixed Price" {...register("contractType")} />
+          </div>
+
+          <div>
+            <Label>Current Phase</Label>
+            <Select
+              value={watch("currentPhase")}
+              onValueChange={(v) => setValue("currentPhase", v as ProjectFormValues["currentPhase"], { shouldValidate: true })}
+            >
+              <SelectTrigger className="mt-1.5 w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PHASE_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Priority</Label>
+            <Select
+              value={watch("priority")}
+              onValueChange={(v) => setValue("priority", v as ProjectFormValues["priority"], { shouldValidate: true })}
+            >
+              <SelectTrigger className="mt-1.5 w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -265,7 +441,20 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             />
             {fieldError(errors.plannedCompletionDate?.message)}
           </div>
+          <div>
+            <Label htmlFor="actualCompletionDate">Actual Completion Date (optional)</Label>
+            <Input id="actualCompletionDate" type="date" className="mt-1.5" {...register("actualCompletionDate")} />
+          </div>
 
+          <div>
+            <Label htmlFor="estimatedContractValue">Estimated Contract Value ($)</Label>
+            <Input
+              id="estimatedContractValue"
+              type="number"
+              className="mt-1.5"
+              {...register("estimatedContractValue")}
+            />
+          </div>
           <div>
             <Label htmlFor="approvedBudget">Approved Budget ($)</Label>
             <Input
@@ -277,7 +466,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             {fieldError(errors.approvedBudget?.message)}
           </div>
 
-          <div>
+          <div className="sm:col-span-2">
             <Label htmlFor="manualCompletionPercent">% Complete (optional override)</Label>
             <Input
               id="manualCompletionPercent"
@@ -293,11 +482,25 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             </p>
             {fieldError(errors.manualCompletionPercent?.message)}
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="sm:col-span-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" className="mt-1.5" {...register("notes")} />
-          </div>
+      <Card>
+        <CardHeader><CardTitle>Project Team</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {TEAM_FIELDS.map((f) => (
+            <div key={f.key}>
+              <Label htmlFor={f.key}>{f.label} (optional)</Label>
+              <Input id={f.key} className="mt-1.5" {...register(f.key)} />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+        <CardContent>
+          <Textarea id="notes" {...register("notes")} />
         </CardContent>
       </Card>
 
