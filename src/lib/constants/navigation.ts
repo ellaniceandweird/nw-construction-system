@@ -55,7 +55,18 @@ export interface NavItem {
  *    not in the original SDS module list.
  */
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    children: [
+      { label: "Executive Overview", href: "/dashboard?view=executive" },
+      { label: "Financial Dashboard", href: "/dashboard?view=financial" },
+      { label: "Maintenance Dashboard", href: "/dashboard?view=maintenance" },
+      { label: "Procurement Dashboard", href: "/dashboard?view=procurement" },
+      { label: "Planning Dashboard", href: "/dashboard?view=planning" },
+    ],
+  },
   { label: "Property Profiles", href: "/properties", icon: Building2 },
   { label: "Projects", href: "/projects", icon: FolderKanban },
   {

@@ -15,6 +15,8 @@ export interface FieldWorkerInvoiceLineItem {
   billingEntityId?: string;
   /** What was actually typed for a manual billing entity entry — the display fallback whenever billingEntityId doesn't resolve to a real BillingEntity. */
   billingEntityName?: string;
+  /** A direct dollar amount for this line item, used instead of hours × rate — for reimbursable items (mileage, materials, etc.) that don't follow an hourly rate at all. Undefined means "use the computed hours × rate amount." */
+  amountOverride?: number;
   activity: string;
   costCode?: string;
   regularHours: number;

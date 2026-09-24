@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ function formatDate(d: string) {
 }
 
 function computeAmount(li: FieldWorkerInvoiceLineItem): number {
+  if (li.amountOverride != null) return li.amountOverride;
   return li.regularHours * li.regularRate + li.overtimeHours * li.overtimeRate;
 }
 
@@ -83,6 +84,30 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
 
   function removeLineItem(index: number) {
     setLineItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function addLineItem() {
+    setLineItems((prev) => [
+      ...prev,
+      {
+        date: new Date().toISOString().slice(0, 10),
+        projectId: MANUAL_ENTRY,
+        projectName: "",
+        activity: "Reimbursable expense",
+        costCode: "",
+        regularHours: 0,
+        overtimeHours: 0,
+        regularRate: 0,
+        overtimeRate: 0,
+        amount: 0,
+        amountOverride: 0,
+      },
+    ]);
+    // Rows added here are always manual — there's no daily-log activity
+    // behind a hand-added reimbursement, so this project cell should
+    // open straight into the "type it in" text box rather than a
+    // dropdown of real projects that don't apply to this row.
+    setManualProjectRows((prev) => new Set(prev).add(lineItems.length));
   }
 
   const computedLineItems = lineItems.map((li) => ({ ...li, amount: computeAmount(li) }));
@@ -224,19 +249,25 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
                     <Input className="h-8 text-xs" value={li.costCode ?? ""} onChange={(e) => updateLineItem(index, { costCode: e.target.value })} />
                   </td>
                   <td className="p-1">
-                    <Input type="number" className="h-8 text-xs" value={li.regularHours} onChange={(e) => updateLineItem(index, { regularHours: parseFloat(e.target.value) || 0 })} />
+                    <Input type="number" className="h-8 text-xs" value={li.regularHours} onChange={(e) => updateLineItem(index, { regularHours: parseFloat(e.target.value) || 0, amountOverride: undefined })} />
                   </td>
                   <td className="p-1">
-                    <Input type="number" className="h-8 text-xs" value={li.overtimeHours} onChange={(e) => updateLineItem(index, { overtimeHours: parseFloat(e.target.value) || 0 })} />
+                    <Input type="number" className="h-8 text-xs" value={li.overtimeHours} onChange={(e) => updateLineItem(index, { overtimeHours: parseFloat(e.target.value) || 0, amountOverride: undefined })} />
                   </td>
                   <td className="p-1">
-                    <Input type="number" className="h-8 text-xs" value={li.regularRate} onChange={(e) => updateLineItem(index, { regularRate: parseFloat(e.target.value) || 0 })} />
+                    <Input type="number" className="h-8 text-xs" value={li.regularRate} onChange={(e) => updateLineItem(index, { regularRate: parseFloat(e.target.value) || 0, amountOverride: undefined })} />
                   </td>
                   <td className="p-1">
-                    <Input type="number" className="h-8 text-xs" value={li.overtimeRate} onChange={(e) => updateLineItem(index, { overtimeRate: parseFloat(e.target.value) || 0 })} />
+                    <Input type="number" className="h-8 text-xs" value={li.overtimeRate} onChange={(e) => updateLineItem(index, { overtimeRate: parseFloat(e.target.value) || 0, amountOverride: undefined })} />
                   </td>
-                  <td className="px-2 py-1.5 text-right text-xs font-medium text-foreground whitespace-nowrap">
-                    {li.amount.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                  <td className="p-1">
+                    <Input
+                      type="number"
+                      className="h-8 w-24 text-right text-xs font-medium"
+                      value={li.amount}
+                      onChange={(e) => updateLineItem(index, { amountOverride: parseFloat(e.target.value) || 0 })}
+                      title="Type a direct amount to override the hours × rate calculation — useful for reimbursable items like mileage or materials."
+                    />
                   </td>
                   <td className="p-1">
                     <Button variant="ghost" size="icon" className="size-7" onClick={() => removeLineItem(index)}>
@@ -248,6 +279,10 @@ export function FieldWorkerInvoiceEditDialog({ invoice, open, onOpenChange }: Pr
             </tbody>
           </table>
         </div>
+
+        <Button type="button" variant="outline" size="sm" className="w-fit" onClick={addLineItem}>
+          <Plus className="size-3.5" /> Add Row
+        </Button>
 
         <div className="flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2">
           <span className="text-sm font-medium text-foreground">Total: {totalHours}h</span>
