@@ -75,6 +75,7 @@ export interface MaintenanceTaskInput {
   priority: MaintenancePriority;
   responsibleParty?: string;
   plannedCompletionDate?: string;
+  taskStatus?: MaintenanceTaskStatus;
 }
 
 export function addMaintenanceTask(input: MaintenanceTaskInput) {
@@ -121,23 +122,56 @@ export async function addMaintenanceTasksBulk(inputs: MaintenanceTaskInput[]): P
   let updated = 0;
   for (let i = 0; i < inputs.length; i++) {
     const input = inputs[i];
+    const resolvedStatus = input.taskStatus ?? "not_started";
     const existing = existingByKey.get(matchKey(input.propertyName, input.taskDescription));
     if (existing) {
-      const result = await store.update(existing.id, input);
-      if (result) updated++;
-      else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+      const wasComplete = existing.taskStatus === "complete";
+      const nowComplete = resolvedStatus === "complete";
+      const result = await store.update(existing.id, {
+        ...input,
+        taskStatus: resolvedStatus,
+        dateCompleted: nowComplete ? (existing.dateCompleted ?? new Date().toISOString().slice(0, 10)) : existing.dateCompleted,
+      });
+      if (result) {
+        updated++;
+        // Only log a fresh completion, not every re-import of an
+        // already-completed row — otherwise re-importing the same
+        // sheet would spam the log with duplicate "completed" entries.
+        if (nowComplete && !wasComplete) {
+          addMaintenanceLogEntry({
+            type: "task_completed",
+            propertyName: input.propertyName,
+            description: input.taskDescription,
+            detail: "Marked complete (import)",
+          });
+        }
+      } else {
+        failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+      }
       continue;
     }
     maxNum += 1;
     const id = `MT-${String(maxNum).padStart(6, "0")}`;
     const result = await store.create({
       id,
-      taskStatus: "not_started",
       dateEntered: new Date().toISOString().slice(0, 10),
       ...input,
+      taskStatus: resolvedStatus,
+      dateCompleted: resolvedStatus === "complete" ? new Date().toISOString().slice(0, 10) : undefined,
     });
-    if (result !== null) added++;
-    else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+    if (result !== null) {
+      added++;
+      if (resolvedStatus === "complete") {
+        addMaintenanceLogEntry({
+          type: "task_completed",
+          propertyName: input.propertyName,
+          description: input.taskDescription,
+          detail: "Marked complete (import)",
+        });
+      }
+    } else {
+      failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+    }
   }
   return { added, updated, failed };
 }

@@ -109,15 +109,39 @@ export async function createEquipmentMaintenanceBulk(inputs: EquipmentMaintenanc
     const existing = existingByKey.get(matchKey(input.propertyName, input.location, input.systemType));
     if (existing) {
       const result = await store.update(existing.id, input);
-      if (result) updated++;
-      else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+      if (result) {
+        updated++;
+        // Only log when the completed date actually moved — re-importing
+        // the same sheet with an unchanged date shouldn't spam the log.
+        if (input.lastCompleted && input.lastCompleted !== existing.lastCompleted) {
+          addMaintenanceLogEntry({
+            type: "equipment_serviced",
+            propertyName: input.propertyName,
+            description: `${input.systemType} — ${input.location}`,
+            detail: `Last completed date updated to ${new Date(input.lastCompleted).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} (import)`,
+          });
+        }
+      } else {
+        failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+      }
       continue;
     }
     maxNum += 1;
     const id = `EQ-${String(maxNum).padStart(6, "0")}`;
     const result = await store.create({ id, ...input });
-    if (result !== null) added++;
-    else failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+    if (result !== null) {
+      added++;
+      if (input.lastCompleted) {
+        addMaintenanceLogEntry({
+          type: "equipment_serviced",
+          propertyName: input.propertyName,
+          description: `${input.systemType} — ${input.location}`,
+          detail: `Last completed date updated to ${new Date(input.lastCompleted).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} (import)`,
+        });
+      }
+    } else {
+      failed.push({ row: i + 1, error: store.getLastError() ?? undefined });
+    }
   }
   return { added, updated, failed };
 }

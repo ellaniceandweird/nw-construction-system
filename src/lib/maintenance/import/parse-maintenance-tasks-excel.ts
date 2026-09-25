@@ -8,6 +8,7 @@ export interface ParsedMaintenanceTaskRow {
   priority?: string;
   responsibleParty?: string;
   plannedCompletionDate?: string;
+  taskStatus?: string;
 }
 
 export interface ParsedMaintenanceTasksFile {
@@ -23,6 +24,17 @@ function toDateString(cell: unknown): string | undefined {
   if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
   const parsed = new Date(text);
   return !isNaN(parsed.getTime()) ? parsed.toISOString().slice(0, 10) : undefined;
+}
+
+/** Accepts common sheet wording ("Done", "Completed", "In Progress", "Stuck", "Blocked") and normalizes to the app's own status values. */
+export function normalizeTaskStatus(text: string | undefined): string | undefined {
+  if (!text) return undefined;
+  const t = text.trim().toLowerCase();
+  if (["complete", "completed", "done", "finished", "closed"].includes(t)) return "complete";
+  if (["working_on", "working on", "in progress", "in-progress", "ongoing", "started"].includes(t)) return "working_on";
+  if (["stuck", "blocked", "on hold", "on_hold", "delayed"].includes(t)) return "stuck";
+  if (["not_started", "not started", "todo", "to do", "pending", "new"].includes(t)) return "not_started";
+  return undefined;
 }
 
 /** Parses a General Maintenance task list — header row with columns like Property, Task/Description, Priority, Ball In Court / Responsible Party, Target/Planned Completion Date (matched flexibly, any order). */
@@ -47,6 +59,7 @@ export async function parseMaintenanceTasksExcelFile(file: File): Promise<Parsed
   const priorityCol = findColumn(headers, ["priority"]);
   const responsibleCol = findColumn(headers, ["ballincourt", "responsibleparty", "responsible", "assignedto"]);
   const dateCol = findColumn(headers, ["targetcompletiondate", "plannedcompletiondate", "targetdate", "duedate", "date"]);
+  const statusCol = findColumn(headers, ["status", "taskstatus", "completed"]);
 
   const parsed: ParsedMaintenanceTaskRow[] = [];
   for (let i = headerRowIndex + 1; i < rows.length; i++) {
@@ -62,6 +75,7 @@ export async function parseMaintenanceTasksExcelFile(file: File): Promise<Parsed
       priority: priorityCol !== -1 ? String(row[priorityCol] ?? "").trim() || undefined : undefined,
       responsibleParty: responsibleCol !== -1 ? String(row[responsibleCol] ?? "").trim() || undefined : undefined,
       plannedCompletionDate: dateCol !== -1 ? toDateString(row[dateCol]) : undefined,
+      taskStatus: statusCol !== -1 ? normalizeTaskStatus(String(row[statusCol] ?? "")) : undefined,
     });
   }
 

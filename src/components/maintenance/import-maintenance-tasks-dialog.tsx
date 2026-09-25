@@ -19,7 +19,7 @@ import { parseMaintenanceTasksExcelFile } from "@/lib/maintenance/import/parse-m
 import { parseMaintenanceTasksPdfFile } from "@/lib/maintenance/import/parse-maintenance-tasks-pdf";
 import { showErrorToast } from "@/lib/toast/toast-store";
 import type { ParsedMaintenanceTaskRow } from "@/lib/maintenance/import/parse-maintenance-tasks-excel";
-import type { MaintenancePriority } from "@/types/maintenance";
+import type { MaintenancePriority, MaintenanceTaskStatus } from "@/types/maintenance";
 
 interface Props {
   open: boolean;
@@ -89,6 +89,7 @@ export function ImportMaintenanceTasksDialog({ open, onOpenChange }: Props) {
         priority: (r.priority?.toLowerCase() as MaintenancePriority) || "medium",
         responsibleParty: r.responsibleParty || undefined,
         plannedCompletionDate: r.plannedCompletionDate || undefined,
+        taskStatus: (r.taskStatus as MaintenanceTaskStatus) || undefined,
       }))
     );
     setSaving(false);
@@ -110,7 +111,7 @@ export function ImportMaintenanceTasksDialog({ open, onOpenChange }: Props) {
           <DialogTitle>Import Maintenance Tasks</DialogTitle>
           <DialogDescription>
             Upload an Excel, CSV, or PDF list — matched by columns like Property, Task/Description,
-            Priority, Responsible Party, Target Date. A row is matched against an existing task
+            Priority, Responsible Party, Target Date, Status. A row is matched against an existing task
             by Property + Task, so re-importing an updated sheet updates the matching task
             instead of creating a duplicate. Nothing saves until you review and confirm.
           </DialogDescription>
@@ -182,6 +183,19 @@ export function ImportMaintenanceTasksDialog({ open, onOpenChange }: Props) {
                   <div>
                     <Label className="text-xs">Target Date</Label>
                     <Input type="date" className="mt-1" value={r.plannedCompletionDate ?? ""} onChange={(e) => updateRow(i, { plannedCompletionDate: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Status</Label>
+                    <select
+                      className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                      value={r.taskStatus ?? "not_started"}
+                      onChange={(e) => updateRow(i, { taskStatus: e.target.value })}
+                    >
+                      <option value="not_started">Not Started</option>
+                      <option value="working_on">Working On</option>
+                      <option value="stuck">Stuck</option>
+                      <option value="complete">Complete</option>
+                    </select>
                   </div>
                 </div>
               ))}
