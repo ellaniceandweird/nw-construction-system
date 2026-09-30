@@ -123,7 +123,7 @@ export function MaintenanceCalendarView() {
         <tbody>${rowsHtml.join("")}</tbody>
       </table>
       <div style="display:flex;gap:16px;margin-top:12px;font-size:10px;color:#4b5563;">
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${DASHBOARD_COLORS.info.fill};margin-right:4px;"></span>General Maintenance</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${DASHBOARD_COLORS.info.fill};margin-right:4px;"></span>Long Term Maintenance</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${DASHBOARD_COLORS.attention.fill};margin-right:4px;"></span>Recurring Maintenance</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${DASHBOARD_COLORS.critical.fill};margin-right:4px;"></span>Overdue</span>
       </div>
@@ -135,7 +135,7 @@ export function MaintenanceCalendarView() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        Auto-generated — pulls target completion dates from General Maintenance and computed
+        Auto-generated — pulls target completion dates from Long Term Maintenance and computed
         next-due dates from Recurring Maintenance. Nothing is entered here directly; edit the
         source task or schedule to move something.
       </p>
@@ -209,7 +209,7 @@ export function MaintenanceCalendarView() {
       </Card>
 
       <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5"><Badge className="bg-primary/10 text-primary border-transparent">■</Badge> General Maintenance</span>
+        <span className="flex items-center gap-1.5"><Badge className="bg-primary/10 text-primary border-transparent">■</Badge> Long Term Maintenance</span>
         <span className="flex items-center gap-1.5"><Badge className="bg-warning-soft text-warning-foreground border-transparent">■</Badge> Recurring Maintenance</span>
         <span className="flex items-center gap-1.5"><Badge className="bg-destructive-soft text-destructive border-transparent">■</Badge> Overdue</span>
       </div>

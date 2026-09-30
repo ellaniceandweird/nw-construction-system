@@ -287,37 +287,42 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             {fieldError(errors.billingEntityId?.message)}
           </div>
 
-          <div>
-            <Label htmlFor="projectNumber">Project Number</Label>
-            <Input id="projectNumber" className="mt-1.5" {...register("projectNumber")} />
-          </div>
-          <div>
-            <Label htmlFor="costCenter">Cost Center (optional)</Label>
-            <Input id="costCenter" className="mt-1.5" {...register("costCenter")} />
-          </div>
-          <div>
-            <Label htmlFor="internalProjectCode">Internal Project Code (optional)</Label>
-            <Input id="internalProjectCode" className="mt-1.5" {...register("internalProjectCode")} />
-          </div>
+          {existingProject && (
+            <>
+              <div>
+                <Label htmlFor="projectNumber">Project Number</Label>
+                <Input id="projectNumber" className="mt-1.5" {...register("projectNumber")} />
+              </div>
+              <div>
+                <Label htmlFor="costCenter">Cost Center (optional)</Label>
+                <Input id="costCenter" className="mt-1.5" {...register("costCenter")} />
+              </div>
+              <div>
+                <Label htmlFor="internalProjectCode">Internal Project Code (optional)</Label>
+                <Input id="internalProjectCode" className="mt-1.5" {...register("internalProjectCode")} />
+              </div>
 
-          <div className="sm:col-span-2">
-            <Label>Address</Label>
-            <div className="mt-1.5 flex min-h-9 items-center rounded-lg border border-input bg-muted/40 px-3 py-2 text-sm text-foreground">
-              {(() => {
-                const property = properties.find((p) => p.id === watch("propertyId"));
-                if (!property) return <span className="text-muted-foreground">Select a property first</span>;
-                return [property.address, property.town].filter(Boolean).join(", ") || (
-                  <span className="text-muted-foreground">No address on file for this property yet</span>
-                );
-              })()}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Pulled from the property record — edit it in References {"->"} Billing Entities, not here.
-            </p>
-          </div>
+              <div className="sm:col-span-2">
+                <Label>Address</Label>
+                <div className="mt-1.5 flex min-h-9 items-center rounded-lg border border-input bg-muted/40 px-3 py-2 text-sm text-foreground">
+                  {(() => {
+                    const property = properties.find((p) => p.id === watch("propertyId"));
+                    if (!property) return <span className="text-muted-foreground">Select a property first</span>;
+                    return [property.address, property.town].filter(Boolean).join(", ") || (
+                      <span className="text-muted-foreground">No address on file for this property yet</span>
+                    );
+                  })()}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Pulled from the property record — edit it in References {"->"} Billing Entities, not here.
+                </p>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
+      {existingProject && (
       <Card>
         <CardHeader><CardTitle>Client Information</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -355,6 +360,7 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           </div>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle>Project Details</CardTitle></CardHeader>
@@ -370,6 +376,8 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             {fieldError(errors.projectDescription?.message)}
           </div>
 
+          {existingProject && (
+          <>
           <div>
             <Label htmlFor="constructionCategory">Construction Category</Label>
             <Input id="constructionCategory" className="mt-1.5" placeholder="e.g. Renovation, New Build" {...register("constructionCategory")} />
@@ -482,9 +490,12 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
             </p>
             {fieldError(errors.manualCompletionPercent?.message)}
           </div>
+          </>
+          )}
         </CardContent>
       </Card>
 
+      {existingProject && (
       <Card>
         <CardHeader><CardTitle>Project Team</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -496,13 +507,16 @@ export function ProjectForm({ existingProject }: { existingProject?: Project }) 
           ))}
         </CardContent>
       </Card>
+      )}
 
+      {existingProject && (
       <Card>
         <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
         <CardContent>
           <Textarea id="notes" {...register("notes")} />
         </CardContent>
       </Card>
+      )}
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={isSubmitting || saving}>

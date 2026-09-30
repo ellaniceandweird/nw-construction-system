@@ -26,9 +26,9 @@ export function MaintenancePageClient() {
   const tasks = useMaintenanceTasks();
   const [reminderOpen, setReminderOpen] = React.useState(false);
 
-  const validTabs = ["general", "recurring", "paint", "keys", "alarm", "calendar", "log"];
+  const validTabs = ["log", "general", "recurring", "paint", "keys", "alarm", "calendar"];
   const tabParam = searchParams.get("tab");
-  const activeTab = validTabs.includes(tabParam ?? "") ? tabParam! : "general";
+  const activeTab = validTabs.includes(tabParam ?? "") ? tabParam! : "log";
 
   function handleTabChange(value: string) {
     router.push(`${pathname}?tab=${value}`, { scroll: false });
@@ -50,14 +50,17 @@ export function MaintenancePageClient() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
-          <TabsTrigger value="general">General Maintenance</TabsTrigger>
+          <TabsTrigger value="log">Maintenance Log</TabsTrigger>
+          <TabsTrigger value="general">Long Term Maintenance</TabsTrigger>
           <TabsTrigger value="recurring">Recurring Maintenance</TabsTrigger>
           <TabsTrigger value="paint">Paint Log</TabsTrigger>
           <TabsTrigger value="keys">Key Codes</TabsTrigger>
           <TabsTrigger value="alarm">Alarm Verbal Passcode</TabsTrigger>
           <TabsTrigger value="calendar">Maintenance Calendar</TabsTrigger>
-          <TabsTrigger value="log">Maintenance Log</TabsTrigger>
         </TabsList>
+        <TabsContent value="log">
+          <MaintenanceLogView />
+        </TabsContent>
         <TabsContent value="general">
           <MaintenanceTasksTable />
         </TabsContent>
@@ -75,9 +78,6 @@ export function MaintenancePageClient() {
         </TabsContent>
         <TabsContent value="calendar">
           <MaintenanceCalendarView />
-        </TabsContent>
-        <TabsContent value="log">
-          <MaintenanceLogView />
         </TabsContent>
       </Tabs>
 

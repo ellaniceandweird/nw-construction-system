@@ -126,12 +126,12 @@ export function MaintenanceTasksTable() {
   function handlePrint() {
     const rows = filtered
       .map((task) => {
-        const statusTone = STATUS_TONE[task.taskStatus];
+        const statusTone = STATUS_TONE[task.taskStatus] ?? "secondary";
         const statusColors = DASHBOARD_COLORS[statusTone];
-        const statusLabel = STATUS_OPTIONS.find((o) => o.value === task.taskStatus)?.label ?? task.taskStatus;
+        const statusLabel = STATUS_OPTIONS.find((o) => o.value === task.taskStatus)?.label ?? task.taskStatus ?? "—";
         const priorityBadge = task.priority
           ? (() => {
-              const c = DASHBOARD_COLORS[PRIORITY_TONE[task.priority!]];
+              const c = DASHBOARD_COLORS[PRIORITY_TONE[task.priority!] ?? "secondary"];
               return `<span style="background:${c.bg};color:${c.text};padding:2px 8px;border-radius:4px;font-size:10px;">${escapeHtml(task.priority!.replace(/_/g, " "))}</span>`;
             })()
           : "—";
@@ -150,9 +150,9 @@ export function MaintenanceTasksTable() {
       .join("");
 
     openPrintWindow(
-      "General Maintenance",
+      "Long Term Maintenance",
       `
-      <div class="header"><h1>General Maintenance</h1></div>
+      <div class="header"><h1>Long Term Maintenance</h1></div>
       <p>${filtered.length} task${filtered.length === 1 ? "" : "s"}${propertyFilter !== "all" ? ` — ${escapeHtml(propertyFilter)}` : ""}</p>
       <table>
         <thead>

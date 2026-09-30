@@ -95,7 +95,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/maintenance",
     icon: Wrench,
     children: [
-      { label: "General Maintenance", href: "/maintenance?tab=general" },
+      { label: "Long Term Maintenance", href: "/maintenance?tab=general" },
       { label: "Recurring Maintenance", href: "/maintenance?tab=recurring" },
       { label: "Paint Log", href: "/maintenance?tab=paint" },
       { label: "Key Codes", href: "/maintenance?tab=keys" },

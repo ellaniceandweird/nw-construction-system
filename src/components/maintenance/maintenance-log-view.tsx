@@ -49,7 +49,7 @@ export function MaintenanceLogView() {
     const rows = entries
       .map((entry) => {
         const colors = entry.type === "task_completed" ? DASHBOARD_COLORS.good : DASHBOARD_COLORS.info;
-        const typeLabel = entry.type === "task_completed" ? "General Maintenance" : "Recurring Maintenance";
+        const typeLabel = entry.type === "task_completed" ? "Long Term Maintenance" : "Recurring Maintenance";
         return `
           <tr>
             <td>${formatTimestamp(entry.timestamp)}</td>
@@ -80,7 +80,7 @@ export function MaintenanceLogView() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        This log fills in automatically — whenever a General Maintenance task is marked
+        This log fills in automatically — whenever a Long Term Maintenance task is marked
         complete, or a Recurring Maintenance record&apos;s Last Completed date is updated
         (by hand or through an import), an entry appears here. Nothing is entered manually.
       </p>

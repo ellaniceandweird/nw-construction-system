@@ -37,7 +37,7 @@ export function normalizeTaskStatus(text: string | undefined): string | undefine
   return undefined;
 }
 
-/** Parses a General Maintenance task list — header row with columns like Property, Task/Description, Priority, Ball In Court / Responsible Party, Target/Planned Completion Date (matched flexibly, any order). */
+/** Parses a Long Term Maintenance task list — header row with columns like Property, Task/Description, Priority, Ball In Court / Responsible Party, Target/Planned Completion Date (matched flexibly, any order). */
 export async function parseMaintenanceTasksExcelFile(file: File): Promise<ParsedMaintenanceTasksFile> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { cellDates: true });
