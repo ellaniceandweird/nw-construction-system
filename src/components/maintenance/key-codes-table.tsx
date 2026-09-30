@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Plus, Search, ArrowUpDown, KeyRound } from "lucide-react";
+import { Pencil, Plus, Search, ArrowUpDown, KeyRound, Printer } from "lucide-react";
 
 import { useKeyCodes } from "@/hooks/use-key-codes";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KeyCodeEditDialog } from "@/components/maintenance/key-code-edit-dialog";
+import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
 import type { KeyCodeEntry } from "@/types/maintenance";
 
 export function KeyCodesTable() {
@@ -33,15 +34,50 @@ export function KeyCodesTable() {
     sortBy === "door" ? a.doorIdentifier.localeCompare(b.doorIdentifier) : a.propertyName.localeCompare(b.propertyName)
   );
 
+  function handlePrint() {
+    const rows = sorted
+      .map(
+        (e) => `
+        <tr>
+          <td>${escapeHtml(e.propertyName)}</td>
+          <td>${escapeHtml(e.spaceName ?? "—")}</td>
+          <td>${escapeHtml(e.doorIdentifier)}</td>
+          <td>${escapeHtml(e.accessCode ?? "—")}</td>
+          <td>${escapeHtml(e.notes ?? "—")}</td>
+        </tr>`
+      )
+      .join("");
+
+    openPrintWindow(
+      "Key Codes",
+      `
+      <div class="header"><h1>Key Codes</h1></div>
+      <p>${sorted.length} entr${sorted.length === 1 ? "y" : "ies"}${propertyFilter !== "all" ? ` — ${escapeHtml(propertyFilter)}` : ""}</p>
+      <table>
+        <thead>
+          <tr><th>Property</th><th>Space / Tenant</th><th>Door Identifier</th><th>Access Code</th><th>Notes</th></tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="5">No entries match the current filters.</td></tr>'}</tbody>
+      </table>
+      `,
+      "Maintenance Management"
+    );
+  }
+
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           Door, lock, and alarm codes per property/space — handy when a copy goes missing or someone new needs access.
         </p>
-        <Button size="sm" onClick={() => setCreating(true)}>
-          <Plus className="size-3.5" /> Add Entry
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          <Button size="sm" variant="outline" onClick={handlePrint}>
+            <Printer className="size-3.5" /> Print
+          </Button>
+          <Button size="sm" onClick={() => setCreating(true)}>
+            <Plus className="size-3.5" /> Add Entry
+          </Button>
+        </div>
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -85,7 +121,7 @@ export function KeyCodesTable() {
                 <td className="px-4 py-3 text-muted-foreground">{e.spaceName ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.doorIdentifier}</td>
                 <td className="px-4 py-3 font-mono text-muted-foreground">{e.accessCode ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate" title={e.notes}>{e.notes ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[200px] break-words">{e.notes ?? "—"}</td>
                 <td className="px-4 py-3">
                   <Button variant="ghost" size="icon" onClick={() => setEditing(e)}>
                     <Pencil className="size-3.5" />

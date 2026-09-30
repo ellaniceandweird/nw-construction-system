@@ -1,12 +1,13 @@
 "use client";
 import * as React from "react";
-import { Pencil, Plus, Search } from "lucide-react";
+import { Pencil, Plus, Search, Printer } from "lucide-react";
 
 import { useAlarmVerbalPasscodes } from "@/hooks/use-alarm-verbal-passcodes";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlarmVerbalPasscodeEditDialog } from "@/components/maintenance/alarm-verbal-passcode-edit-dialog";
+import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
 import type { AlarmVerbalPasscode } from "@/types/alarm-verbal-passcode";
 
 export function AlarmVerbalPasscodeTable() {
@@ -22,6 +23,34 @@ export function AlarmVerbalPasscodeTable() {
 
   const sorted = [...filtered].sort((a, b) => a.propertyName.localeCompare(b.propertyName));
 
+  function handlePrint() {
+    const rows = sorted
+      .map(
+        (a) => `
+        <tr>
+          <td>${escapeHtml(a.propertyName)}</td>
+          <td>${escapeHtml(a.verbalPasscode)}</td>
+          <td>${escapeHtml(a.notes || "—")}</td>
+        </tr>`
+      )
+      .join("");
+
+    openPrintWindow(
+      "Alarm Verbal Passcodes",
+      `
+      <div class="header"><h1>Alarm Verbal Passcodes</h1></div>
+      <p>${sorted.length} entr${sorted.length === 1 ? "y" : "ies"}</p>
+      <table>
+        <thead>
+          <tr><th>Property</th><th>Verbal Passcode</th><th>Notes</th></tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="3">No entries match the current filters.</td></tr>'}</tbody>
+      </table>
+      `,
+      "Maintenance Management"
+    );
+  }
+
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -29,9 +58,14 @@ export function AlarmVerbalPasscodeTable() {
           Verbal passcode given to the alarm monitoring company to verify your identity
           over the phone — separate from physical door/access Key Codes.
         </p>
-        <Button size="sm" onClick={() => setCreating(true)}>
-          <Plus className="size-3.5" /> Add Passcode
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          <Button size="sm" variant="outline" onClick={handlePrint}>
+            <Printer className="size-3.5" /> Print
+          </Button>
+          <Button size="sm" onClick={() => setCreating(true)}>
+            <Plus className="size-3.5" /> Add Passcode
+          </Button>
+        </div>
       </div>
 
       <div className="mb-3 flex items-center gap-3">

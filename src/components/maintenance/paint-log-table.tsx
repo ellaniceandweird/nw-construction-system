@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Plus, Search, ArrowUpDown, PaintBucket } from "lucide-react";
+import { Pencil, Plus, Search, ArrowUpDown, PaintBucket, Printer } from "lucide-react";
 
 import { usePaintLog } from "@/hooks/use-paint-log";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PaintLogEditDialog } from "@/components/maintenance/paint-log-edit-dialog";
+import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
 import type { PaintLogEntry } from "@/types/maintenance";
 
 export function PaintLogTable() {
@@ -33,6 +34,40 @@ export function PaintLogTable() {
     sortBy === "location" ? a.location.localeCompare(b.location) : a.propertyName.localeCompare(b.propertyName)
   );
 
+  function handlePrint() {
+    const rows = sorted
+      .map(
+        (e) => `
+        <tr>
+          <td>${escapeHtml(e.propertyName)}</td>
+          <td>${escapeHtml(e.location)}</td>
+          <td>${escapeHtml(e.location2 ?? "—")}</td>
+          <td>${escapeHtml(e.brand ?? "—")}</td>
+          <td>${escapeHtml(e.productType ?? "—")}</td>
+          <td>${escapeHtml(e.finish ?? "—")}</td>
+          <td>${escapeHtml(e.color ?? "—")}</td>
+          <td>${escapeHtml(e.colorCode ?? "—")}</td>
+          <td>${escapeHtml(e.comments ?? "—")}</td>
+        </tr>`
+      )
+      .join("");
+
+    openPrintWindow(
+      "Paint Log",
+      `
+      <div class="header"><h1>Paint Log</h1></div>
+      <p>${sorted.length} entr${sorted.length === 1 ? "y" : "ies"}${propertyFilter !== "all" ? ` — ${escapeHtml(propertyFilter)}` : ""}</p>
+      <table>
+        <thead>
+          <tr><th>Property</th><th>Location</th><th>Location 2</th><th>Brand</th><th>Product</th><th>Finish</th><th>Color</th><th>Color Code</th><th>Comments</th></tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="9">No entries match the current filters.</td></tr>'}</tbody>
+      </table>
+      `,
+      "Maintenance Management"
+    );
+  }
+
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -40,6 +75,9 @@ export function PaintLogTable() {
           Exact paint used per property/room — brand, product, finish, color, and any custom
           mix formula — so a future touch-up matches without guessing.
         </p>
+        <Button size="sm" variant="outline" onClick={handlePrint}>
+          <Printer className="size-3.5" /> Print
+        </Button>
         <Button size="sm" onClick={() => setCreating(true)}>
           <Plus className="size-3.5" /> Add Entry
         </Button>
@@ -87,14 +125,14 @@ export function PaintLogTable() {
             {sorted.map((e) => (
               <tr key={e.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
                 <td className="px-4 py-3 font-medium text-foreground">{e.propertyName}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate" title={e.location}>{e.location}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[160px] break-words">{e.location}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.location2 ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.brand ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.productType ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.finish ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.color ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-[140px] truncate whitespace-pre-line font-mono text-xs" title={e.colorCode}>{e.colorCode ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-[180px] truncate" title={e.comments}>{e.comments ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[140px] break-words whitespace-pre-line font-mono text-xs">{e.colorCode ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[180px] break-words">{e.comments ?? "—"}</td>
                 <td className="px-4 py-3">
                   <Button variant="ghost" size="icon" onClick={() => setEditing(e)}>
                     <Pencil className="size-3.5" />
