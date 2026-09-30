@@ -88,6 +88,9 @@ export function FieldWorkerRatesTable() {
               <th className="px-4 py-3 font-medium">Overtime Rate</th>
               <th className="px-4 py-3 font-medium">Start Date</th>
               <th className="px-4 py-3 font-medium">Months with Us</th>
+              <th className="px-4 py-3 font-medium">Last Raise Date</th>
+              <th className="px-4 py-3 font-medium">Previous Rate</th>
+              <th className="px-4 py-3 font-medium">PTO Used (hrs)</th>
               <th className="px-4 py-3 font-medium">Notes</th>
               <th className="px-4 py-3 font-medium">Edit</th>
             </tr>
@@ -100,11 +103,14 @@ export function FieldWorkerRatesTable() {
                 <td className="px-4 py-3 text-muted-foreground">{currency(r.overtimeRate)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(r.startDate)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{monthsWithUs(r.startDate)}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-[16rem] truncate" title={r.notes}>{r.notes || "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{formatDate(r.lastRaiseDate)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{currency(r.previousRate)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{r.ptoUsedHours != null ? r.ptoUsedHours : "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground max-w-[16rem] break-words">{r.notes || "—"}</td>
                 <td className="px-4 py-3"><Button variant="ghost" size="icon" onClick={() => setEditing(r)}><Pencil className="size-3.5" /></Button></td>
               </tr>
             ))}
-            {sorted.length === 0 && (<tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">No workers yet — add one above.</td></tr>)}
+            {sorted.length === 0 && (<tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">No workers yet — add one above.</td></tr>)}
           </tbody>
         </table>
       </Card>

@@ -12,11 +12,23 @@ import type { FieldWorkerRate } from "@/types/references";
 
 interface Props { rate: FieldWorkerRate | null; open: boolean; onOpenChange: (open: boolean) => void; }
 
+function currency(n?: number) {
+  if (n == null) return "—";
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+function formatDate(d?: string) {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
   const [employeeName, setEmployeeName] = React.useState("");
   const [hourlyRate, setHourlyRate] = React.useState("");
   const [overtimeRate, setOvertimeRate] = React.useState("");
   const [startDate, setStartDate] = React.useState("");
+  const [lastRaiseDate, setLastRaiseDate] = React.useState("");
+  const [previousRate, setPreviousRate] = React.useState("");
+  const [ptoUsedHours, setPtoUsedHours] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -27,10 +39,15 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
       setHourlyRate(rate ? String(rate.hourlyRate) : "");
       setOvertimeRate(rate?.overtimeRate != null ? String(rate.overtimeRate) : "");
       setStartDate(rate?.startDate ?? "");
+      setLastRaiseDate(rate?.lastRaiseDate ?? "");
+      setPreviousRate(rate?.previousRate != null ? String(rate.previousRate) : "");
+      setPtoUsedHours(rate?.ptoUsedHours != null ? String(rate.ptoUsedHours) : "");
       setNotes(rate?.notes ?? "");
       setConfirmingDelete(false);
     }
   }, [rate, open]);
+
+  const rateWillChange = rate != null && hourlyRate !== "" && parseFloat(hourlyRate) !== rate.hourlyRate;
 
   async function handleSave() {
     if (!employeeName || !hourlyRate) return;
@@ -44,6 +61,13 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
       hourlyRate: parseFloat(hourlyRate),
       overtimeRate: overtimeRate ? parseFloat(overtimeRate) : undefined,
       startDate: startDate || undefined,
+      // Left blank, these auto-fill from the rate change itself (see
+      // updateFieldWorkerRate) — only send a value here if the person
+      // is deliberately overriding history, e.g. entering it manually
+      // for a worker who had a raise before this system existed.
+      lastRaiseDate: lastRaiseDate || undefined,
+      previousRate: previousRate ? parseFloat(previousRate) : undefined,
+      ptoUsedHours: ptoUsedHours ? parseFloat(ptoUsedHours) : undefined,
       notes: notes || undefined,
     };
     setSaving(true);
@@ -68,11 +92,37 @@ export function FieldWorkerRateEditDialog({ rate, open, onOpenChange }: Props) {
             <div><Label htmlFor="hourlyRate">Hourly Rate ($)</Label><Input id="hourlyRate" type="number" className="mt-1.5" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div>
             <div><Label htmlFor="overtimeRate">Overtime Rate ($, optional)</Label><Input id="overtimeRate" type="number" className="mt-1.5" value={overtimeRate} onChange={(e) => setOvertimeRate(e.target.value)} /></div>
           </div>
+          {rateWillChange && (
+            <p className="rounded-md bg-info-soft px-3 py-2 text-xs text-info-foreground">
+              Saving will record today as the Last Raise Date and {currency(rate!.hourlyRate)} as the Previous Rate automatically.
+            </p>
+          )}
+
           <div>
             <Label htmlFor="startDate">Start Date (optional)</Label>
             <Input id="startDate" type="date" className="mt-1.5" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             <p className="mt-1 text-xs text-muted-foreground">Used to calculate "Months with Us" automatically — always current, never entered separately.</p>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="lastRaiseDate">Last Raise Date (optional)</Label>
+              <Input id="lastRaiseDate" type="date" className="mt-1.5" value={lastRaiseDate} onChange={(e) => setLastRaiseDate(e.target.value)} />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {rate?.lastRaiseDate ? `Currently ${formatDate(rate.lastRaiseDate)}. ` : ""}Fills in automatically when you change Hourly Rate above — only set this by hand to correct history.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="previousRate">Previous Rate ($, optional)</Label>
+              <Input id="previousRate" type="number" className="mt-1.5" value={previousRate} onChange={(e) => setPreviousRate(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="ptoUsedHours">PTO Used (hrs, optional)</Label>
+            <Input id="ptoUsedHours" type="number" min={0} className="mt-1.5" value={ptoUsedHours} onChange={(e) => setPtoUsedHours(e.target.value)} />
+          </div>
+
           <div><Label htmlFor="notes">Notes (optional)</Label><Textarea id="notes" className="mt-1.5" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
         </div>
         <DialogFooter className="justify-between">

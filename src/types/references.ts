@@ -15,6 +15,12 @@ export interface FieldWorkerRate extends BaseEntity {
   overtimeRate?: number;
   /** When this worker started with the company — used to compute "months with us" live, never stored as a separate number so it can never drift out of date. */
   startDate?: string;
+  /** The date of this worker's most recent rate increase — set automatically whenever hourlyRate is changed to a new value, so it can never fall out of sync with an actual raise. */
+  lastRaiseDate?: string;
+  /** What hourlyRate was immediately before the most recent raise — set automatically alongside lastRaiseDate. */
+  previousRate?: number;
+  /** Total PTO hours this worker has used — entered manually, not derived from anything else. */
+  ptoUsedHours?: number;
   notes?: string;
 }
 
