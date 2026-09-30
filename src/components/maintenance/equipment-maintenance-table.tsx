@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Pencil, Plus, Upload, Printer } from "lucide-react";
+import { Search, Pencil, Plus, Upload, Printer, CheckCircle2 } from "lucide-react";
 
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,9 @@ import { DASHBOARD_COLORS } from "@/lib/dashboard/pastel-colors";
 import { EquipmentMaintenanceEditDialog } from "@/components/maintenance/equipment-maintenance-edit-dialog";
 import { ImportEquipmentMaintenanceDialog } from "@/components/maintenance/import-equipment-maintenance-dialog";
 import { computeNextDueDate, isOverdue } from "@/lib/maintenance/next-due-date";
+import { updateEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
+import { getTodayInNewYorkString } from "@/lib/date/today";
+import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
 
 type SortOption =
@@ -43,6 +46,7 @@ export function EquipmentMaintenanceTable() {
   const [systemFilter, setSystemFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState<SortOption>("default");
   const [editingRecord, setEditingRecord] = React.useState<EquipmentMaintenanceSchedule | null>(null);
+  const [markingDoneId, setMarkingDoneId] = React.useState<string | null>(null);
   const [creating, setCreating] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
 
@@ -87,6 +91,17 @@ export function EquipmentMaintenanceTable() {
         return dateA.getTime() - dateB.getTime();
       });
       break;
+  }
+
+  async function handleMarkDone(id: string) {
+    setMarkingDoneId(id);
+    const result = await updateEquipmentMaintenance(id, { lastCompleted: getTodayInNewYorkString() });
+    setMarkingDoneId(null);
+    if (!result.ok) {
+      showErrorToast(result.error ? `Couldn't save: ${result.error}` : "Couldn't mark this done — check your connection and try again.");
+      return;
+    }
+    showSuccessToast("Marked done — Last Completed set to today");
   }
 
   function handlePrint() {
@@ -217,7 +232,22 @@ export function EquipmentMaintenanceTable() {
                 <td className="px-4 py-3 text-muted-foreground">{e.systemType}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.maintenanceNeeded ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.frequency ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{formatDate(e.lastCompleted)}</td>
+                <td className="px-4 py-3 text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <span>{formatDate(e.lastCompleted)}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 shrink-0 gap-1 px-2 text-[11px] print:hidden"
+                      disabled={markingDoneId === e.id}
+                      onClick={() => handleMarkDone(e.id)}
+                      title="Click when the maintenance staff completes this today — sets Last Completed to today automatically."
+                    >
+                      <CheckCircle2 className="size-3" />
+                      {markingDoneId === e.id ? "Saving…" : "DONE"}
+                    </Button>
+                  </div>
+                </td>
                 <td
                   className={
                     isOverdue(e.lastCompleted, e.frequency)

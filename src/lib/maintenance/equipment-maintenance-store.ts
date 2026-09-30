@@ -146,7 +146,7 @@ export async function createEquipmentMaintenanceBulk(inputs: EquipmentMaintenanc
   return { added, updated, failed };
 }
 
-export async function updateEquipmentMaintenance(id: string, input: EquipmentMaintenanceEditInput): Promise<{ ok: boolean; error?: string }> {
+export async function updateEquipmentMaintenance(id: string, input: Partial<EquipmentMaintenanceEditInput>): Promise<{ ok: boolean; error?: string }> {
   const existing = store.getSnapshot().find((r) => r.id === id);
   const ok = await store.update(id, input);
   if (!ok) return { ok: false, error: store.getLastError() ?? undefined };
@@ -158,8 +158,8 @@ export async function updateEquipmentMaintenance(id: string, input: EquipmentMai
     });
     addMaintenanceLogEntry({
       type: "equipment_serviced",
-      propertyName: input.propertyName,
-      description: `${input.systemType} — ${input.location}`,
+      propertyName: input.propertyName ?? existing.propertyName,
+      description: `${input.systemType ?? existing.systemType} — ${input.location ?? existing.location}`,
       detail: `Last completed date updated to ${formattedDate}`,
     });
   }

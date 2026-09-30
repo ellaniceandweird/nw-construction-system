@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronRight, Search, Plus, Pencil, Upload, Table2, Printer } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Plus, Pencil, Upload, Table2, Printer, Download } from "lucide-react";
 
 import { useActivities } from "@/hooks/use-activities";
 import { useProjects } from "@/hooks/use-projects";
@@ -26,6 +26,7 @@ import { BulkAddActivitiesDialog } from "@/components/scheduling/bulk-add-activi
 import { computePlanVsActual } from "@/lib/scheduling/plan-vs-actual";
 import { openPrintWindow } from "@/lib/estimating/print-window";
 import { buildMasterScheduleHtml } from "@/lib/scheduling/print-master-schedule";
+import { exportMasterScheduleExcel } from "@/lib/scheduling/export-master-schedule-excel";
 import type { Activity } from "@/types/scheduling";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -163,6 +164,10 @@ export function MasterScheduleTable() {
     }
   }
 
+  function handleExportExcel() {
+    exportMasterScheduleExcel(groupedByProject.map((g) => ({ projectName: g.projectName, activities: g.activities })));
+  }
+
   function handleAdd() {
     setEditingActivity(undefined);
     setDialogOpen(true);
@@ -209,6 +214,9 @@ export function MasterScheduleTable() {
         </Button>
         <Button variant="outline" onClick={handlePrint} className="print:hidden">
           <Printer /> Print
+        </Button>
+        <Button variant="outline" onClick={handleExportExcel} className="print:hidden">
+          <Download /> Export to Excel
         </Button>
         <span className="text-sm text-muted-foreground">
           {filtered.length} of {activities.length} activities
