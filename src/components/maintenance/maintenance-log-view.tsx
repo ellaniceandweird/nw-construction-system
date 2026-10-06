@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircle2, Wrench, Search, ArrowUpDown, Printer } from "lucide-react";
+import { CheckCircle2, Wrench, Search, ArrowUpDown, Printer, Upload, ClipboardCheck } from "lucide-react";
 
 import { useMaintenanceLog } from "@/hooks/use-maintenance-log";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/select";
 import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
 import { DASHBOARD_COLORS } from "@/lib/dashboard/pastel-colors";
+import { ImportMaintenanceLogDialog } from "@/components/maintenance/import-maintenance-log-dialog";
+import type { MaintenanceLogEntry } from "@/lib/maintenance/maintenance-log-store";
 
 function formatTimestamp(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -28,11 +30,29 @@ function formatTimestamp(iso: string) {
   });
 }
 
+/** Staff-report entries record the day the work was done, not a time of day, so showing a clock time on them would be misleading. */
+function formatEntryTime(entry: MaintenanceLogEntry) {
+  if (entry.type !== "staff_report") return formatTimestamp(entry.timestamp);
+  return new Date(entry.timestamp).toLocaleDateString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function entryStyle(type: MaintenanceLogEntry["type"]) {
+  if (type === "task_completed") return { colors: DASHBOARD_COLORS.good, label: "Long Term Maintenance" };
+  if (type === "equipment_serviced") return { colors: DASHBOARD_COLORS.info, label: "Recurring Maintenance" };
+  return { colors: DASHBOARD_COLORS.secondary, label: "Staff Report" };
+}
+
 export function MaintenanceLogView() {
   const allEntries = useMaintenanceLog();
   const [search, setSearch] = React.useState("");
   const [sortBy, setSortBy] = React.useState<"newest" | "oldest">("newest");
   const [propertyFilter, setPropertyFilter] = React.useState("all");
+  const [importing, setImporting] = React.useState(false);
 
   const propertyNames = Array.from(new Set(allEntries.map((e) => e.propertyName).filter(Boolean))) as string[];
 
@@ -48,11 +68,10 @@ export function MaintenanceLogView() {
   function handlePrint() {
     const rows = entries
       .map((entry) => {
-        const colors = entry.type === "task_completed" ? DASHBOARD_COLORS.good : DASHBOARD_COLORS.info;
-        const typeLabel = entry.type === "task_completed" ? "Long Term Maintenance" : "Recurring Maintenance";
+        const { colors, label: typeLabel } = entryStyle(entry.type);
         return `
           <tr>
-            <td>${formatTimestamp(entry.timestamp)}</td>
+            <td>${formatEntryTime(entry)}</td>
             <td>${escapeHtml(entry.propertyName ?? "—")}</td>
             <td><span style="background:${colors.bg};color:${colors.text};padding:2px 8px;border-radius:4px;font-size:10px;">${typeLabel}</span></td>
             <td>${escapeHtml(entry.description)}</td>
@@ -80,9 +99,9 @@ export function MaintenanceLogView() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        This log fills in automatically — whenever a Long Term Maintenance task is marked
-        complete, or a Recurring Maintenance record&apos;s Last Completed date is updated
-        (by hand or through an import), an entry appears here. Nothing is entered manually.
+        This log fills in from three sources: Long Term Maintenance tasks marked complete,
+        Recurring Maintenance Last Completed dates (by hand, the DONE button, or an import),
+        and staff completion reports you import here.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -104,6 +123,9 @@ export function MaintenanceLogView() {
             <SelectItem value="oldest">Oldest First</SelectItem>
           </SelectContent>
         </Select>
+        <Button variant="outline" onClick={() => setImporting(true)}>
+          <Upload className="size-3.5" /> Import Staff Report
+        </Button>
         <Button variant="outline" onClick={handlePrint}>
           <Printer className="size-3.5" /> Print
         </Button>
@@ -123,6 +145,8 @@ export function MaintenanceLogView() {
             <div key={entry.id} className="flex items-start gap-3 border-b border-border/60 pb-3 last:border-0 last:pb-0">
               {entry.type === "task_completed" ? (
                 <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
+              ) : entry.type === "staff_report" ? (
+                <ClipboardCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
               ) : (
                 <Wrench className="mt-0.5 size-4 shrink-0 text-primary" />
               )}
@@ -133,12 +157,14 @@ export function MaintenanceLogView() {
                 </p>
               </div>
               <span className="shrink-0 text-xs text-muted-foreground">
-                {formatTimestamp(entry.timestamp)}
+                {formatEntryTime(entry)}
               </span>
             </div>
           ))}
         </CardContent>
       </Card>
+
+      <ImportMaintenanceLogDialog open={importing} onOpenChange={setImporting} />
     </div>
   );
 }
