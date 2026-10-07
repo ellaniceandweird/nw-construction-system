@@ -7,6 +7,7 @@ import { useKeyCodes } from "@/hooks/use-key-codes";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KeyCodeEditDialog } from "@/components/maintenance/key-code-edit-dialog";
 import { openPrintWindow, escapeHtml } from "@/lib/estimating/print-window";
@@ -85,13 +86,15 @@ export function KeyCodesTable() {
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-8" placeholder="Search space, door, code…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Properties" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Properties</SelectItem>
-            {propertyNames.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          className="w-[200px]"
+          value={propertyFilter}
+          placeholder="All Properties"
+          searchPlaceholder="Type a property name…"
+          leadingOptions={[{ value: "all", label: "All Properties" }]}
+          options={propertyNames.map((p) => ({ value: p, label: p }))}
+          onChange={setPropertyFilter}
+        />
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
           <SelectTrigger className="w-[160px]"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
           <SelectContent>

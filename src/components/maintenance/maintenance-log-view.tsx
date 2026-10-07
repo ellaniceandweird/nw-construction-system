@@ -7,6 +7,7 @@ import { useMaintenanceLog } from "@/hooks/use-maintenance-log";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Select,
   SelectContent,
@@ -109,13 +110,15 @@ export function MaintenanceLogView() {
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-8" placeholder="Search log…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger className="w-56"><SelectValue placeholder="All properties" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All properties</SelectItem>
-            {propertyNames.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          className="w-56"
+          value={propertyFilter}
+          placeholder="All properties"
+          searchPlaceholder="Type a property name…"
+          leadingOptions={[{ value: "all", label: "All properties" }]}
+          options={propertyNames.map((p) => ({ value: p, label: p }))}
+          onChange={setPropertyFilter}
+        />
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
           <SelectTrigger className="w-40"><ArrowUpDown className="size-3.5 text-muted-foreground" /><SelectValue /></SelectTrigger>
           <SelectContent>

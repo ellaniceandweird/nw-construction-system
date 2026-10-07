@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useProperties } from "@/hooks/use-properties";
 import { getPropertyShortName, resolvePropertyShortName } from "@/lib/properties/property-relations";
 import { createEquipmentMaintenance, updateEquipmentMaintenance, deleteEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
@@ -143,9 +143,14 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
                   </button>
                 </>
               ) : (
-                <Select
+                <SearchableSelect
+                  className="mt-1.5"
                   value={selectedProperty}
-                  onValueChange={(v) => {
+                  placeholder="Select a property"
+                  searchPlaceholder="Type a property name…"
+                  options={knownPropertyNames.map((name) => ({ value: name, label: name }))}
+                  trailingOptions={[{ value: MANUAL_PROPERTY, label: "Manual entry…" }]}
+                  onChange={(v) => {
                     if (v === MANUAL_PROPERTY) {
                       setManualProperty(true);
                       setPropertyName("");
@@ -153,19 +158,7 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
                     }
                     setPropertyName(v);
                   }}
-                >
-                  <SelectTrigger className="mt-1.5 w-full">
-                    <SelectValue placeholder="Select a property" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {knownPropertyNames.map((name) => (
-                      <SelectItem key={name} value={name}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value={MANUAL_PROPERTY}>Manual entry…</SelectItem>
-                  </SelectContent>
-                </Select>
+                />
               )}
             </div>
             <div>

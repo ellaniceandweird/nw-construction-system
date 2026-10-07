@@ -7,9 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useProperties } from "@/hooks/use-properties";
-import { getPropertyDisplayName } from "@/lib/properties/property-relations";
+import { getPropertyShortName } from "@/lib/properties/property-relations";
 import { createAlarmVerbalPasscode, updateAlarmVerbalPasscode, deleteAlarmVerbalPasscode } from "@/lib/maintenance/alarm-verbal-passcode-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { AlarmVerbalPasscode } from "@/types/alarm-verbal-passcode";
@@ -47,14 +47,17 @@ export function AlarmVerbalPasscodeEditDialog({ entry, open, onOpenChange }: Pro
       return;
     }
     const property = properties.find((p) => p.id === value);
-    setPropertyName(property ? getPropertyDisplayName(property) : "");
+    setPropertyName(property ? getPropertyShortName(property) : "");
   }
 
   async function handleSave() {
     if (!propertyName || !verbalPasscode) return;
     const input = {
       propertyId: propertyId === MANUAL_ENTRY ? undefined : propertyId || undefined,
-      propertyName,
+      propertyName: (() => {
+        const linked = properties.find((p) => p.id === propertyId);
+        return linked ? getPropertyShortName(linked) : propertyName;
+      })(),
       verbalPasscode,
       notes: notes || undefined,
     };
@@ -84,13 +87,15 @@ export function AlarmVerbalPasscodeEditDialog({ entry, open, onOpenChange }: Pro
         <div className="flex flex-col gap-4">
           <div>
             <Label>Property</Label>
-            <Select value={propertyId} onValueChange={handlePropertyChange}>
-              <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select property" /></SelectTrigger>
-              <SelectContent>
-                {properties.map((p) => (<SelectItem key={p.id} value={p.id}>{getPropertyDisplayName(p)}</SelectItem>))}
-                <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              className="mt-1.5"
+              value={propertyId}
+              placeholder="Select property"
+              searchPlaceholder="Type a property name…"
+              options={properties.map((p) => ({ value: p.id, label: getPropertyShortName(p) }))}
+              trailingOptions={[{ value: MANUAL_ENTRY, label: "Manual entry…" }]}
+              onChange={handlePropertyChange}
+            />
             {propertyId === MANUAL_ENTRY && (
               <Input className="mt-2" placeholder="Property name" value={propertyName} onChange={(e) => setPropertyName(e.target.value)} />
             )}

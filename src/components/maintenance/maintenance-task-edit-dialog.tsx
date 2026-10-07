@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -110,18 +111,14 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
         <div className="flex flex-col gap-4">
           <div>
             <Label>Property</Label>
-            <Select value={selectedProperty} onValueChange={setPropertyName}>
-              <SelectTrigger className="mt-1.5 w-full">
-                <SelectValue placeholder="Select a property" />
-              </SelectTrigger>
-              <SelectContent>
-                {propertyOptions.map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              className="mt-1.5"
+              value={selectedProperty}
+              placeholder="Select a property"
+              searchPlaceholder="Type a property name…"
+              options={propertyOptions.map((name) => ({ value: name, label: name }))}
+              onChange={setPropertyName}
+            />
           </div>
 
           <div>

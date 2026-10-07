@@ -14,7 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { getPropertyShortName } from "@/lib/properties/property-relations";
 import { useProperties } from "@/hooks/use-properties";
 import { createPaintLogEntry, updatePaintLogEntry, deletePaintLogEntry } from "@/lib/maintenance/paint-log-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
@@ -69,7 +70,7 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
     }
     const property = properties.find((p) => p.id === value);
     setPropertyId(value);
-    setPropertyName(property?.name ?? "");
+    setPropertyName(property ? getPropertyShortName(property) : "");
     if (property?.address) setPropertyAddress(property.address);
   }
 
@@ -121,13 +122,15 @@ export function PaintLogEditDialog({ entry, open, onOpenChange }: Props) {
         <div className="flex flex-col gap-4">
           <div>
             <Label>Property</Label>
-            <Select value={propertyId || MANUAL_ENTRY} onValueChange={handlePropertyChange}>
-              <SelectTrigger className="mt-1.5 w-full"><SelectValue placeholder="Select property" /></SelectTrigger>
-              <SelectContent>
-                {properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
-                <SelectItem value={MANUAL_ENTRY}>Manual entry…</SelectItem>
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              className="mt-1.5"
+              value={propertyId || MANUAL_ENTRY}
+              placeholder="Select property"
+              searchPlaceholder="Type a property name…"
+              options={properties.map((p) => ({ value: p.id, label: getPropertyShortName(p) }))}
+              trailingOptions={[{ value: MANUAL_ENTRY, label: "Manual entry…" }]}
+              onChange={handlePropertyChange}
+            />
             {!propertyId && (
               <Input
                 className="mt-1.5"

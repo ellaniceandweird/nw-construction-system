@@ -9,6 +9,7 @@ import { resolvePropertyShortName } from "@/lib/properties/property-relations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Select,
   SelectContent,
@@ -157,19 +158,15 @@ export function EquipmentMaintenanceTable() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="All Properties" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Properties</SelectItem>
-            {propertyNames.map((name) => (
-              <SelectItem key={name} value={name}>
-                {name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          className="w-56"
+          value={propertyFilter}
+          placeholder="All Properties"
+          searchPlaceholder="Type a property name…"
+          leadingOptions={[{ value: "all", label: "All Properties" }]}
+          options={propertyNames.map((p) => ({ value: p, label: p }))}
+          onChange={setPropertyFilter}
+        />
         <Select value={systemFilter} onValueChange={setSystemFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All Systems" />

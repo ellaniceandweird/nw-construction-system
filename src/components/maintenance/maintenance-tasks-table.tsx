@@ -9,6 +9,7 @@ import { addMaintenanceTask, updateTaskStatus } from "@/lib/maintenance/maintena
 import { useProperties } from "@/hooks/use-properties";
 import { getPropertyShortName, resolvePropertyShortName } from "@/lib/properties/property-relations";
 import { Input } from "@/components/ui/input";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -177,19 +178,15 @@ export function MaintenanceTasksTable() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="All Properties" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Properties</SelectItem>
-            {propertyNames.map((name) => (
-              <SelectItem key={name} value={name!}>
-                {name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          className="w-56"
+          value={propertyFilter}
+          placeholder="All Properties"
+          searchPlaceholder="Type a property name…"
+          leadingOptions={[{ value: "all", label: "All Properties" }]}
+          options={propertyNames.map((name) => ({ value: name!, label: name! }))}
+          onChange={setPropertyFilter}
+        />
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
           <SelectTrigger>
             <SelectValue placeholder="Sort by" />
@@ -218,18 +215,13 @@ export function MaintenanceTasksTable() {
       {adding && (
         <Card className="print:hidden">
           <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-[1fr_2fr_140px_auto]">
-            <Select value={newProperty} onValueChange={setNewProperty}>
-              <SelectTrigger>
-                <SelectValue placeholder="Property" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from(new Set(properties.map((p) => getPropertyShortName(p)))).map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={newProperty}
+              placeholder="Property"
+              searchPlaceholder="Type a property name…"
+              options={Array.from(new Set(properties.map((p) => getPropertyShortName(p)))).map((name) => ({ value: name, label: name }))}
+              onChange={setNewProperty}
+            />
             <Input
               autoFocus
               placeholder="Task description"
