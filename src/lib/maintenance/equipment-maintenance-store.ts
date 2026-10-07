@@ -32,10 +32,16 @@ function toRow(input: Record<string, any>): Record<string, any> {
   if (input.propertyName !== undefined) row.property_name = input.propertyName;
   if (input.location !== undefined) row.location = input.location;
   if (input.systemType !== undefined) row.system_type = input.systemType;
-  if (input.maintenanceNeeded !== undefined) row.maintenance_needed = input.maintenanceNeeded;
-  if (input.frequency !== undefined) row.frequency = input.frequency;
-  if (input.lastCompleted !== undefined) row.last_completed = input.lastCompleted;
-  if (input.notes !== undefined) row.notes = input.notes;
+  // Empty strings become null before they reach the database — an empty
+  // string is rejected by the date column ("invalid input syntax for type
+  // date"), and null is also what "cleared" should mean for the text
+  // fields. Doing it here, at the layer that talks to the database,
+  // means no caller (edit dialog, import, quick DONE button) can ever
+  // send an empty date, whatever it passes in.
+  if (input.maintenanceNeeded !== undefined) row.maintenance_needed = input.maintenanceNeeded || null;
+  if (input.frequency !== undefined) row.frequency = input.frequency || null;
+  if (input.lastCompleted !== undefined) row.last_completed = input.lastCompleted || null;
+  if (input.notes !== undefined) row.notes = input.notes || null;
   row.last_modified_date = new Date().toISOString();
   return row;
 }
