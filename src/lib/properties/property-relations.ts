@@ -14,6 +14,32 @@ export function getPropertyDisplayName(property: Pick<Property, "address" | "nam
   return property.address || property.name || "Unnamed Property";
 }
 
+/** Just the property's name, no address — falls back to the address only for a property that has no name at all. */
+export function getPropertyShortName(property: Pick<Property, "address" | "name">): string {
+  return property.name?.trim() || property.address || "Unnamed Property";
+}
+
+/**
+ * Maps whatever property text is stored on a record back to the property's
+ * short name. Records saved from the old dropdown carry the long
+ * "address - name" text (and some carry just the address), so those are
+ * recognized and mapped to the same short name; anything that doesn't
+ * match a known property — a hand-typed name, say — is returned untouched.
+ */
+export function resolvePropertyShortName(
+  stored: string | undefined | null,
+  properties: Pick<Property, "address" | "name">[]
+): string {
+  const value = (stored ?? "").trim();
+  if (!value) return "";
+  const key = value.toLowerCase();
+  for (const p of properties) {
+    const candidates = [getPropertyShortName(p), getPropertyDisplayName(p), p.address];
+    if (candidates.some((c) => c && c.trim().toLowerCase() === key)) return getPropertyShortName(p);
+  }
+  return value;
+}
+
 function normalize(s: string): string {
   return s
     .toLowerCase()

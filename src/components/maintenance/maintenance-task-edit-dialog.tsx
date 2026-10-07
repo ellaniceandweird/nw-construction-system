@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
-import { getPropertyDisplayName } from "@/lib/properties/property-relations";
+import { getPropertyShortName, resolvePropertyShortName } from "@/lib/properties/property-relations";
 import { updateTask, deleteMaintenanceTask, restoreMaintenanceTask } from "@/lib/maintenance/maintenance-task-store";
 import { showUndoToast, showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type {
@@ -75,7 +75,7 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
     if (!task) return;
     setSaving(true);
     const result = await updateTask(task.id, {
-      propertyName,
+      propertyName: resolvePropertyShortName(propertyName, properties),
       taskDescription,
       priority,
       taskStatus,
@@ -92,6 +92,14 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
     onOpenChange(false);
   }
 
+  // Show property names only (no address). A record saved earlier with the
+  // long "address - name" text is recognized and shown/saved as the name; a
+  // name that isn't in Properties at all is kept and shown as its own option
+  // rather than disappearing.
+  const selectedProperty = resolvePropertyShortName(propertyName, properties);
+  const propertyOptions = Array.from(new Set(properties.map((p) => getPropertyShortName(p))));
+  if (selectedProperty && !propertyOptions.includes(selectedProperty)) propertyOptions.unshift(selectedProperty);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -102,14 +110,14 @@ export function MaintenanceTaskEditDialog({ task, open, onOpenChange }: Props) {
         <div className="flex flex-col gap-4">
           <div>
             <Label>Property</Label>
-            <Select value={propertyName} onValueChange={setPropertyName}>
+            <Select value={selectedProperty} onValueChange={setPropertyName}>
               <SelectTrigger className="mt-1.5 w-full">
                 <SelectValue placeholder="Select a property" />
               </SelectTrigger>
               <SelectContent>
-                {properties.map((p) => (
-                  <SelectItem key={p.id} value={getPropertyDisplayName(p)}>
-                    {getPropertyDisplayName(p)}
+                {propertyOptions.map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
                   </SelectItem>
                 ))}
               </SelectContent>

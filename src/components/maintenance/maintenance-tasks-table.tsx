@@ -7,7 +7,7 @@ import { Search, Plus, Pencil, Upload, Printer } from "lucide-react";
 import { useMaintenanceTasks } from "@/hooks/use-maintenance-tasks";
 import { addMaintenanceTask, updateTaskStatus } from "@/lib/maintenance/maintenance-task-store";
 import { useProperties } from "@/hooks/use-properties";
-import { getPropertyDisplayName } from "@/lib/properties/property-relations";
+import { getPropertyShortName, resolvePropertyShortName } from "@/lib/properties/property-relations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -97,7 +97,7 @@ export function MaintenanceTasksTable() {
 
   let filtered = tasks.filter((t) => {
     const matchesSearch = t.taskDescription.toLowerCase().includes(search.toLowerCase());
-    const matchesProperty = propertyFilter === "all" || t.propertyName === propertyFilter;
+    const matchesProperty = propertyFilter === "all" || resolvePropertyShortName(t.propertyName, properties) === propertyFilter;
     return matchesSearch && matchesProperty;
   });
 
@@ -121,7 +121,7 @@ export function MaintenanceTasksTable() {
     );
   }
 
-  const propertyNames = Array.from(new Set(tasks.map((t) => t.propertyName).filter(Boolean)));
+  const propertyNames = Array.from(new Set(tasks.map((t) => resolvePropertyShortName(t.propertyName, properties)).filter(Boolean)));
 
   function handlePrint() {
     const rows = filtered
@@ -223,9 +223,9 @@ export function MaintenanceTasksTable() {
                 <SelectValue placeholder="Property" />
               </SelectTrigger>
               <SelectContent>
-                {properties.map((p) => (
-                  <SelectItem key={p.id} value={getPropertyDisplayName(p)}>
-                    {getPropertyDisplayName(p)}
+                {Array.from(new Set(properties.map((p) => getPropertyShortName(p)))).map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
                   </SelectItem>
                 ))}
               </SelectContent>

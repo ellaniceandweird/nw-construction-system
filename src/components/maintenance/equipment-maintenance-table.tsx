@@ -4,6 +4,8 @@ import * as React from "react";
 import { Search, Pencil, Plus, Upload, Printer, CheckCircle2 } from "lucide-react";
 
 import { useEquipmentMaintenance } from "@/hooks/use-equipment-maintenance";
+import { useProperties } from "@/hooks/use-properties";
+import { resolvePropertyShortName } from "@/lib/properties/property-relations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -41,6 +43,7 @@ function formatDate(d?: string) {
 
 export function EquipmentMaintenanceTable() {
   const records = useEquipmentMaintenance();
+  const properties = useProperties();
   const [search, setSearch] = React.useState("");
   const [propertyFilter, setPropertyFilter] = React.useState("all");
   const [systemFilter, setSystemFilter] = React.useState("all");
@@ -50,7 +53,7 @@ export function EquipmentMaintenanceTable() {
   const [creating, setCreating] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
 
-  const propertyNames = Array.from(new Set(records.map((e) => e.propertyName)));
+  const propertyNames = Array.from(new Set(records.map((e) => resolvePropertyShortName(e.propertyName, properties)).filter(Boolean)));
   const systemTypes = Array.from(new Set(records.map((e) => e.systemType))).sort();
 
   let filtered = records.filter((e) => {
@@ -58,7 +61,7 @@ export function EquipmentMaintenanceTable() {
       e.propertyName.toLowerCase().includes(search.toLowerCase()) ||
       e.location.toLowerCase().includes(search.toLowerCase()) ||
       e.systemType.toLowerCase().includes(search.toLowerCase());
-    const matchesProperty = propertyFilter === "all" || e.propertyName === propertyFilter;
+    const matchesProperty = propertyFilter === "all" || resolvePropertyShortName(e.propertyName, properties) === propertyFilter;
     const matchesSystem = systemFilter === "all" || e.systemType === systemFilter;
     return matchesSearch && matchesProperty && matchesSystem;
   });

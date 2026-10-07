@@ -16,10 +16,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProperties } from "@/hooks/use-properties";
-import { getPropertyDisplayName } from "@/lib/properties/property-relations";
+import { getPropertyShortName, resolvePropertyShortName } from "@/lib/properties/property-relations";
 import { createEquipmentMaintenance, updateEquipmentMaintenance, deleteEquipmentMaintenance } from "@/lib/maintenance/equipment-maintenance-store";
 import { showErrorToast, showSuccessToast } from "@/lib/toast/toast-store";
 import type { EquipmentMaintenanceSchedule } from "@/types/maintenance";
+
+/** Dropdown value for the "Manual entry…" choice — never saved; picking it just switches the field to a text box. */
+const MANUAL_PROPERTY = "__manual_property__";
 
 interface Props {
   record: EquipmentMaintenanceSchedule | null;
@@ -38,6 +41,7 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
   const [notes, setNotes] = React.useState("");
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [manualProperty, setManualProperty] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -49,6 +53,7 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
       setLastCompleted(record?.lastCompleted ?? "");
       setNotes(record?.notes ?? "");
       setConfirmingDelete(false);
+      setManualProperty(false);
     }
   }, [record, open]);
 
@@ -63,7 +68,7 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
     // rejects an empty string in the Last Completed date column, which
     // is what made saving fail for any record without a date yet.
     const input = {
-      propertyName: propertyName.trim(),
+      propertyName: resolvePropertyShortName(propertyName, properties),
       location: location.trim(),
       systemType: systemType.trim(),
       maintenanceNeeded: maintenanceNeeded.trim() || null,
@@ -89,11 +94,16 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
   );
   const canSave = record ? true : hasAnyContent;
 
-  // A record imported from a sheet can carry a property name that isn't
-  // spelled exactly like one in Properties. Keep that value selectable so
-  // the dropdown doesn't look blank, and so saving doesn't silently drop it.
-  const propertyOptions = properties.map((p) => getPropertyDisplayName(p));
-  if (propertyName && !propertyOptions.includes(propertyName)) propertyOptions.unshift(propertyName);
+  // A property is a manual entry if the person chose "Manual entry…", or if
+  // the record already carries a name that isn't in Properties (e.g. one
+  // typed by hand earlier, or imported from a sheet). Typing in the box
+  // pins it to manual so it can't flip back to a dropdown mid-sentence.
+  const knownPropertyNames = Array.from(new Set(properties.map((p) => getPropertyShortName(p))));
+  // A record saved earlier with the long "address - name" text counts as that
+  // property (shown by name only), not as a manual entry.
+  const selectedProperty = resolvePropertyShortName(propertyName, properties);
+  const showManualProperty =
+    manualProperty || (selectedProperty !== "" && properties.length > 0 && !knownPropertyNames.includes(selectedProperty));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,18 +119,54 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Property</Label>
-              <Select value={propertyName} onValueChange={setPropertyName}>
-                <SelectTrigger className="mt-1.5 w-full">
-                  <SelectValue placeholder="Select a property" />
-                </SelectTrigger>
-                <SelectContent>
-                  {propertyOptions.map((name) => (
-                    <SelectItem key={name} value={name}>
-                      {name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {showManualProperty ? (
+                <>
+                  <Input
+                    className="mt-1.5"
+                    placeholder="Type the property name"
+                    autoFocus={manualProperty}
+                    value={propertyName}
+                    onChange={(e) => {
+                      setManualProperty(true);
+                      setPropertyName(e.target.value);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="mt-1 text-xs text-muted-foreground underline hover:text-foreground"
+                    onClick={() => {
+                      setManualProperty(false);
+                      setPropertyName("");
+                    }}
+                  >
+                    Choose from the property list instead
+                  </button>
+                </>
+              ) : (
+                <Select
+                  value={selectedProperty}
+                  onValueChange={(v) => {
+                    if (v === MANUAL_PROPERTY) {
+                      setManualProperty(true);
+                      setPropertyName("");
+                      return;
+                    }
+                    setPropertyName(v);
+                  }}
+                >
+                  <SelectTrigger className="mt-1.5 w-full">
+                    <SelectValue placeholder="Select a property" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {knownPropertyNames.map((name) => (
+                      <SelectItem key={name} value={name}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={MANUAL_PROPERTY}>Manual entry…</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div>
               <Label htmlFor="location">Location</Label>
