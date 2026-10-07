@@ -55,10 +55,13 @@ export interface EquipmentMaintenanceEditInput {
   propertyName: string;
   location: string;
   systemType: string;
-  maintenanceNeeded?: string;
-  frequency?: string;
-  lastCompleted?: string;
-  notes?: string;
+  // null means "clear this field" — needed because an empty string is
+  // rejected by the database for the date column, and undefined would
+  // leave the old value in place instead of clearing it.
+  maintenanceNeeded?: string | null;
+  frequency?: string | null;
+  lastCompleted?: string | null;
+  notes?: string | null;
 }
 
 function nextId(): string {

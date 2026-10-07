@@ -59,7 +59,18 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
   }
 
   async function handleSave() {
-    const input = { propertyName, location, systemType, maintenanceNeeded, frequency, lastCompleted, notes };
+    // Empty fields are sent as null (clear), never as "" — the database
+    // rejects an empty string in the Last Completed date column, which
+    // is what made saving fail for any record without a date yet.
+    const input = {
+      propertyName: propertyName.trim(),
+      location: location.trim(),
+      systemType: systemType.trim(),
+      maintenanceNeeded: maintenanceNeeded.trim() || null,
+      frequency: frequency.trim() || null,
+      lastCompleted: lastCompleted || null,
+      notes: notes.trim() || null,
+    };
     setSaving(true);
     const result = record ? await updateEquipmentMaintenance(record.id, input) : await createEquipmentMaintenance(input);
     setSaving(false);
@@ -71,6 +82,12 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
     onOpenChange(false);
   }
   const canSave = !!propertyName && !!location && !!systemType;
+
+  // A record imported from a sheet can carry a property name that isn't
+  // spelled exactly like one in Properties. Keep that value selectable so
+  // the dropdown doesn't look blank, and so saving doesn't silently drop it.
+  const propertyOptions = properties.map((p) => getPropertyDisplayName(p));
+  if (propertyName && !propertyOptions.includes(propertyName)) propertyOptions.unshift(propertyName);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -88,9 +105,9 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
                   <SelectValue placeholder="Select a property" />
                 </SelectTrigger>
                 <SelectContent>
-                  {properties.map((p) => (
-                    <SelectItem key={p.id} value={getPropertyDisplayName(p)}>
-                      {getPropertyDisplayName(p)}
+                  {propertyOptions.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
                     </SelectItem>
                   ))}
                 </SelectContent>
