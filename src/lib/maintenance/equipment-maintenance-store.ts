@@ -57,6 +57,12 @@ const store = createCollectionStore<EquipmentMaintenanceSchedule>({
 export const subscribeEquipmentMaintenance = store.subscribe;
 export const getEquipmentMaintenanceSnapshot = store.getSnapshot;
 
+
+/** "System — Location" for a log entry, skipping whichever part is blank so a partly filled record never produces a dangling dash. */
+function describeEquipment(systemType?: string | null, location?: string | null) {
+  return [systemType, location].map((v) => (v ?? "").trim()).filter(Boolean).join(" — ") || "Recurring maintenance";
+}
+
 export interface EquipmentMaintenanceEditInput {
   propertyName: string;
   location: string;
@@ -126,7 +132,7 @@ export async function createEquipmentMaintenanceBulk(inputs: EquipmentMaintenanc
           addMaintenanceLogEntry({
             type: "equipment_serviced",
             propertyName: input.propertyName,
-            description: `${input.systemType} — ${input.location}`,
+            description: describeEquipment(input.systemType, input.location),
             detail: `Last completed date updated to ${new Date(input.lastCompleted).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} (import)`,
           });
         }
@@ -144,7 +150,7 @@ export async function createEquipmentMaintenanceBulk(inputs: EquipmentMaintenanc
         addMaintenanceLogEntry({
           type: "equipment_serviced",
           propertyName: input.propertyName,
-          description: `${input.systemType} — ${input.location}`,
+          description: describeEquipment(input.systemType, input.location),
           detail: `Last completed date updated to ${new Date(input.lastCompleted).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} (import)`,
         });
       }
@@ -168,7 +174,7 @@ export async function updateEquipmentMaintenance(id: string, input: Partial<Equi
     addMaintenanceLogEntry({
       type: "equipment_serviced",
       propertyName: input.propertyName ?? existing.propertyName,
-      description: `${input.systemType ?? existing.systemType} — ${input.location ?? existing.location}`,
+      description: describeEquipment(input.systemType ?? existing.systemType, input.location ?? existing.location),
       detail: `Last completed date updated to ${formattedDate}`,
     });
   }

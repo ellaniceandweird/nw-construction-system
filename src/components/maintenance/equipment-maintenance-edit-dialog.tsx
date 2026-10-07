@@ -81,7 +81,13 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
     showSuccessToast(record ? "Schedule updated" : "Schedule added");
     onOpenChange(false);
   }
-  const canSave = !!propertyName && !!location && !!systemType;
+  // Editing an existing record can always be saved, however much is
+  // filled in — people fill these in over time. A brand-new row only needs
+  // at least one field so an accidental click can't create an empty record.
+  const hasAnyContent = [propertyName, location, systemType, maintenanceNeeded, frequency, lastCompleted, notes].some(
+    (v) => v.trim() !== ""
+  );
+  const canSave = record ? true : hasAnyContent;
 
   // A record imported from a sheet can carry a property name that isn't
   // spelled exactly like one in Properties. Keep that value selectable so
@@ -97,6 +103,9 @@ export function EquipmentMaintenanceEditDialog({ record, open, onOpenChange }: P
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
+          <p className="text-xs text-muted-foreground">
+            Fill in what you have — every field is optional, and you can complete the rest later.
+          </p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Property</Label>
